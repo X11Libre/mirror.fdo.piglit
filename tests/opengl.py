@@ -5440,5 +5440,14 @@ with profile.test_list.group_manager(
     g(['ovr_multiview-triangle_compare', 'frag_index_uniform', 'none', 'max'], 'triangle_compare_frag_index_uniform')
     g(['ovr_multiview-triangle_compare', 'frag_index_uniform', 'none', 'max', '2'], 'triangle_compare_frag_index_uniform_base2')
 
+# Group ARB_gl_spirv
+with profile.test_list.group_manager(
+    PiglitGLTest,
+    grouptools.join('spec', 'ARB_gl_spirv')) as g:
+    g(['arb_gl_spirv-sample-position', 'OriginUpperLeft'],
+      'sample-position-upper-left')
+    g(['arb_gl_spirv-sample-position', 'OriginLowerLeft'],
+      'sample-position-lower-left')
+
 if platform.system() == 'Windows':
     profile.filters.append(lambda p, _: not p.startswith('glx'))
