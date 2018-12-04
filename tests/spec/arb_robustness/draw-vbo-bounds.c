@@ -61,11 +61,7 @@ PIGLIT_GL_TEST_CONFIG_END
 void piglit_init(int argc, char **argv)
 {
     piglit_ortho_projection(piglit_width, piglit_height, GL_FALSE);
-
     piglit_require_gl_version(15);
-
-    glShadeModel(GL_FLAT);
-    glClearColor(0.2, 0.2, 0.2, 1.0);
 }
 
 static void
@@ -76,23 +72,18 @@ random_vertices(GLsizei offset, GLsizei stride, GLsizei count)
     GLubyte *vertices;
     GLsizei i;
 
-    if (stride == 0) {
-	stride = element_size;
-    }
-
-    size = offset + (count - 1)*stride + element_size;
+    if (stride == 0)
+        stride = element_size;
 
     assert(offset % sizeof(GLfloat) == 0);
     assert(stride % sizeof(GLfloat) == 0);
 
+    size = offset + (count - 1)*stride + element_size;
+
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
-    assert(glGetError() == GL_NO_ERROR);
 
     vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     assert(vertices);
-    if (!vertices) {
-        return;
-    }
 
     for (i = 0; i < count; ++i) {
         GLfloat *vertex = (GLfloat *)(vertices + offset + i*stride);
@@ -128,8 +119,10 @@ random_ushort_indices(GLsizei offset, GLsizei count, GLuint min_index, GLuint ma
     glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 }
 
-static void test(void)
+static bool
+test_random(void)
 {
+    bool pass = true;
     GLsizei vertex_offset;
     GLsizei vertex_stride;
     GLsizei vertex_count;
@@ -184,7 +177,7 @@ static void test(void)
                         index_count,
                         GL_UNSIGNED_SHORT,
                         (const void*)(intptr_t)index_offset);
-    assert(glGetError() == GL_NO_ERROR);
+    pass = piglit_check_gl_error(GL_NO_ERROR) && pass;
 
     /* Call glFinish to prevent the draw from being batched, delaying the cpu crash / gpu crash
      * to much later. */
@@ -194,23 +187,23 @@ static void test(void)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &index_buffer);
     glDeleteBuffers(1, &vertex_buffer);
+
+    return pass;
 }
 
 enum piglit_result
 piglit_display(void)
 {
+    bool pass = true;
     unsigned i;
 
     glClear(GL_COLOR_BUFFER_BIT);
     glEnableClientState(GL_VERTEX_ARRAY);
 
     for (i = 0; i < 1000; ++i) {
-        test();
-        assert(glGetError() == GL_NO_ERROR);
+        pass = test_random() && pass;
+        pass = piglit_check_gl_error(GL_NO_ERROR) && pass;
     }
 
-    glFinish();
-
-    return PIGLIT_PASS;
+    return pass ? PIGLIT_PASS : PIGLIT_FAIL;
 }
-
