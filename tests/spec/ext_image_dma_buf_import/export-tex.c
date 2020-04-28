@@ -224,6 +224,7 @@ piglit_init(int argc, char **argv)
 	piglit_require_egl_extension(egl_dpy, "EGL_EXT_image_dma_buf_import");
 	piglit_require_egl_extension(egl_dpy, "EGL_KHR_gl_texture_2D_image");
 	piglit_require_extension("GL_OES_EGL_image_external");
+	piglit_require_extension("GL_EXT_EGL_image_storage");
 
 	printf("Testing glFinish before dmabuf export\n");
 	if (!test(egl_dpy, false))

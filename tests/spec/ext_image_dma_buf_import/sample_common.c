@@ -59,8 +59,8 @@ texture_for_egl_image(EGLImageKHR img, GLuint *out_tex)
 	glBindTexture(GL_TEXTURE_EXTERNAL_OES, tex);
 
 	/* Set the image as level zero */
-	glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES,
-			(GLeglImageOES)img);
+	glEGLImageTargetTexStorageEXT(GL_TEXTURE_EXTERNAL_OES,
+				      (GLeglImageOES)img, NULL);
 	error = glGetError();
 
 	/**
@@ -71,7 +71,7 @@ texture_for_egl_image(EGLImageKHR img, GLuint *out_tex)
 		return PIGLIT_SKIP;
 
 	if (error != GL_NO_ERROR) {
-		printf("glEGLImageTargetTexture2DOES() failed: %s 0x%x\n",
+		printf("glEGLImageTargetTexStorageEXT() failed: %s 0x%x\n",
 			piglit_get_gl_error_name(error), error);
 		return PIGLIT_FAIL;
 	}
