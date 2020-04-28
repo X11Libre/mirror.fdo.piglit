@@ -28,8 +28,11 @@
 
 #include <inttypes.h>
 
+#define PRIMARY_REFERENCE_MOD DRM_FORMAT_MOD_LINEAR
+
 #define W 257
 #define H 257
+#define MAX_PLANES 4
 
 /**
  * @file modifiers.c
@@ -41,6 +44,8 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 
 	config.supports_gl_es_version = 20;
 	config.window_visual = PIGLIT_GL_VISUAL_RGBA;
+	config.window_height = 240;
+	config.window_width = 960;
 
 PIGLIT_GL_TEST_CONFIG_END
 
@@ -310,6 +315,391 @@ get_dma_buf(uint32_t format, EGLuint64KHR modifier, bool external_only,
 	}
 }
 
+static int
+gl_cpp_for_fourcc(uint32_t format)
+{
+	switch (format) {
+	case DRM_FORMAT_R8:
+		return 1;
+	case DRM_FORMAT_R16:
+		return 2;
+	case DRM_FORMAT_XRGB8888:
+	case DRM_FORMAT_XBGR8888:
+		return 3;
+	case DRM_FORMAT_ARGB8888:
+	case DRM_FORMAT_ABGR8888:
+		return 4;
+	default:
+		fprintf(stderr, "invalid fourcc: %.4s\n", (char *)&format);
+		return 0;
+	}
+}
+
+struct view_class
+{
+	uint8_t cpp;
+	uint8_t num_formats;
+	GLenum formats[15];
+} static const fmt_views[] = {
+	{
+		.cpp = 32 / 8,
+		.num_formats = 15,
+		.formats = {
+				GL_RG16F, GL_R11F_G11F_B10F, GL_R32F,
+				GL_RGB10_A2UI, GL_RGBA8UI, GL_RG16UI,
+				GL_R32UI, GL_RGBA8I, GL_RG16I, GL_R32I,
+				GL_RGB10_A2, GL_RGBA8, GL_RGBA8_SNORM,
+				GL_SRGB8_ALPHA8, GL_RGB9_E5
+		}
+	},
+	{
+		.cpp = 24 / 8,
+		.num_formats = 5,
+		.formats = {
+				GL_RGB8UI, GL_RGB8I, GL_RGB8, GL_RGB8_SNORM,
+				GL_SRGB8
+		}
+	},
+	{
+		.cpp = 16 / 8,
+		.num_formats = 7,
+		.formats = {
+				GL_R16F, GL_RG8UI, GL_R16UI, GL_RG8I, GL_R16I,
+				GL_RG8, GL_RG8_SNORM
+		}
+	},
+	{
+		.cpp = 8 / 8,
+		.num_formats = 4,
+		.formats = {
+				GL_R8UI, GL_R8I, GL_R8, GL_R8_SNORM
+		}
+	},
+};
+
+static GLenum
+clear_color_type(GLenum format)
+{
+	switch (format) {
+	default:
+		assert(!"unhandled clear format");
+	case GL_RGBA8I:
+	case GL_RG16I:
+	case GL_R32I:
+	case GL_RG8I:
+	case GL_R16I:
+	case GL_R8I:
+		return GL_INT;
+	case GL_RGB10_A2UI:
+	case GL_RGBA8UI:
+	case GL_RG16UI:
+	case GL_R32UI:
+	case GL_RG8UI:
+	case GL_R16UI:
+	case GL_R8UI:
+		return GL_UNSIGNED_INT;
+	case GL_RG16F:
+	case GL_R11F_G11F_B10F:
+	case GL_R32F:
+	case GL_RGB10_A2:
+	case GL_SRGB8_ALPHA8:
+	case GL_RGB9_E5:
+	case GL_RGBA8:
+	case GL_RGB8:
+	case GL_RGBA8_SNORM:
+	case GL_R16F:
+	case GL_RG8:
+	case GL_RG8_SNORM:
+	case GL_R8:
+	case GL_R8_SNORM:
+		return GL_FLOAT;
+	}
+}
+
+static void
+clear_buffer(GLenum type)
+{
+	GLuint color_uint[] = {1, 1, 1, 1};
+	GLint color_int[] = {1, 1, 1, 1};
+	GLfloat color_float[] = {0.25 , 0.125, 0.0675, 0.25};
+	switch (type) {
+	case GL_INT:
+		glClearBufferiv(GL_COLOR, 0, color_int);
+		return;
+	case GL_UNSIGNED_INT:
+		glClearBufferuiv(GL_COLOR, 0, color_uint);
+		return;
+	case GL_FLOAT:
+		glClearBufferfv(GL_COLOR, 0, color_float);
+		return;
+	default:
+		assert(!"unhandled clear type");
+	}
+}
+
+static bool
+color_renderable(GLenum format)
+{
+	return format != GL_RGB9_E5 &&
+	       format != GL_RGB8UI &&
+	       format != GL_RGB8I &&
+	       format != GL_RGB8_SNORM &&
+	       format != GL_SRGB8;
+}
+
+static bool
+sample_compare(GLuint tex, GLuint tex_ref, bool external_only)
+{
+	const int piglit_width_half = piglit_width / 2;
+	sample_tex(tex, 0, 0, piglit_width_half, piglit_height,
+		   external_only);
+	sample_tex(tex_ref, piglit_width_half, 0, piglit_width_half,
+		   piglit_height, external_only);
+	return piglit_probe_rects_equal(0, 0, piglit_width_half, 0,
+					piglit_width_half, piglit_height,
+					GL_RGBA);
+}
+static bool
+wrapped_sample_compare(GLuint tex, GLuint tex_ref, GLenum format)
+{
+	return sample_compare(tex, tex_ref, false);
+}
+
+static bool
+clear_textures(GLuint tex, GLuint tex_ref, GLenum type)
+{
+	GLuint fbo;
+	glGenFramebuffers(1, &fbo);
+	glViewport(0, 0, piglit_width, piglit_height);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	GLuint textures[] = {tex, tex_ref};
+	for (int i = 0; i < ARRAY_SIZE(textures); i++) {
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+				       GL_TEXTURE_2D, textures[i], 0);
+		clear_buffer(type);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, piglit_winsys_fbo);
+	glDeleteFramebuffers(1, &fbo);
+	return sample_compare(tex, tex_ref, false);
+}
+
+static bool
+wrapped_clear_textures(GLuint tex, GLuint tex_ref, GLenum format)
+{
+	GLenum type = clear_color_type(format);
+	return clear_textures(tex, tex_ref, type);
+}
+
+static enum piglit_result
+test_export(EGLImageKHR img, struct dma_buf_info *buf,
+	    int format, EGLuint64KHR modifier)
+{
+	/* Export the buffer and query properties. */
+	int prop_fourcc = -1;
+	int num_planes = -1;
+
+	/* Query the image properties, verify fourcc and num planes. */
+	EGLDisplay egl_dpy = eglGetCurrentDisplay();
+	if (!dmabuf_query(egl_dpy, img, &prop_fourcc, &num_planes, NULL)) {
+		fprintf(stderr, "export dmabuf image query failed!\n");
+		return PIGLIT_FAIL;
+	}
+
+	if (!piglit_check_egl_error(EGL_SUCCESS)) {
+		fprintf(stderr, "image export failed!\n");
+		return PIGLIT_FAIL;
+	}
+
+	if (prop_fourcc != format) {
+		fprintf(stderr,
+			"fourcc mismatch, got %.4s expected %.4s\n",
+			(char *)&prop_fourcc, (char *)&format);
+		return PIGLIT_FAIL;
+	}
+
+	if (num_planes != buf->n_planes) {
+		fprintf(stderr, "planes mismatch, got %d expected %d\n",
+			num_planes, buf->n_planes);
+		return PIGLIT_FAIL;
+	}
+
+
+	/* Export the image, verify success. */
+	EGLint strides[MAX_PLANES] = {0,};
+	EGLint offsets[MAX_PLANES] = {0,};
+	if (!dmabuf_export(egl_dpy, img, NULL, strides, offsets)) {
+		fprintf(stderr, "image export failed!\n");
+		return PIGLIT_FAIL;
+	}
+
+	if (!piglit_check_egl_error(EGL_SUCCESS)) {
+		fprintf(stderr, "image export failed!\n");
+		return PIGLIT_FAIL;
+	}
+
+	/* Check if we got an expected stride and offset for each plane.
+	 * The export spec doesn't require that the output stride and offset
+	 * match the input, so don't fail if they're different. At this time
+	 * though, drivers are expected to return the same values.
+	 */
+	for (uint32_t i = 0; i < num_planes; i++) {
+		if (strides[i] != buf->stride[i] ||
+		    offsets[i] != buf->offset[i]) {
+			fprintf(stderr, "suspect data from driver: "
+				"stride %d (expected %d)  "
+				"offset %d (expected %d)\n",
+				strides[i], buf->stride[i], offsets[i],
+				buf->offset[i]);
+
+			/* TODO - propagate this warning up the stack (?) */
+
+			return PIGLIT_WARN;
+		}
+	}
+
+	return PIGLIT_PASS;
+}
+
+bool (*view_fn)(GLuint tex, GLuint tex_ref, GLenum format);
+
+static bool
+test_views(bool (*view_fn)(GLuint tex, GLuint tex_ref, GLenum format),
+	   unsigned cpp, GLuint tex, GLuint tex_ref, bool render_test)
+{
+	for (int i = 0; i < ARRAY_SIZE(fmt_views); i++) {
+		if (fmt_views[i].cpp != cpp)
+			continue;
+		for (int j = 0; j < fmt_views[i].num_formats; j++) {
+			const GLenum format = fmt_views[i].formats[j];
+			if (render_test && !color_renderable(format))
+				continue;
+
+			/* Create the texture views. */
+			GLuint view, view_ref;
+			glGenTextures(1, &view);
+			glGenTextures(1, &view_ref);
+			glTextureViewOES(view, GL_TEXTURE_2D, tex,
+					 format, 0, 1, 0, 1);
+			glTextureViewOES(view_ref, GL_TEXTURE_2D, tex_ref,
+					 format, 0, 1, 0, 1);
+
+			/* Run the view test. */
+			const bool pass = view_fn(view, view_ref, format);
+
+			glDeleteTextures(1, &view);
+			glDeleteTextures(1, &view_ref);
+
+			if (!pass)
+				return false;
+		}
+	}
+
+	return true;
+}
+
+static bool
+test_gl_advanced(GLuint tex, GLuint tex_ref, int fourcc)
+{
+	const unsigned cpp = gl_cpp_for_fourcc(fourcc);
+
+	/* Attempt various operations using the original texture or a
+	 * textureview from the corresponding view class.
+	 */
+	piglit_logd("Testing view sampling");
+	if (!test_views(wrapped_sample_compare, cpp, tex, tex_ref, false))
+		return false;
+
+	/* DRI formats are non-integer, clear with floating point values. */
+	piglit_logd("Testing clears");
+	if (!clear_textures(tex, tex_ref, GL_FLOAT))
+		return false;
+
+	piglit_logd("Testing view clears");
+	if (!test_views(wrapped_clear_textures, cpp, tex, tex_ref, true))
+		return false;
+
+	return true;
+}
+
+static enum piglit_result
+stress_test(uint32_t format, EGLuint64KHR reference_modifier,
+	    EGLuint64KHR modifier, EGLBoolean external_only, bool autogen)
+{
+	GLuint tex = 0;
+	GLuint tex_ref = 0;
+	EGLImageKHR img = EGL_NO_IMAGE_KHR;
+	EGLImageKHR img_ref = EGL_NO_IMAGE_KHR;
+	struct dma_buf_info buf = { .fd = -1 };
+	struct dma_buf_info buf_ref = { .fd = -1 };
+	enum piglit_result res = PIGLIT_SKIP;
+
+	/* Create dma_buf_info structs. */
+	if (!get_dma_buf(format, modifier, external_only, &buf, autogen)) {
+		piglit_logd("No data found");
+		return PIGLIT_SKIP;
+	}
+
+	if (!get_dma_buf(format, reference_modifier, external_only,
+			  &buf_ref, autogen)) {
+		piglit_logd("No data found");
+		goto destroy;
+	}
+
+	/* Perform EGL testing */
+	piglit_logd("Testing import");
+	res = egl_image_for_dma_buf_fd_mod(&buf, format, &img, modifier);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	res = egl_image_for_dma_buf_fd_mod(&buf_ref, format, &img_ref,
+					   reference_modifier);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	piglit_logd("Testing export");
+	res = test_export(img, &buf, format, modifier);
+	if (res == PIGLIT_FAIL)
+		goto destroy;
+
+	/* Create textures */
+	res = texture_for_egl_image(img, &tex, external_only);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	res = texture_for_egl_image(img_ref, &tex_ref, external_only);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	/* Perform GL testing */
+	piglit_logd("Testing sampling");
+	if (!sample_compare(tex, tex_ref, external_only)) {
+		res = PIGLIT_FAIL;
+		goto destroy;
+	}
+
+	if (!external_only && !test_gl_advanced(tex, tex_ref, format)) {
+		res = PIGLIT_FAIL;
+		goto destroy;
+	}
+
+destroy:
+	delete_tex(&tex);
+	delete_tex(&tex_ref);
+	destroy_img(&img);
+	destroy_img(&img_ref);
+	close(buf.fd);
+	close(buf_ref.fd);
+
+	if (res == PIGLIT_FAIL)
+		piglit_present_results();
+
+	return res;
+}
+
 static enum piglit_result
 modifier_test(uint32_t format, EGLuint64KHR modifier, bool external_only,
 	      bool autogen)
@@ -437,6 +827,14 @@ piglit_display(void)
 				report_result(r, fmt, modifiers[j],
 					      autogen[g], "modifiers_test");
 				piglit_merge_result(&result, r);
+
+				r = stress_test(fmt, PRIMARY_REFERENCE_MOD,
+						modifiers[j],
+						external_only[j],
+						autogen[g]);
+				report_result(r, fmt, modifiers[j],
+					      autogen[g], "stress_test");
+				piglit_merge_result(&result, r);
 			}
 		}
         }
@@ -454,6 +852,7 @@ piglit_init(int argc, char **argv)
 	piglit_require_egl_extension(
 			egl_dpy, "EGL_MESA_image_dma_buf_export");
 	piglit_require_extension("GL_EXT_EGL_image_storage");
+	piglit_require_extension("GL_OES_texture_view");
 
 	dmabuf_query =
 		(PFNEGLEXPORTDMABUFIMAGEQUERYMESAPROC) eglGetProcAddress(
