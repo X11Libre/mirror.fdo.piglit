@@ -626,6 +626,104 @@ test_gl_advanced(GLuint tex, GLuint tex_ref, int fourcc)
 }
 
 static enum piglit_result
+clear_reimport(uint32_t format, EGLuint64KHR reference_modifier,
+	       EGLuint64KHR modifier, EGLBoolean external_only, bool autogen)
+{
+	GLuint tex = 0;
+	GLuint tex_ref = 0;
+	EGLImageKHR img = EGL_NO_IMAGE_KHR;
+	EGLImageKHR img_ref = EGL_NO_IMAGE_KHR;
+	struct dma_buf_info buf = { .fd = -1 };
+	struct dma_buf_info buf_ref = { .fd = -1 };
+	enum piglit_result res = PIGLIT_SKIP;
+
+	if (external_only) {
+		piglit_logd("External only format + modifier");
+		return PIGLIT_SKIP;
+	}
+
+	/* Create dma_buf_info. */
+	if (!get_dma_buf(format, modifier, external_only, &buf, autogen)) {
+		piglit_logd("No data found");
+		return PIGLIT_SKIP;
+	}
+
+	/* Create reference dma_buf_info. */
+	if (!get_dma_buf(format, reference_modifier, external_only,
+			  &buf_ref, autogen)) {
+		piglit_logd("No data found");
+		goto destroy;
+	}
+
+	/* Perform EGL testing */
+	piglit_logd("Testing import");
+	res = egl_image_for_dma_buf_fd_mod(&buf, format, &img, modifier);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	res = egl_image_for_dma_buf_fd_mod(&buf_ref, format, &img_ref,
+					   reference_modifier);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	/* Create textures */
+	res = texture_for_egl_image(img, &tex, external_only);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	res = texture_for_egl_image(img_ref, &tex_ref, external_only);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	piglit_logd("Testing clear, reimport, sample");
+	if (!clear_textures(tex, tex_ref, GL_FLOAT)) {
+		res = PIGLIT_FAIL;
+		goto destroy;
+	}
+
+	glFinish();
+	delete_tex(&tex);
+	delete_tex(&tex_ref);
+	destroy_img(&img);
+	destroy_img(&img_ref);
+
+	res = egl_image_for_dma_buf_fd_mod(&buf, format, &img, modifier);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	res = egl_image_for_dma_buf_fd_mod(&buf_ref, format, &img_ref,
+					   reference_modifier);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	res = texture_for_egl_image(img, &tex, external_only);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	res = texture_for_egl_image(img_ref, &tex_ref, external_only);
+	if (res != PIGLIT_PASS)
+		goto destroy;
+
+	if (!sample_compare(tex, tex_ref, external_only)) {
+		res = PIGLIT_FAIL;
+		goto destroy;
+	}
+
+destroy:
+	delete_tex(&tex);
+	delete_tex(&tex_ref);
+	destroy_img(&img);
+	destroy_img(&img_ref);
+	close(buf.fd);
+	close(buf_ref.fd);
+
+	if (res == PIGLIT_FAIL)
+		piglit_present_results();
+
+	return res;
+}
+
+static enum piglit_result
 stress_test(uint32_t format, EGLuint64KHR reference_modifier,
 	    EGLuint64KHR modifier, EGLBoolean external_only, bool autogen)
 {
@@ -834,6 +932,14 @@ piglit_display(void)
 						autogen[g]);
 				report_result(r, fmt, modifiers[j],
 					      autogen[g], "stress_test");
+				piglit_merge_result(&result, r);
+
+				r = clear_reimport(fmt, PRIMARY_REFERENCE_MOD,
+						   modifiers[j],
+						   external_only[j],
+						   autogen[g]);
+				report_result(r, fmt, modifiers[j],
+					      autogen[g], "clear_reimport");
 				piglit_merge_result(&result, r);
 			}
 		}
