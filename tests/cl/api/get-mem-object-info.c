@@ -115,7 +115,7 @@ test(int n,
 	if (param_value_size != sizeof(_type_)) { \
 		fprintf(stderr, \
 		        "Buffer %d, failed: the returned size doesn't match. Expected %lu, got %lu\n", \
-		        n, sizeof(_type_), param_value_size); \
+		        n, (unsigned long) sizeof(_type_), (unsigned long) param_value_size); \
 		return PIGLIT_FAIL; \
 	}
 

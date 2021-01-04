@@ -31,6 +31,7 @@
  * - asynchronous result, retrieve result to client memory before & after
  */
 
+#include <inttypes.h>
 #include "common.h"
 
 PIGLIT_GL_TEST_CONFIG_BEGIN
@@ -182,7 +183,7 @@ run_subtest(void)
 
 		printf("Expected: %u\n", expected);
 		if (have_cpu_result)
-			printf("CPU result: %lu\n", cpu_result);
+			printf("CPU result: %"PRIu64"\n", cpu_result);
 		printf("QBO: %u %u %u %u\n", ptr[0], ptr[1], ptr[2], ptr[3]);
 		glUnmapBuffer(GL_QUERY_BUFFER);
 

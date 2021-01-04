@@ -146,7 +146,7 @@ bool piglit_cl_probe_double(double value, double expect, uint64_t ulp)
 	diff = fabs(value - expect);
 
 	if(diff > tolerance || isnan(value)) {
-		printf("Expecting %f (0x%" PRIx64") with tolerance %f (%lu ulps), but got %f (0x%" PRIx64")\n",
+		printf("Expecting %f (0x%" PRIx64") with tolerance %f (%" PRIu64"), but got %f (0x%" PRIx64")\n",
 		       e.f, e.u, tolerance, ulp, v.f, v.u);
 		return false;
 	}
@@ -218,7 +218,7 @@ piglit_cl_get_platform_version(cl_platform_id platform)
 	int scanf_count;
 	int major;
 	int minor;
-	
+
 	/*
 	 * Returned format:
 	 *   OpenCL<space><major_version.minor_version><space><platform-specific information>
@@ -409,7 +409,7 @@ piglit_cl_get_info(void* fn_ptr, void* obj, cl_uint param)
 
 	if(errNo == CL_SUCCESS) {
 		param_ptr = calloc(param_size, sizeof(char));
-		
+
 		/* retrieve param */
 		if(fn_ptr == clGetPlatformInfo) {
 			errNo = clGetPlatformInfo(*(cl_platform_id*)obj, param,
@@ -519,7 +519,7 @@ piglit_cl_get_program_build_info(cl_program program, cl_device_id device,
 		.program = program,
 		.device = device
 	};
-	
+
 	return piglit_cl_get_info(clGetProgramBuildInfo, &args, param);
 }
 
@@ -535,7 +535,7 @@ piglit_cl_get_kernel_work_group_info(cl_kernel kernel, cl_device_id device,
 		.kernel = kernel,
 		.device = device
 	};
-	
+
 	return piglit_cl_get_info(clGetKernelWorkGroupInfo, &args, param);
 }
 
@@ -676,7 +676,7 @@ piglit_cl_get_device_ids(cl_platform_id platform_id, cl_device_type device_type,
 				        piglit_cl_get_error_name(errNo));
 				return 0;
 			}
-		
+
 			/* get device list */
 			if(device_ids != NULL && num_device_ids > 0) {
 				*device_ids = malloc(num_device_ids * sizeof(cl_device_id));
@@ -817,7 +817,7 @@ piglit_cl_build_program_with_source_extended(piglit_cl_context context,
 		        piglit_cl_get_error_name(errNo));
 		return NULL;
 	}
-	
+
 	errNo = clBuildProgram(program,
 	                       context->num_devices,
 	                       context->device_ids,
@@ -844,7 +844,7 @@ piglit_cl_build_program_with_source_extended(piglit_cl_context context,
 			char* log = piglit_cl_get_program_build_info(program,
 			                                             context->device_ids[i],
 			                                             CL_PROGRAM_BUILD_LOG);
-			
+
 			printf("Build log for device %s:\n -------- \n%s\n -------- \n",
 			       device_name,
 			       log);
@@ -904,11 +904,11 @@ piglit_cl_build_program_with_binary_extended(piglit_cl_context context,
 		for(i = 0; i < context->num_devices; i++) {
 			char* device_name = piglit_cl_get_device_info(context->device_ids[i],
 			                                              CL_DEVICE_NAME);
-			
+
 			printf("Error for %s: %s\n",
 			       device_name,
 			       piglit_cl_get_error_name(binary_status[i]));
-			
+
 			free(device_name);
 		}
 
@@ -916,7 +916,7 @@ piglit_cl_build_program_with_binary_extended(piglit_cl_context context,
 		return NULL;
 	}
 	free(binary_status);
-	
+
 	errNo = clBuildProgram(program,
 	                       context->num_devices,
 	                       context->device_ids,
@@ -940,11 +940,11 @@ piglit_cl_build_program_with_binary_extended(piglit_cl_context context,
 			char* log = piglit_cl_get_program_build_info(program,
 			                                             context->device_ids[i],
 			                                             CL_PROGRAM_BUILD_LOG);
-			
+
 			printf("Build log for device %s:\n -------- \n%s\n -------- \n",
 			       device_name,
 			       log);
-			
+
 			free(device_name);
 			free(log);
 		}

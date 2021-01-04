@@ -33,6 +33,9 @@
  */
 
 #include "piglit-util-gl.h"
+#ifndef _WIN32
+#include <endian.h>
+#endif
 
 #ifdef HAVE_ENDIAN_H
 #include <endian.h>

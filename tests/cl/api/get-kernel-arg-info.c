@@ -159,7 +159,7 @@ piglit_cl_test(const int argc,
 		if (ret_value_size != expected_size) {
 			fprintf(stderr,
 			        "Failed: the returned size doesn't matches. Expected %lu, got %lu\n",
-			        expected_size, ret_value_size);
+			        (unsigned long) expected_size, (unsigned long) ret_value_size);
 		piglit_merge_result(&result, PIGLIT_FAIL);
 		}
 

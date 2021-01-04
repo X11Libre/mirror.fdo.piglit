@@ -226,7 +226,7 @@ piglit_init(int argc, char **argv)
 	glGetProgramiv(prog, GL_ACTIVE_UNIFORMS, &numUniforms);
 	if (numUniforms != ARRAY_SIZE(uniforms)) {
 		printf("Unexpected number of uniforms (found %d, expected "
-		       "%lu)\n", numUniforms, ARRAY_SIZE(uniforms));
+		       "%zu)\n", numUniforms, ARRAY_SIZE(uniforms));
 	}
 
 	/* check the types of the active uniforms and check which ones got

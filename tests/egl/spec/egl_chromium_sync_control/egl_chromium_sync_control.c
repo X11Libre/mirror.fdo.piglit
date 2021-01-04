@@ -139,7 +139,7 @@ test_eglGetSyncValuesCHROMIUM_ust_test(struct egl_state *state)
 
 	if (ust > ust2 || ust > ust3 || ust2 > ust3) {
 		piglit_loge("eglGetSyncValuesCHROMIUM UST is not monotonically increasing");
-		piglit_loge("UST values 0.032 seconds apart: %lu %lu %lu",
+		piglit_loge("UST values 0.032 seconds apart: %"PRIu64" %"PRIu64" %"PRIu64,
 				ust, ust2, ust3);
 		return PIGLIT_FAIL;
 	}
@@ -206,15 +206,15 @@ test_eglGetSyncValuesCHROMIUM_msc_and_sbc_test(struct egl_state *state)
 		return PIGLIT_FAIL;
 	}
 	if (sbc2 == sbc) {
-		piglit_loge("SBC did not change after second SwapBuffers: %lu", sbc);
+		piglit_loge("SBC did not change after second SwapBuffers: %"PRIu64, sbc);
 		return PIGLIT_FAIL;
 	}
 	if (min_swap_interval > 0 && msc == msc2) {
-		piglit_loge("MSC did not change after second SwapBuffers: %lu", msc);
+		piglit_loge("MSC did not change after second SwapBuffers: %"PRIu64, msc);
 		return PIGLIT_FAIL;
 	}
 	if (sbc2 > (sbc + 2)) {
-		piglit_loge("SBC increased by more than two after second SwapBuffers: %lu (before) %lu (after)", sbc, sbc2);
+		piglit_loge("SBC increased by more than two after second SwapBuffers: %"PRIu64" (before) %"PRIu64" (after)", sbc, sbc2);
 		return PIGLIT_FAIL;
 	}
 	return PIGLIT_PASS;

@@ -1177,7 +1177,7 @@ test_eglCreateSyncKHR_with_display_bound_in_other_thread(void *test_data)
 
 	err = pthread_join(thread2, (void**) &t2_result);
 	if (err) {
-		piglit_loge("failed to join thread %"PRIuMAX, (uintmax_t) thread2);
+		piglit_loge("failed to join thread %"PRIuPTR, (uintptr_t) thread2);
 		result = PIGLIT_FAIL;
 		goto cleanup;
 	}
@@ -1193,8 +1193,8 @@ test_eglCreateSyncKHR_with_display_bound_in_other_thread(void *test_data)
 		else
 			piglit_merge_result(&result, *t2_result);
 	} else {
-		piglit_loge("thread %"PRIuMAX" returned no piglit_result",
-			    (uintmax_t) thread2);
+		piglit_loge("thread %"PRIuPTR" returned no piglit_result",
+			    (uintptr_t) thread2);
 		result = PIGLIT_FAIL;
 	}
 

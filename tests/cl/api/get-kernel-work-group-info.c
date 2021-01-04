@@ -53,7 +53,7 @@ static bool
 check_size(size_t expected_size, size_t actual_size, enum piglit_result *result) {
 	if (expected_size != actual_size) {
 		printf(": failed, expected and actual size differ. Expect %lu, got %lu",
-		       expected_size, actual_size);
+		       (unsigned long) expected_size, (unsigned long) actual_size);
 		piglit_merge_result(result, PIGLIT_FAIL);
 		return false;
 	}

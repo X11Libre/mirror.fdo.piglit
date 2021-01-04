@@ -21,9 +21,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <ctype.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "piglit-util.h"
 #include "piglit-util-gl.h"
@@ -4156,8 +4157,8 @@ probe_ssbo_uint64(GLint ssbo_index, GLint ssbo_offset, const char *op, uint64_t 
 	if (!result) {
 		printf("SSBO %d test failed: Reference %s Observed\n",
 		       ssbo_offset, comparison_string(cmp));
-		printf("  Reference: %lu\n", value);
-		printf("  Observed:  %lu\n", observed);
+		printf("  Reference: %"PRIu64"\n", value);
+		printf("  Observed:  %"PRIu64"\n", observed);
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		return false;
 	}
@@ -4228,8 +4229,8 @@ probe_ssbo_int64(GLint ssbo_index, GLint ssbo_offset, const char *op, int64_t va
 	if (!result) {
 		printf("SSBO %d test failed: Reference %s Observed\n",
 		       ssbo_offset, comparison_string(cmp));
-		printf("  Reference: %ld\n", value);
-		printf("  Observed:  %ld\n", observed);
+		printf("  Reference: %"PRId64"\n", value);
+		printf("  Observed:  %"PRId64"\n", observed);
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		return false;
 	}
@@ -4910,7 +4911,7 @@ piglit_display(void)
 				  &x, &y, s, &z) == 4) {
 			if (!probe_ssbo_uint(x, y, s, z))
 				result = PIGLIT_FAIL;
-		} else if (sscanf(line, "probe ssbo uint64 %d %d %s %lu",
+		} else if (sscanf(line, "probe ssbo uint64 %d %d %s %"PRIu64,
 				  &x, &y, s, &luz) == 4) {
 			if (!probe_ssbo_uint64(x, y, s, luz))
 				result = PIGLIT_FAIL;
@@ -4918,7 +4919,7 @@ piglit_display(void)
 				  &x, &y, s, &z) == 4) {
 			if (!probe_ssbo_int(x, y, s, z))
 				result = PIGLIT_FAIL;
-		} else if (sscanf(line, "probe ssbo int64 %d %d %s %ld",
+		} else if (sscanf(line, "probe ssbo int64 %d %d %s %"PRId64,
 				  &x, &y, s, &lz) == 4) {
 			if (!probe_ssbo_int64(x, y, s, lz))
 				result = PIGLIT_FAIL;
@@ -5091,11 +5092,11 @@ piglit_display(void)
 			parse_doubles(s, &d[0], 1, NULL);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo[x]);
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER, y, sizeof(double), &d[0]);
-		} else if (sscanf(line, "ssbo %d subdata int64 %ld %s", &x, &ly, s) == 3) {
+		} else if (sscanf(line, "ssbo %d subdata int64 %"PRId64" %s", &x, &ly, s) == 3) {
 			parse_int64s(s, &lz, 1, NULL);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo[x]);
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER, ly, sizeof(int64_t), &lz);
-		} else if (sscanf(line, "ssbo %d subdata uint64 %lu %s", &x, &luy, s) == 3) {
+		} else if (sscanf(line, "ssbo %d subdata uint64 %"PRIu64" %s", &x, &luy, s) == 3) {
 			parse_uint64s(s, &luz, 1, NULL);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo[x]);
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER, luy, sizeof(uint64_t), &luz);

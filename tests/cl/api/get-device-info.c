@@ -58,7 +58,7 @@ static bool
 check_size(size_t expected_size, size_t actual_size, enum piglit_result *result) {
 	if (expected_size != actual_size) {
 		printf(": failed, expected and actual size differ. Expect %lu, got %lu",
-		       expected_size, actual_size);
+		       (unsigned long) expected_size, (unsigned long) actual_size);
 		piglit_merge_result(result, PIGLIT_FAIL);
 		return false;
 	}
@@ -119,7 +119,7 @@ check_sub_string(char* expected_sub, char* actual_value, enum piglit_result *res
 static bool
 check_min_int(size_t expected, size_t actual_value, enum piglit_result *result) {
 	if (actual_value < expected) {
-		printf(": failed, expected at least %lu, got %lu ", expected, actual_value);
+		printf(": failed, expected at least %lu, got %lu ", (unsigned long) expected, (unsigned long) actual_value);
 		piglit_merge_result(result, PIGLIT_FAIL);
 		return false;
 	}
@@ -130,7 +130,7 @@ check_min_int(size_t expected, size_t actual_value, enum piglit_result *result) 
 static bool
 check_max_int(size_t expected, size_t actual_value, enum piglit_result *result) {
 	if (actual_value > expected) {
-		printf(": failed, expected at most %lu, got %lu ", expected, actual_value);
+		printf(": failed, expected at most %lu, got %lu ", (unsigned long) expected, (unsigned long) actual_value);
 		piglit_merge_result(result, PIGLIT_FAIL);
 		return false;
 	}
@@ -558,7 +558,7 @@ check_info(const struct piglit_cl_api_test_env* env,
 		case CL_DEVICE_PARTITION_PROPERTIES:
 			if (param_value_size < sizeof(cl_device_partition_property)) {
 				printf(": failed, expected and actual size differ. Expect >=%lu, got %lu",
-				       sizeof(cl_device_partition_property), param_value_size);
+				       (unsigned long) sizeof(cl_device_partition_property), (unsigned long) param_value_size);
 				piglit_merge_result(result, PIGLIT_FAIL);
 			} else {
 				// TODO this a array of cl_device_partition_property
@@ -594,7 +594,7 @@ check_info(const struct piglit_cl_api_test_env* env,
 			if (param_value_size) {
 				if (param_value_size < sizeof(cl_device_affinity_domain)) {
 					printf(": failed, expected and actual size differ. Expect >=%lu, got %lu",
-					       sizeof(cl_device_affinity_domain), param_value_size);
+					       (unsigned long) sizeof(cl_device_affinity_domain), (unsigned long) param_value_size);
 					piglit_merge_result(result, PIGLIT_FAIL);
 				} else {
 					printf(": %lx", *(cl_device_affinity_domain*)param_value);
