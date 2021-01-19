@@ -64,7 +64,10 @@ def main():
     else:
         existing = []
 
-    if sorted(files) != sorted(existing):
+    # Make sure our generated list is reproducible, regardless of FS behavior.
+    files.sort()
+
+    if files != existing:
         with io.open(args.output, 'wt', encoding='utf-8') as f:
             for filename in files:
                 f.write(filename)
