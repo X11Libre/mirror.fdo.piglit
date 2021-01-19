@@ -293,7 +293,7 @@ class Filters(collections.abc.MutableSequence):
             if hasattr(f, 'reset'):
                 f.reset()
 
-        for k, v in iterable:
+        for k, v in sorted(iterable):
             if all(f(k, v) for f in self.__container):
                 yield k, v
 
