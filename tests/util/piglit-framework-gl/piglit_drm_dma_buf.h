@@ -28,6 +28,7 @@
 struct piglit_dma_buf {
 	unsigned w;
 	unsigned h;
+	unsigned n_planes;
 	unsigned offset[3];
 	unsigned stride[3];
 	int fd;

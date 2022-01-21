@@ -132,6 +132,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 	unsigned cpp = 0, src_stride;
 	unsigned buf_w = w;
 	unsigned buf_h = h;
+	unsigned n_planes = 0;
 
 	if (!gbm || h % 2 || w % 2)
 		return false;
@@ -141,6 +142,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		format = GBM_FORMAT_R8;
 		cpp = 1;
 		src_stride = cpp * w;
+		n_planes = 1;
 		break;
 	case DRM_FORMAT_GR88:
 	case DRM_FORMAT_RG88:
@@ -151,6 +153,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		format = GBM_FORMAT_GR88;
 		cpp = 2;
 		src_stride = cpp * w;
+		n_planes = 1;
 		break;
 	case DRM_FORMAT_XRGB8888:
 	case DRM_FORMAT_XBGR8888:
@@ -165,11 +168,13 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		format = GBM_BO_FORMAT_ARGB8888;
 		cpp = 4;
 		src_stride = cpp * w;
+		n_planes = 1;
 		break;
 	case DRM_FORMAT_Y410:
 		format = GBM_FORMAT_ABGR2101010;
 		cpp = 4;
 		src_stride = cpp * w;
+		n_planes = 1;
 		break;
 	case DRM_FORMAT_Y412:
 	case DRM_FORMAT_Y416:
@@ -177,6 +182,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		buf_w = w * 2;
 		cpp = 8;
 		src_stride = cpp * w;
+		n_planes = 1;
 		break;
 	case DRM_FORMAT_Y210:
 	case DRM_FORMAT_Y212:
@@ -184,6 +190,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		format = GBM_BO_FORMAT_ARGB8888;
 		cpp = 4;
 		src_stride = cpp * w;
+		n_planes = 1;
 		break;
 
 	/* For YUV formats, the U/V planes might have a greater relative
@@ -204,6 +211,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		buf_h = h * 3 / 2;
 		src_stride = w;
 		cpp = 1;
+		n_planes = 2;
 		break;
 	case DRM_FORMAT_P010:
 	case DRM_FORMAT_P012:
@@ -212,6 +220,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		buf_h = h * 3 / 2;
 		cpp = 2;
 		src_stride = cpp * w;
+		n_planes = 2;
 		break;
 	case DRM_FORMAT_YUV420:
 	case DRM_FORMAT_YVU420:
@@ -220,6 +229,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		buf_h = h * 2;    /* U/V not interleaved */
 		src_stride = w;
 		cpp = 1;
+		n_planes = 3;
 		break;
 	default:
 		fprintf(stderr, "invalid fourcc: %.4s\n", (char *)&fourcc);
@@ -241,6 +251,7 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 
 	buf->w = w;
 	buf->h = h;
+	buf->n_planes = n_planes;
 	buf->offset[0] = gbm_bo_get_offset(bo, 0);
 	buf->stride[0] = gbm_bo_get_stride_for_plane(bo, 0);
 	buf->fd = -1;
