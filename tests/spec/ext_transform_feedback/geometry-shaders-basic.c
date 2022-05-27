@@ -41,6 +41,7 @@
 #include "piglit-util-gl.h"
 
 #define GEOM_OUT_VERTS 10
+#define DRAW_COUNT 10
 
 PIGLIT_GL_TEST_CONFIG_BEGIN
 	config.supports_gl_compat_version = 32;
@@ -114,9 +115,9 @@ piglit_init(int argc, char **argv)
 	glGenBuffers(1, &xfb_buf);
 	glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, xfb_buf);
 	glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER,
-		     GEOM_OUT_VERTS * sizeof(GLint), NULL, GL_STREAM_READ);
+		     DRAW_COUNT * GEOM_OUT_VERTS * sizeof(GLint), NULL, GL_STREAM_READ);
 	glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, xfb_buf, 0,
-			  GEOM_OUT_VERTS * sizeof(GLint));
+			  DRAW_COUNT * GEOM_OUT_VERTS * sizeof(GLint));
 
 	/* Setup queries */
 	glGenQueries(1, &generated_query);
@@ -126,21 +127,25 @@ piglit_init(int argc, char **argv)
 
 	/* Do drawing */
 	glBeginTransformFeedback(GL_POINTS);
-	glDrawArrays(GL_POINTS, 0, 1);
+	for (i = 0; i < DRAW_COUNT; i++) {
+		glDrawArrays(GL_POINTS, 0, 1);
+		glPauseTransformFeedback();
+		glResumeTransformFeedback();
+	}
 	glEndTransformFeedback();
 
 	/* Check query results */
 	glEndQuery(GL_PRIMITIVES_GENERATED);
 	glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
 	glGetQueryObjectuiv(generated_query, GL_QUERY_RESULT, &query_result);
-	if (query_result != GEOM_OUT_VERTS) {
+	if (query_result != DRAW_COUNT * GEOM_OUT_VERTS) {
 		printf("GL_PRIMITIVES_GENERATED query failed."
 		       "  Expected %d, got %d.\n", GEOM_OUT_VERTS,
 		       query_result);
 		pass = false;
 	}
 	glGetQueryObjectuiv(written_query, GL_QUERY_RESULT, &query_result);
-	if (query_result != GEOM_OUT_VERTS) {
+	if (query_result != DRAW_COUNT * GEOM_OUT_VERTS) {
 		printf("GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN query failed."
 		       "  Expected %d, got %d.\n", GEOM_OUT_VERTS,
 		       query_result);
@@ -149,10 +154,12 @@ piglit_init(int argc, char **argv)
 
 	/* Check transform feedback data */
 	readback = glMapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, GL_READ_ONLY);
-	for (i = 0; i < GEOM_OUT_VERTS; i++) {
-		if (readback[i] != i) {
+	for (i = 0; i < DRAW_COUNT * GEOM_OUT_VERTS; i++) {
+		GLint expected = i % DRAW_COUNT;
+		GLint got = readback[i];
+		if (got != expected) {
 			printf("Incorrect data for vertex %d."
-			       "  Expected %d, got %d.", i, i, readback[i]);
+			       "  Expected %d, got %d.", i, expected, got);
 			pass = false;
 		}
 	}
