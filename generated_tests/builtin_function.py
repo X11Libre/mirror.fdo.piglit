@@ -67,6 +67,9 @@ FLOATING_TYPES = (float, np.float64, np.float32)
 INT32_TYPES = tuple(set([np.int32, type(np.abs(np.int32(1)))]))
 UINT32_TYPES = tuple(set([np.uint32,
                           type(np.dot(np.uint32(0), np.uint32(0)))]))
+INT64_TYPES = tuple(set([np.int64, type(np.abs(np.int64(1)))]))
+UINT64_TYPES = tuple(set([np.uint64,
+                          type(np.dot(np.uint64(0), np.uint64(0)))]))
 
 
 @functools.total_ordering
@@ -407,21 +410,17 @@ def _lshift(x, y):
     base = glsl_type_of(x).base_type
     if base in (glsl_int64_t, glsl_uint64_t):
         bits = 64
-        shift_type = glsl_int if base == glsl_int64_t else glsl_uint
     else:
         bits = 32
-        shift_type = base
     if not all(0 <= y_element < bits for y_element in column_major_values(y)):
         # Shifts by less than 0 or more than the number of bits in the
         # type being shifted are undefined.
         return None
-    # When the arguments to << don't have the same signedness, numpy
-    # likes to promote them to int64.  To avoid this, convert y to be
-    # the same type as x.
-    y_orig = y
-    if glsl_type_of(y).base_type != shift_type:
-        y = _change_signedness(y)
-    result = x << y
+
+    # Once we're sure that y is non-negative and small enough to fit
+    # any integer type, we can convert it to the same type as x, so
+    # the result will always be of the same type.
+    result = x << _change_int_base_type(y, x.dtype)
 
     # Shifting should always produce a result with the same base type
     # as the left argument.
@@ -442,13 +441,11 @@ def _rshift(x, y):
         # Shifts by less than 0 or more than the number of bits in the
         # type being shifted are undefined.
         return None
-    # When the arguments to >> don't have the same signedness, numpy
-    # likes to promote them to int64.  To avoid this, convert y to be
-    # the same type as x.
-    y_orig = y
-    if glsl_type_of(y).base_type != shift_type:
-        y = _change_signedness(y)
-    result = x >> y
+
+    # Once we're sure that y is non-negative and small enough to fit
+    # any integer type, we can convert it to the same type as x, so
+    # the result will always be of the same type.
+    result = x >> _change_int_base_type(y, x.dtype)
 
     # Shifting should always produce a result with the same base type
     # as the left argument.
@@ -531,19 +528,14 @@ def _refract(I, N, eta):
         return eta*I-(eta*np.dot(N, I)+np.sqrt(k))*N
 
 
-def _change_signedness(x):
-    """Change signed integer types to unsigned integer types and vice
-    versa."""
-    if isinstance(x, INT32_TYPES):
-        return np.uint32(x)
-    elif isinstance(x, UINT32_TYPES):
-        return np.int32(x)
-    elif isinstance(x, np.ndarray):
-        if (x.dtype in INT32_TYPES):
-            return np.array(x, dtype=np.uint32)
-        elif (x.dtype in UINT32_TYPES):
-            return np.array(x, dtype=np.int32)
-    raise Exception('Unexpected type passed to _change_signedness')
+def _change_int_base_type(x, new_type):
+    """Change base type of integer scalar or vector
+    to the given one.
+    """
+    if isinstance(x, np.ndarray):
+        return np.array(x, dtype=new_type)
+    else:
+        return x.astype(new_type)
 
 
 def _argument_types_match(arguments, argument_indices_to_match):
@@ -1125,7 +1117,7 @@ def _make_vector_or_matrix_test_vectors(test_suite_dict):
         y_type = glsl_type_of(y)
         if x_type.base_type not in (glsl_int, glsl_uint, glsl_int64_t, glsl_uint64_t):
             return False
-        if y_type.base_type not in (glsl_int, glsl_uint):
+        if y_type.base_type not in (glsl_int, glsl_uint, glsl_int64_t, glsl_uint64_t):
             return False
         if y_type.is_scalar:
             return True
@@ -1329,6 +1321,24 @@ def _make_vector_or_matrix_test_vectors(test_suite_dict):
 	3948976685146,
 	135763469567146206,
 	11654173250180970009]]
+    small_uint64s = [np.uint64(x) for x in [0, 1, 2, 5, 25, 31, 32, 47, 63]]
+    small_ivec64s = [
+        np.array([13, 63], dtype=np.int64),
+        np.array([-52, 50], dtype=np.int64),
+        np.array([46, -50, 0], dtype=np.int64),
+        np.array([52, 23, -5], dtype=np.int64),
+        np.array([2, -5, 45, -63], dtype=np.int64),
+        np.array([34, 4, -24, 62], dtype=np.int64),
+    ]
+    small_uvec64s = [
+        np.array([13, 63], dtype=np.uint64),
+        np.array([52, 50], dtype=np.uint64),
+        np.array([24, 61], dtype=np.uint64),
+        np.array([46, 50, 0], dtype=np.uint64),
+        np.array([52, 23, 5], dtype=np.uint64),
+        np.array([2, 5, 45, 63], dtype=np.uint64),
+        np.array([34, 4, 24, 62], dtype=np.uint64),
+    ]
 
     int64vecs = [
         np.array([-10, -12], dtype=np.int64),
@@ -1670,13 +1680,13 @@ def _make_vector_or_matrix_test_vectors(test_suite_dict):
       template='({0} ^ {1})',
       extension="ARB_gpu_shader_int64")
     f('op-lshift', 2, 150, _lshift, match_shift,
-      [int64s+uint64s,
-       small_uints],
+      [int64s+int64vecs+uint64s+uint64vecs,
+       small_ints+small_ivecs+small_uints+small_uvecs+small_ivec64s+small_uint64s+small_uvec64s],
       template='({0} << {1})',
       extension="ARB_gpu_shader_int64")
     f('op-rshift', 2, 150, _rshift, match_shift,
-      [int64s+uint64s,
-       small_uints],
+      [int64s+int64vecs+uint64s+uint64vecs,
+       small_ints+small_ivecs+small_uints+small_uvecs+small_ivec64s+small_uint64s+small_uvec64s],
       template='({0} >> {1})',
       extension="ARB_gpu_shader_int64")
 _make_vector_or_matrix_test_vectors(test_suite)
