@@ -29,8 +29,9 @@ import hmac
 import xml.etree.ElementTree as ET
 from email.utils import formatdate
 from os import path
+from pathlib import Path
 from time import time
-from typing import Dict
+from typing import Any, Dict
 from urllib.parse import urlparse
 
 import requests
@@ -141,29 +142,81 @@ def download(url: str, file_path: str, headers: Dict[str, str], attempts: int = 
         file_adapter = LocalFileAdapter()
         session.mount(protocol, file_adapter)
 
+    local_file_checksum = hashlib.md5()
     with session.get(url,
                      allow_redirects=True,
                      stream=True,
-                     headers=headers) as req:
+                     headers=headers) as response:
         with open(file_path, "wb") as file:
-            req.raise_for_status()
-            for chunk in req.iter_content(chunk_size=1048576):
+            response.raise_for_status()
+            for chunk in response.iter_content(chunk_size=1048576):
                 if chunk:
                     file.write(chunk)
+                    local_file_checksum.update(chunk)
 
-    # Checking file integrity
+    verify_file_integrity(file_path, response.headers, local_file_checksum.hexdigest())
+
+
+def verify_file_integrity(file_path: str, headers: Any, local_file_checksum: str) -> None:
+    """
+    :param file_path: path to the local file
+    :param headers: reference to the request
+    :param local_file_checksum: already generated MD5
+    """
     try:
-        file_size = int(req.headers["Content-length"])
+        remote_file_checksum: str = headers["etag"].strip('\"').lower()
+        if remote_file_checksum != local_file_checksum:
+            raise exceptions.PiglitFatalError(
+                    f"MD5 checksum {local_file_checksum} "
+                    f"doesn't match remote ETag MD5 {remote_file_checksum}"
+            )
+    except KeyError:
+        print("ETag is missing from the HTTPS header. "
+              "Fall back to Content-length verification.")
+
+    try:
+        remote_file_size = int(headers["Content-length"])
     except KeyError:
         print("Error getting Content-Length from server. "
               "Skipping file size check.")
         return
 
-    if file_size != path.getsize(file_path):
+    if remote_file_size != path.getsize(file_path):
         raise exceptions.PiglitFatalError(
-                f"Invalid filesize src {file_size}"
+                f"Invalid filesize src {remote_file_size} "
                 f"doesn't match {path.getsize(file_path)}"
         )
+
+
+def verify_local_file_checksum(url, file_path, headers, destination_file_path):
+    @core.timer_ms
+    def check_md5():
+        print(
+            f"[check_image] Verifying already downloaded file {file_path}",
+            end=" ",
+            flush=True,
+        )
+        local_file_checksum = hashlib.md5(
+            Path(destination_file_path).read_bytes()
+        ).hexdigest()
+        verify_file_integrity(
+            destination_file_path, remote_headers, local_file_checksum
+        )
+
+    print(f"[check_image] Requesting headers for {file_path}", end=" ", flush=True)
+    try:
+        response = requests.head(url + file_path, timeout=60, headers=headers)
+    except requests.exceptions.RequestException as err:
+        print(f"Not verified! HTTP request failed with {err}", flush=True)
+        return
+    print(
+        f"returned {response.status_code}.",
+        f"Took {response.elapsed.microseconds / 1000} ms",
+        flush=True,
+    )
+    remote_headers = response.headers
+
+    check_md5()
 
 
 def ensure_file(file_path):
@@ -181,12 +234,6 @@ def ensure_file(file_path):
 
     core.check_dir(path.dirname(destination_file_path))
 
-    if not OPTIONS.download['force'] and path.exists(destination_file_path):
-        return
-
-    print('[check_image] Downloading file {}'.format(
-        file_path), end=' ', flush=True)
-
     if OPTIONS.download['minio_host']:
         assert OPTIONS.download['minio_bucket']
         assert OPTIONS.download['role_session_name']
@@ -196,6 +243,12 @@ def ensure_file(file_path):
         headers = get_jwt_authorization_headers(url, file_path)
     else:
         headers = None
+
+    if not OPTIONS.download['force'] and path.exists(destination_file_path):
+        verify_local_file_checksum(url, file_path, headers, destination_file_path)
+        return
+
+    print(f"[check_image] Downloading file {file_path}", end=" ", flush=True)
 
     download_time = time()
 

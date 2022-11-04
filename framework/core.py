@@ -28,8 +28,10 @@ historically reasons is called "core" in piglit.
 
 import configparser
 import errno
+import functools
 import os
 import subprocess
+import time
 
 from framework import exceptions
 
@@ -243,3 +245,22 @@ class lazy_property(object):  # pylint: disable=invalid-name,too-few-public-meth
         value = self.__func(instance)
         setattr(instance, self.__func.__name__, value)
         return value
+
+
+def timer_ms(func):
+    """A decorator function that measures the runtime of a given function in
+    milliseconds and prints the result.
+    The function name and runtime in ms will be printed in the format
+    "Finished [function name] in [runtime] ms".
+
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time: float = time.monotonic()
+        value = func(*args, **kwargs)
+        end_time: float = time.monotonic()
+        run_time: float = end_time - start_time
+        print(f"Finished {func.__name__} in {run_time.__round__(6) * 1000} ms")
+        return value
+
+    return wrapper

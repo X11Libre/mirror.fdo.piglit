@@ -26,14 +26,19 @@
 
 """Tests for replayer's download_utils module."""
 
-import pytest
-
 import os
-import requests
-import requests_mock
+from contextlib import contextmanager
+from contextlib import nullcontext as does_not_raise
+from dataclasses import dataclass
+from hashlib import md5
+from os import path
+from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
-from os import path
+import pytest
+import requests
+import requests_mock
 
 from framework import exceptions
 from framework.replay import download_utils
@@ -53,7 +58,42 @@ ASSUME_ROLE_RESPONSE = '''<?xml version="1.0" encoding="UTF-8"?>
     </AssumeRoleWithWebIdentityResponse>
 '''
 
+class MockedResponseData:
+    binary_data: bytes = b"haxter"
 
+
+@dataclass(frozen=True)
+class MockedResponse:
+    @staticmethod
+    def header_scenarios():
+        binary_data_md5: str = md5(MockedResponseData.binary_data).hexdigest()
+        etag: dict[str, str] = {"etag": binary_data_md5}
+        length: dict[str, Any] = {
+            "ContextLength": str(len(MockedResponseData.binary_data))
+        }
+        return {
+            "With ContextLength": length,
+            "With etag": etag,
+            "With ContextLength and etag": {**length, **etag},
+            "Without integrity headers": {},
+        }
+
+    @staticmethod
+    def stored_file_scenarios():
+        return {
+            "nothing stored": None,
+            "already has file": MockedResponseData.binary_data,
+            "already has wrong file": b"wrong_data",
+        }
+
+    @contextmanager
+    def create_file(trace_file, data):
+        if data:
+            Path(trace_file).write_bytes(MockedResponseData.binary_data)
+            yield
+            Path(trace_file).unlink()
+        else:
+            yield
 class TestDownloadUtils(object):
     """Tests for download_utils methods."""
 
@@ -67,6 +107,7 @@ class TestDownloadUtils(object):
         OPTIONS.download['force'] = False
         OPTIONS.db_path = tmpdir.strpath
         requests_mock.get(self.full_url, text='remote')
+        requests_mock.head(self.full_url, text='remote')
 
     @staticmethod
     def check_same_file(path_local, expected_content, expected_mtime=None):
@@ -79,6 +120,18 @@ class TestDownloadUtils(object):
     def prepare_trace_file(self):
         # Make sure the temporary directory exists
         os.makedirs(path.dirname(self.trace_file), exist_ok=True)
+
+    @pytest.fixture
+    def create_mock_response(self, requests_mock):
+        def inner(url, headers):
+            kwargs = {
+                "content": MockedResponseData.binary_data,
+                "headers": headers,
+            }
+            requests_mock.get(url, **kwargs)
+            requests_mock.head(url, **kwargs)
+
+        return inner
 
     def test_ensure_file_exists(self,
                                 prepare_trace_file):
@@ -129,6 +182,39 @@ class TestDownloadUtils(object):
         requests_mock.get(self.full_url, exc=requests.exceptions.ConnectTimeout)
         assert not self.trace_file.check()
         download_utils.ensure_file(self.trace_path)
+
+    @contextmanager
+    def already_has_wrong_file(self):
+        self.trace_file.write(b"this_is_not_correct_file")
+        yield
+        Path(self.trace_file).unlink()
+
+    @pytest.mark.parametrize(
+        "stored_data",
+        MockedResponse.stored_file_scenarios().values(),
+        ids=MockedResponse.stored_file_scenarios().keys(),
+    )
+    @pytest.mark.parametrize(
+        "headers",
+        MockedResponse.header_scenarios().values(),
+        ids=MockedResponse.header_scenarios().keys(),
+    )
+    def test_ensure_file_checks_integrity(
+        self, prepare_trace_file, create_mock_response, headers, stored_data
+    ):
+        create_mock_response(self.full_url, headers)
+        with MockedResponse.create_file(self.trace_file, stored_data):
+            stored_file_is_wrong: bool = (
+                self.trace_file.check()
+                and self.trace_file.read() != MockedResponseData.binary_data.decode()
+            )
+            expectation = (
+                pytest.raises(exceptions.PiglitFatalError)
+                if stored_file_is_wrong
+                else does_not_raise()
+            )
+            with expectation:
+                download_utils.ensure_file(self.trace_path)
 
     @pytest.mark.raises(exception=exceptions.PiglitFatalError)
     def test_download_with_invalid_content_length(self,
