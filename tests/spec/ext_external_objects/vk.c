@@ -235,7 +235,7 @@ create_renderpass(struct vk_ctx *ctx,
 		  struct vk_image_props *color_img_props,
 		  struct vk_image_props *depth_img_props)
 {
-	uint32_t num_attachments = 2;
+	uint32_t num_attachments = depth_img_props ? 2 : 1;
 	VkAttachmentDescription att_dsc[2];
 	VkAttachmentReference att_rfc[2];
 	VkSubpassDescription subpass_dsc[1];
@@ -253,21 +253,24 @@ create_renderpass(struct vk_ctx *ctx,
 	att_dsc[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	att_dsc[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-	att_dsc[1].samples = get_num_samples(depth_img_props->num_samples);
-	/* We might want to reuse a depth buffer */
-	if (depth_img_props->in_layout != VK_IMAGE_LAYOUT_UNDEFINED) {
-		att_dsc[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-		att_dsc[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+	if (depth_img_props) {
+
+		att_dsc[1].samples = get_num_samples(depth_img_props->num_samples);
+		/* We might want to reuse a depth buffer */
+		if (depth_img_props->in_layout != VK_IMAGE_LAYOUT_UNDEFINED) {
+			att_dsc[1].loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			att_dsc[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+		}
+		else {
+			att_dsc[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			att_dsc[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		}
+		att_dsc[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		att_dsc[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+		att_dsc[1].initialLayout = depth_img_props->in_layout;
+		att_dsc[1].finalLayout = depth_img_props->end_layout;
+		att_dsc[1].format = depth_img_props->format;
 	}
-	else {
-		att_dsc[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		att_dsc[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	}
-	att_dsc[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	att_dsc[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-	att_dsc[1].initialLayout = depth_img_props->in_layout;
-	att_dsc[1].finalLayout = depth_img_props->end_layout;
-	att_dsc[1].format = depth_img_props->format;
 
 	/* VkAttachmentReference */
 	memset(att_rfc, 0, num_attachments * sizeof att_rfc[0]);
@@ -275,15 +278,20 @@ create_renderpass(struct vk_ctx *ctx,
 	att_rfc[0].layout = color_img_props->tiling == VK_IMAGE_TILING_OPTIMAL ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
 	att_rfc[0].attachment = 0;
 
-	att_rfc[1].layout = depth_img_props->tiling == VK_IMAGE_TILING_OPTIMAL ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
-	att_rfc[1].attachment = 1;
+	if (depth_img_props) {
+		att_rfc[1].layout = depth_img_props->tiling == VK_IMAGE_TILING_OPTIMAL ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
+		att_rfc[1].attachment = 1;
+	}
 
 	/* VkSubpassDescription */
 	memset(&subpass_dsc, 0, sizeof subpass_dsc);
 	subpass_dsc[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass_dsc[0].colorAttachmentCount = 1;
 	subpass_dsc[0].pColorAttachments = &att_rfc[0];
-	subpass_dsc[0].pDepthStencilAttachment = &att_rfc[1];
+
+	if (depth_img_props) {
+		subpass_dsc[0].pDepthStencilAttachment = &att_rfc[1];
+	}
 
 	/* VkRenderPassCreateInfo */
 	memset(&rpass_info, 0, sizeof rpass_info);
@@ -405,7 +413,7 @@ create_framebuffer(struct vk_ctx *ctx,
 	VkImageViewType view_type = get_image_view_type(&color_att->props);
 	VkImageView atts[2];
 
-	if (!color_att->obj.img || !depth_att->obj.img) {
+	if (!color_att->obj.img || (depth_att && !depth_att->obj.img)) {
 		fprintf(stderr, "Invalid framebuffer attachment image.\n");
 		goto fail;
 	}
@@ -443,30 +451,34 @@ create_framebuffer(struct vk_ctx *ctx,
 		goto fail;
 	}
 
-	/* depth view */
-	memset(&sr, 0, sizeof sr);
-	sr.aspectMask = get_aspect_from_depth_format(depth_att->props.format);
-	sr.baseMipLevel = 0;
-	sr.levelCount = depth_att->props.num_levels ? depth_att->props.num_levels : 1;
-	sr.baseArrayLayer = 0;
-	sr.layerCount = depth_att->props.num_layers ? depth_att->props.num_layers : 1;
+	if (depth_att) {
+		/* depth view */
+		memset(&sr, 0, sizeof sr);
+		sr.aspectMask = get_aspect_from_depth_format(depth_att->props.format);
+		sr.baseMipLevel = 0;
+		sr.levelCount = depth_att->props.num_levels ? depth_att->props.num_levels : 1;
+		sr.baseArrayLayer = 0;
+		sr.layerCount = depth_att->props.num_layers ? depth_att->props.num_layers : 1;
 
-	memset(&depth_info, 0, sizeof depth_info);
-	depth_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	depth_info.image = depth_att->obj.img;
-	depth_info.viewType = depth_att->props.num_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
-	depth_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	depth_info.format = depth_att->props.format;
-	depth_info.subresourceRange = sr;
+		memset(&depth_info, 0, sizeof depth_info);
+		depth_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		depth_info.image = depth_att->obj.img;
+		depth_info.viewType = depth_att->props.num_layers > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D;
+		depth_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		depth_info.format = depth_att->props.format;
+		depth_info.subresourceRange = sr;
 
-	if (vkCreateImageView(ctx->dev, &depth_info, 0, &depth_att->obj.img_view) != VK_SUCCESS) {
-		fprintf(stderr, "Failed to create depth image view for framebuffer.\n");
-		vk_destroy_ext_image(ctx, &depth_att->obj);
-		goto fail;
+		if (vkCreateImageView(ctx->dev, &depth_info, 0, &depth_att->obj.img_view) != VK_SUCCESS) {
+			fprintf(stderr, "Failed to create depth image view for framebuffer.\n");
+			vk_destroy_ext_image(ctx, &depth_att->obj);
+			goto fail;
+		}
 	}
 
 	atts[0] = color_att->obj.img_view;
-	atts[1] = depth_att->obj.img_view;
+
+	if (depth_att)
+		atts[1] = depth_att->obj.img_view;
 
 	memset(&fb_info, 0, sizeof fb_info);
 	fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -474,7 +486,7 @@ create_framebuffer(struct vk_ctx *ctx,
 	fb_info.width = color_att->props.w;
 	fb_info.height = color_att->props.h;
 	fb_info.layers = color_att->props.num_layers ? color_att->props.num_layers : 1;
-	fb_info.attachmentCount = 2;
+	fb_info.attachmentCount = depth_att ? 2 : 1;
 	fb_info.pAttachments = atts;
 
 	if (vkCreateFramebuffer(ctx->dev, &fb_info, 0, &renderer->fb) != VK_SUCCESS)
@@ -1221,7 +1233,7 @@ vk_create_renderer(struct vk_ctx *ctx,
 	if (vert_info)
 		renderer->vertex_info = *vert_info;
 
-	renderer->renderpass = create_renderpass(ctx, &color_att->props, &depth_att->props);
+	renderer->renderpass = create_renderpass(ctx, &color_att->props, depth_att ? &depth_att->props : NULL);
 	if (renderer->renderpass == VK_NULL_HANDLE)
 		goto fail;
 
