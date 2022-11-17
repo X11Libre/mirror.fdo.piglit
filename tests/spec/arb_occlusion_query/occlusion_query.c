@@ -107,6 +107,14 @@ static int do_test(float x, int all_at_once)
 	glColor3ub(0xff, 0x00, 0x00);
 	draw_box(x + 20.0f, 20.0f, 0.0f, 55.0f, 55.0f);
 
+	/* It is legal for a driver to support the query API but not have
+	 * any query bits.  However, drivers must still allow calling the API
+	 * entrypoints, so let's test that but ignore the result.
+	 */
+	GLint query_bits;
+	glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS,
+		       & query_bits);
+
 	for (i = 0; i < MAX_QUERIES; i++) {
 		glBeginQuery(GL_SAMPLES_PASSED, occ_queries[i]);
 		glColor3ubv(tests[i].color);
@@ -117,7 +125,8 @@ static int do_test(float x, int all_at_once)
 		if (! all_at_once) {
 			glGetQueryObjectiv(occ_queries[i],
 					   GL_QUERY_RESULT, &passed);
-			test_pass &= check_result(passed, tests[i].expected);
+			if (query_bits > 0)
+				test_pass &= check_result(passed, tests[i].expected);
 		}
 	}
 
@@ -126,7 +135,8 @@ static int do_test(float x, int all_at_once)
 		for (i = 0; i < MAX_QUERIES; i++) {
 			glGetQueryObjectiv(occ_queries[i], GL_QUERY_RESULT,
 					   &passed);
-			test_pass &= check_result(passed, tests[i].expected);
+			if (query_bits > 0)
+				test_pass &= check_result(passed, tests[i].expected);
 		}
 	}
 
@@ -153,8 +163,6 @@ piglit_display(void)
 void
 piglit_init(int argc, char **argv)
 {
-	GLint query_bits;
-
 	glClearColor(0.0, 0.2, 0.3, 0.0);
 	glClearDepth(1.0);
 
@@ -162,17 +170,6 @@ piglit_init(int argc, char **argv)
 	glDepthFunc(GL_LESS);
 
 	piglit_require_extension("GL_ARB_occlusion_query");
-
-	/* It is legal for a driver to support the query API but not have
-	 * any query bits.  I wonder how many applications actually check for
-	 * this case...
-	 */
-	glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS,
-		       & query_bits);
-	if (query_bits == 0) {
-		piglit_report_result(PIGLIT_SKIP);
-	}
-
 
 	glGenQueries(MAX_QUERIES, occ_queries);
 }
