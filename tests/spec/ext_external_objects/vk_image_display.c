@@ -88,7 +88,6 @@ gl_cleanup(void);
 
 static struct vk_ctx vk_core;
 static struct vk_image_att vk_color_att;
-static struct vk_image_att vk_depth_att;
 static struct vk_renderer vk_rnd;
 
 static GLenum gl_target = GL_TEXTURE_2D;
@@ -171,7 +170,7 @@ piglit_display(void)
 		glFlush();
 	}
 
-	struct vk_image_att images[] = { vk_color_att, vk_depth_att };
+	struct vk_image_att images[] = { vk_color_att };
 
 	vk_draw(&vk_core, 0, &vk_rnd, vk_fb_color, 4, &vk_sem,
 		vk_sem_has_wait, vk_sem_has_signal, images, ARRAY_SIZE(images), 0, 0, w, h);
@@ -256,27 +255,6 @@ vk_init(uint32_t w,
 		return false;
 	}
 
-	/* depth image */
-	if (!vk_fill_ext_image_props(&vk_core,
-				     w, h, d,
-				     num_samples,
-				     num_levels,
-				     num_layers,
-				     depth_format,
-				     depth_tiling,
-				     depth_in_layout,
-				     depth_end_layout,
-				     false,
-				     &vk_depth_att.props)) {
-		fprintf(stderr, "Unsupported depth image properties.\n");
-		return false;
-	}
-
-	if (!vk_create_ext_image(&vk_core, &vk_depth_att.props, &vk_depth_att.obj)) {
-		fprintf(stderr, "Failed to create depth image.\n");
-		goto fail;
-	}
-
 	/* load shaders */
 	if (!(vs_src = load_shader(VK_BANDS_VERT, &vs_sz)))
 		goto fail;
@@ -287,7 +265,7 @@ vk_init(uint32_t w,
 	/* create Vulkan renderer */
 	if (!vk_create_renderer(&vk_core, vs_src, vs_sz, fs_src, fs_sz,
 				false, false,
-				&vk_color_att, &vk_depth_att, 0, &vk_rnd)) {
+				&vk_color_att, NULL, 0, &vk_rnd)) {
 		fprintf(stderr, "Failed to create Vulkan renderer.\n");
 		goto fail;
 	}
@@ -313,7 +291,6 @@ static void
 vk_cleanup(void)
 {
 	vk_destroy_ext_image(&vk_core, &vk_color_att.obj);
-	vk_destroy_ext_image(&vk_core, &vk_depth_att.obj);
 
 	vk_destroy_renderer(&vk_core, &vk_rnd);
 	vk_destroy_semaphores(&vk_core, &vk_sem);
