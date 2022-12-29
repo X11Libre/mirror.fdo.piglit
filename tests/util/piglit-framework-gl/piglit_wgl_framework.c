@@ -36,55 +36,53 @@ process_next_event(struct piglit_winsys_framework *winsys_fw)
 	BOOL bRet;
 	MSG msg;
 
-	bRet = GetMessage(&msg, NULL, 0, 0);
-	/* bRet will be negative on error, zero on WM_QUIT, positive for other messages */
-	if (bRet < 0) {
-		exit(EXIT_FAILURE);
-	}
+	bRet = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
 
-	if (0) {
-		fprintf(stderr, "message = 0x%04x, wParam = 0x%04x\n", msg.message, msg.wParam);
-	}
+	if (bRet) {
+		if (0) {
+			fprintf(stderr, "message = 0x%04x, wParam = 0x%04x\n", msg.message, msg.wParam);
+		}
 
-	switch (msg.message) {
-	case WM_PAINT:
-		winsys_fw->need_redisplay = true;
-		break;
-	case WM_SIZE:
-		if (winsys_fw->user_reshape_func) {
-			RECT rect;
-			if (GetClientRect(msg.hwnd, &rect)) {
-				int width  = rect.right  - rect.left;
-				int height = rect.bottom - rect.top;
-				winsys_fw->user_reshape_func(width, height);
+		switch (msg.message) {
+		case WM_PAINT:
+			winsys_fw->need_redisplay = true;
+			break;
+		case WM_SIZE:
+			if (winsys_fw->user_reshape_func) {
+				RECT rect;
+				if (GetClientRect(msg.hwnd, &rect)) {
+					int width  = rect.right  - rect.left;
+					int height = rect.bottom - rect.top;
+					winsys_fw->user_reshape_func(width, height);
+				}
 			}
-		}
-		winsys_fw->need_redisplay = true;
-		break;
-	case WM_CHAR:
-		if (winsys_fw->user_keyboard_func) {
-			winsys_fw->user_keyboard_func(msg.wParam, 0, 0);
-		}
-		winsys_fw->need_redisplay = true;
-		break;
-	case WM_SYSCOMMAND:
-		if (msg.wParam == SC_CLOSE) {
+			winsys_fw->need_redisplay = true;
+			break;
+		case WM_CHAR:
+			if (winsys_fw->user_keyboard_func) {
+				winsys_fw->user_keyboard_func(msg.wParam, 0, 0);
+			}
+			winsys_fw->need_redisplay = true;
+			break;
+		case WM_SYSCOMMAND:
+			if (msg.wParam == SC_CLOSE) {
+				PostQuitMessage(EXIT_SUCCESS);
+			}
+			break;
+		case WM_CLOSE:
+			/* XXX: we never see this message here in practice, only WM_SYSCOMMAND::SC_CLOSE above */
 			PostQuitMessage(EXIT_SUCCESS);
+			break;
+		case WM_QUIT:
+			/* TODO: cleanup/teardown things */
+			exit(msg.wParam);
+		default:
+			break;
 		}
-		break;
-	case WM_CLOSE:
-		/* XXX: we never see this message here in practice, only WM_SYSCOMMAND::SC_CLOSE above */
-		PostQuitMessage(EXIT_SUCCESS);
-		break;
-	case WM_QUIT:
-		/* TODO: cleanup/teardown things */
-		exit(msg.wParam);
-	default:
-		break;
-	}
 
-	TranslateMessage(&msg);
-	DispatchMessage(&msg);
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
 
 	if (winsys_fw->need_redisplay) {
 		enum piglit_result result = PIGLIT_PASS;
