@@ -96,9 +96,13 @@ piglit_init(int argc, char **argv)
 	if (argc != 2)
 		print_usage_and_exit(argv[0]);
 
-	if (strcmp(argv[1], "window") == 0)
+	if (strcmp(argv[1], "window") == 0) {
 		blit_to_fbo = false;
-	else if (strcmp(argv[1], "fbo") == 0)
+		if (piglit_winsys_fbo != 0) {
+			fprintf(stderr, "window case is for using a winsys surface, must be run without -fbo\n");
+			piglit_report_result(PIGLIT_FAIL);
+		}
+	} else if (strcmp(argv[1], "fbo") == 0)
 		blit_to_fbo = true;
 	else {
 		blit_to_fbo = false;
