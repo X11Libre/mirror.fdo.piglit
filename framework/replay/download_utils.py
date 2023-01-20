@@ -30,7 +30,6 @@ import xml.etree.ElementTree as ET
 from email.utils import formatdate
 from os import path
 from pathlib import Path
-from time import time
 from typing import Any, Dict
 from urllib.parse import urlparse
 
@@ -119,6 +118,7 @@ def get_jwt_authorization_headers(url, resource):
     return headers
 
 
+@core.timer_ms
 def download(url: str, file_path: str, headers: Dict[str, str], attempts: int = 2) -> None:
     """Downloads a URL content into a file
 
@@ -250,8 +250,4 @@ def ensure_file(file_path):
 
     print(f"[check_image] Downloading file {file_path}", end=" ", flush=True)
 
-    download_time = time()
-
     download(url + file_path, destination_file_path, headers)
-
-    print('took %ds.' % (time() - download_time), flush=True)
