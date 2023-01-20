@@ -65,19 +65,19 @@ piglit_display(void)
 
 	int y;
 	for (y = 0; y * 4 < piglit_height; y++) {
-		float offset = y / 4.0f;
+		float offset = 1.0 + y / 4.0f;
 		glLineStipple(8, 0x5555);
 		glColor4f(0.5, 0.0, 0.5, 1.0);
 		glBegin(GL_LINES);
-		glVertex2f(-offset, 1.5 + y * 4);
-		glVertex2f(piglit_width + offset, 1.5 + y * 4);
+		glVertex2f(offset, 1.5 + y * 4);
+		glVertex2f(piglit_width - 1.0, 1.5 + y * 4);
 		glEnd();
 
 		glLineStipple(8, ~0x5555);
 		glColor4f(0.0, 0.5, 0.0, 1.0);
 		glBegin(GL_LINES);
-		glVertex2f(-offset, 1.5 + y * 4);
-		glVertex2f(piglit_width + offset, 1.5 + y * 4);
+		glVertex2f(offset, 1.5 + y * 4);
+		glVertex2f(piglit_width - 1.0, 1.5 + y * 4);
 		glEnd();
 	}
 
@@ -85,14 +85,15 @@ piglit_display(void)
 
 	float *expected = malloc(piglit_width * sizeof(float) * 4);
 	for (y = 0; y * 4 < piglit_height; y++) {
-		float offset = y / 4.0f;
+		float offset = 1.0 + y / 4.0f;
+		int start_x = ceil(offset);
 		for (int x = 0; x < piglit_width; ++x) {
-			expected[x * 4 + 0] = stipple_pattern(x + offset - 4, 8) * 0.5;
-			expected[x * 4 + 1] = stipple_pattern(x + offset + 4, 8) * 0.5;
-			expected[x * 4 + 2] = stipple_pattern(x + offset - 4, 8) * 0.5;
+			expected[x * 4 + 0] = stipple_pattern(x - offset - 4, 8) * 0.5;
+			expected[x * 4 + 1] = stipple_pattern(x - offset + 4, 8) * 0.5;
+			expected[x * 4 + 2] = stipple_pattern(x - offset - 4, 8) * 0.5;
 			expected[x * 4 + 3] = 1;
 		}
-		pass = pass && piglit_probe_rect_rgba_varying(0, y * 4 + 1, piglit_width, 1, expected, 0);
+		pass = pass && piglit_probe_rect_rgba_varying(start_x, y * 4 + 1, piglit_width - start_x - 2, 1, expected + start_x * 4, 0);
 	}
 	free(expected);
 
