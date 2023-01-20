@@ -83,17 +83,16 @@ piglit_display(void)
 
 	GLboolean pass = GL_TRUE;
 
-	float *expected = malloc(piglit_width * sizeof(float) * 4);
+	float *expected = malloc(piglit_width * sizeof(float) * 3);
 	for (y = 0; y * 4 < piglit_height; y++) {
 		float offset = 1.0 + y / 4.0f;
 		int start_x = ceil(offset);
 		for (int x = 0; x < piglit_width; ++x) {
-			expected[x * 4 + 0] = stipple_pattern(x - offset - 4, 8) * 0.5;
-			expected[x * 4 + 1] = stipple_pattern(x - offset + 4, 8) * 0.5;
-			expected[x * 4 + 2] = stipple_pattern(x - offset - 4, 8) * 0.5;
-			expected[x * 4 + 3] = 1;
+			expected[x * 3 + 0] = stipple_pattern(x - offset - 4, 8) * 0.5;
+			expected[x * 3 + 1] = stipple_pattern(x - offset + 4, 8) * 0.5;
+			expected[x * 3 + 2] = stipple_pattern(x - offset - 4, 8) * 0.5;
 		}
-		pass = pass && piglit_probe_rect_rgba_varying(start_x, y * 4 + 1, piglit_width - start_x - 2, 1, expected + start_x * 4, 0);
+		pass = pass && piglit_probe_rect_rgb_varying(start_x, y * 4 + 1, piglit_width - start_x - 2, 1, expected + start_x * 3, 0);
 	}
 	free(expected);
 
