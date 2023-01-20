@@ -151,6 +151,8 @@ int piglit_probe_rect_r_ubyte(int x, int y, int w, int h, GLubyte expected);
 int piglit_probe_rect_rgb(int x, int y, int w, int h, const float* expected);
 int piglit_probe_rect_rgb_silent(int x, int y, int w, int h, const float *expected);
 int piglit_probe_rect_rgba(int x, int y, int w, int h, const float* expected);
+int piglit_probe_rect_rgb_varying(int x, int y, int w, int h,
+				   const float* expected, size_t stride);
 int piglit_probe_rect_rgba_varying(int x, int y, int w, int h,
 				   const float* expected, size_t stride);
 int piglit_probe_rect_rgba_int(int x, int y, int w, int h, const int* expected);

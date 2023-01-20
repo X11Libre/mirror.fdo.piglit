@@ -1477,6 +1477,14 @@ piglit_probe_rect_rgba(int x, int y, int w, int h, const float *expected)
 	return probe_rect(x, y, w, h, 4, expected, 0, 0, false);
 }
 
+int piglit_probe_rect_rgb_varying(int x, int y, int w, int h,
+				   const float* expected, size_t stride)
+{
+	assert(stride % sizeof(float) == 0);
+	return probe_rect(x, y, w, h, 3, expected,
+			  3, stride / sizeof(float), false);
+}
+
 int piglit_probe_rect_rgba_varying(int x, int y, int w, int h,
 				   const float* expected, size_t stride)
 {
