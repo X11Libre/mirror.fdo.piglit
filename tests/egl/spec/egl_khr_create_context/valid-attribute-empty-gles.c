@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	int minor;
 
 	if (!EGL_KHR_create_context_setup(EGL_OPENGL_ES_BIT)) {
-		fprintf(stderr, "ES 1 not available.\n");
+		printf("ES 1 not available.\n");
 		piglit_report_result(PIGLIT_SKIP);
 	}
 
