@@ -779,6 +779,9 @@ stress_test(uint32_t format, EGLuint64KHR reference_modifier,
 		goto destroy;
 	}
 
+	/* Display the result of sampling the test and reference textures. */
+	piglit_present_results();
+
 	if (!external_only && !test_gl_advanced(tex, tex_ref, format)) {
 		res = PIGLIT_FAIL;
 		goto destroy;
@@ -837,7 +840,6 @@ modifier_test(uint32_t format, EGLuint64KHR modifier, bool external_only,
 	/* TODO - verify results (?) */
 
 	sample_tex(tex, 0, 0, W, H, true);
-	piglit_present_results();
 
 destroy:
 	delete_tex(&tex);
