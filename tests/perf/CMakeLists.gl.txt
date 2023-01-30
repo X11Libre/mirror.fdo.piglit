@@ -18,5 +18,6 @@ piglit_add_executable (genmipmap genmipmap.c common.c)
 piglit_add_executable (pbobench pbobench.c common.c)
 piglit_add_executable (readpixels readpixels.c common.c)
 piglit_add_executable (teximage teximage.c common.c)
+piglit_add_executable (vbo vbo.c common.c)
 
 # vim: ft=cmake:
