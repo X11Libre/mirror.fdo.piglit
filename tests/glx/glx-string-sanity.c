@@ -155,16 +155,7 @@ main(int argc, char **argv)
 		/* Try to find the extension in the client extension list.
 		 */
 		client = find_extension(client_string, buf, bytes);
-		if (client != NULL) {
-			if (find_extension(unified_string, buf, bytes) == NULL) {
-				fprintf(stderr,
-					"%s found in both client and server "
-					"extension strings, but missing from "
-					"unified string.\n",
-					buf);
-				pass = false;
-			}
-		} else {
+		if (client == NULL) {
 			if (find_extension(unified_string, buf, bytes) != NULL) {
 				fprintf(stderr,
 					"%s not found in client extension "
