@@ -94,6 +94,8 @@ struct type {
 	  ARRAY_SIZE(gl_4d_color_texture_values) },
 };
 
+static struct piglit_subtest tests[ARRAY_SIZE(types) + 1];
+
 static enum piglit_result run_subtest(void * data);
 static const struct piglit_gl_test_config * piglit_config;
 
@@ -101,13 +103,15 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 
 	piglit_config = &config;
 
-	struct piglit_subtest tests[ARRAY_SIZE(types) + 1] = { 0 };
 	for (unsigned i = 0; i < ARRAY_SIZE(types); ++i) {
 		tests[i].name = piglit_get_gl_enum_name(types[i].type);
 		tests[i].option = tests[i].name;
 		tests[i].subtest_func = run_subtest;
 		tests[i].data = (void *)&types[i];
 	}
+
+	tests[ARRAY_SIZE(types)].name = NULL;
+
 	config.subtests = tests;
 
 	config.supports_gl_compat_version = 10;
