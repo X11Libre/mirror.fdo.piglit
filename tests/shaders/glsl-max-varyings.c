@@ -35,14 +35,14 @@
 
 #define MAX_VARYING 256
 
-/* 2x2 rectangles with 2 pixels of pad.  Deal with up to 256 varyings. */
+/* 1x1 rectangles with 1 pixels of pad.  Deal with up to 256 varyings. */
 
 PIGLIT_GL_TEST_CONFIG_BEGIN
 
 	config.supports_gl_compat_version = 10;
 
-	config.window_width = (2+MAX_VARYING*4);
-	config.window_height = (2+MAX_VARYING*4);
+	config.window_width = MAX_VARYING;
+	config.window_height = MAX_VARYING;
 	config.window_visual = PIGLIT_GL_VISUAL_RGB | PIGLIT_GL_VISUAL_DOUBLE;
 
 PIGLIT_GL_TEST_CONFIG_END
@@ -142,12 +142,6 @@ static GLint get_fs(int num_varyings)
 	return shader;
 }
 
-static int
-coord_from_index(int index)
-{
-	return 2 + 4 * index;
-}
-
 static bool
 draw(int num_varyings)
 {
@@ -210,16 +204,16 @@ draw(int num_varyings)
 		if (data_varying > 0)
 			glUniform1f(contribution_loc + data_varying - 1, 0.0);
 
-		x = coord_from_index(data_varying);
-		y = coord_from_index(num_varyings - 1);
+		x = data_varying;
+		y = num_varyings - 1;
 		vertex[0][0] = x;
 		vertex[0][1] = y;
-		vertex[1][0] = x + 2;
+		vertex[1][0] = x + 1;
 		vertex[1][1] = y;
 		vertex[2][0] = x;
-		vertex[2][1] = y + 2;
-		vertex[3][0] = x + 2;
-		vertex[3][1] = y + 2;
+		vertex[2][1] = y + 1;
+		vertex[3][0] = x + 1;
+		vertex[3][1] = y + 1;
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	}
 
@@ -237,6 +231,7 @@ piglit_display(void)
 	int test_varyings, row, col;
 	GLboolean pass = GL_TRUE, warned = GL_FALSE;
 	bool drew[MAX_VARYING];
+	float readback_buffer[MAX_VARYING * MAX_VARYING * 3] = {0};
 
 	piglit_ortho_projection(piglit_width, piglit_height, GL_FALSE);
 
@@ -263,6 +258,8 @@ piglit_display(void)
 		drew[row] = draw(row + 1);
 	}
 
+	glReadPixels(0, 0, test_varyings, test_varyings, GL_RGB, GL_FLOAT, readback_buffer);
+
 	for (row = 0; row < test_varyings; row++) {
 		if (!drew[row])
 			continue;
@@ -270,15 +267,21 @@ piglit_display(void)
 		for (col = 0; col <= row; col++) {
 			GLboolean ok;
 			float green[3] = {0.0, 1.0, 0.0};
+			int pixel_id = 3 * (row * test_varyings + col);
 
-			ok = piglit_probe_rect_rgb(coord_from_index(col),
-						   coord_from_index(row),
-						   2, 2,
-						   green);
+			ok = readback_buffer[pixel_id + 0] == green[0] &&
+			     readback_buffer[pixel_id + 1] == green[1] &&
+			     readback_buffer[pixel_id + 2] == green[2];
+
 			if (!ok) {
 				printf("  Failure with %d vec4 varyings used "
 				       "in varying index %d\n",
 				       row + 1, col);
+				printf(" Expected %f %f %f\n Got %f %f %f\n\n",
+				       green[0], green[1], green[2],
+				       readback_buffer[pixel_id + 0],
+				       readback_buffer[pixel_id + 1],
+				       readback_buffer[pixel_id + 2]);
 				pass = GL_FALSE;
 				break;
 			}
