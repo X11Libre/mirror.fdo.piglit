@@ -243,6 +243,16 @@ piglit_display(void)
 		90, 160, 110, 140,
 		50, 161,  70, 121,
 		90, 160, 110, 140,
+	}, vyuy[] = {
+		/* VYUY */
+		130, 50, 120, 70,
+		130, 89, 140, 110,
+		130, 50, 120, 70,
+		130, 89, 140, 110,
+		161, 50, 121, 70,
+		160, 90, 140, 110,
+		161, 50, 121, 70,
+		160, 90, 140, 110,
 	}, uyvy[] = {
 		/* UYVY */
 		120, 50, 130, 70,
@@ -351,6 +361,9 @@ piglit_display(void)
 		break;
 	case DRM_FORMAT_UYVY:
 		t = uyvy;
+		break;
+	case DRM_FORMAT_VYUY:
+		t = vyuy;
 		break;
 	default:
 		fprintf(stderr, "invalid fourcc: %.4s\n", (char *)&fourcc);
