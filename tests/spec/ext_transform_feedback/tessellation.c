@@ -473,7 +473,8 @@ print_usage_and_exit(char *prog_name)
 	       "    monochrome\n"
 	       "    smooth\n"
 	       "    flat_first\n"
-	       "    flat_last\n", prog_name);
+	       "    flat_last\n"
+	       "    wireframe\n", prog_name);
 	exit(1);
 }
 
