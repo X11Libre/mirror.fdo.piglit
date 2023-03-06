@@ -65,12 +65,10 @@ draw(Display *dpy)
 	glXMakeCurrent(dpy, win_two, ctx);
 	pass &= piglit_probe_pixel_rgb(1, 1, green);
 
+	glXMakeCurrent(dpy, win_one, ctx);
 	glXSwapBuffers(dpy, win_one);
+	glXMakeCurrent(dpy, win_two, ctx);
 	glXSwapBuffers(dpy, win_two);
-
-	/* Free our resources when we're done. */
-	glXMakeCurrent(dpy, None, NULL);
-	glXDestroyContext(dpy, ctx);
 
 	return pass ? PIGLIT_PASS : PIGLIT_FAIL;
 }
@@ -97,6 +95,10 @@ main(int argc, char **argv)
 	win_two = piglit_get_glx_window(dpy, visinfo);
 
 	piglit_glx_event_loop(dpy, draw);
+
+	/* Free our resources when we're done. */
+	glXMakeCurrent(dpy, None, NULL);
+	glXDestroyContext(dpy, piglit_get_glx_context(dpy, visinfo));
 
 	return 0;
 }
