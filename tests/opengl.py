@@ -612,6 +612,7 @@ with profile.test_list.group_manager(
     g(['gl-1.0-user-clip-all-planes'])
     g(['rasterpos'])
     g(['depth-clear-precision-check'])
+    g(['depth-clear-with-copy'])
 
 with profile.test_list.group_manager(
         PiglitGLTest,
