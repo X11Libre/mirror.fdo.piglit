@@ -4073,6 +4073,7 @@ with profile.test_list.group_manager(
     g(['arb_clear_texture-stencil'])
     g(['arb_clear_texture-texview'])
     g(['arb_clear_texture-depth'])
+    g(['arb_clear_texture-supported-formats'])
 
 with profile.test_list.group_manager(
         PiglitGLTest,
