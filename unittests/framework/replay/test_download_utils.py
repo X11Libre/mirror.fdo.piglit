@@ -83,17 +83,17 @@ class MockedResponse:
         return {
             "nothing stored": None,
             "already has file": MockedResponseData.binary_data,
-            "already has wrong file": b"wrong_data",
+            "already has wrong file": b"obsolete/corrupted data",
         }
 
     @contextmanager
-    def create_file(trace_file, data):
-        if data:
-            Path(trace_file).write_bytes(MockedResponseData.binary_data)
-            yield
-            Path(trace_file).unlink()
-        else:
-            yield
+    def create_local_file(trace_file, data):
+        data = data or MockedResponseData.binary_data
+        trace_path = Path(trace_file)
+        trace_path.write_bytes(data)
+        yield
+        if trace_path.exists():
+            trace_path.unlink()
 class TestDownloadUtils(object):
     """Tests for download_utils methods."""
 
@@ -203,7 +203,7 @@ class TestDownloadUtils(object):
         self, prepare_trace_file, create_mock_response, headers, stored_data
     ):
         create_mock_response(self.full_url, headers)
-        with MockedResponse.create_file(self.trace_file, stored_data):
+        with MockedResponse.create_local_file(self.trace_file, stored_data):
             stored_file_is_wrong: bool = (
                 self.trace_file.check()
                 and self.trace_file.read() != MockedResponseData.binary_data.decode()
