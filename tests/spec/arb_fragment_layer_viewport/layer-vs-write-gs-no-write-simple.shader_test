@@ -2,6 +2,7 @@
 GLSL >= 1.50
 GL_ARB_fragment_layer_viewport
 GL_AMD_vertex_shader_layer
+ignore_missing_uniforms
 
 [vertex shader]
 #version 140

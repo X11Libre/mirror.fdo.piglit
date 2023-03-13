@@ -1330,6 +1330,8 @@ process_requirement(const char *line)
 
 		if (spirv_replaces_glsl)
 			force_no_names = true;
+	} else if (parse_str(line, "ignore_missing_uniforms", &line)) {
+		ignore_missing_uniforms = true;
 	}
 	return PIGLIT_PASS;
 }
