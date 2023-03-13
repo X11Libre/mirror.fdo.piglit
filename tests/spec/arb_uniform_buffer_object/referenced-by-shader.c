@@ -71,7 +71,7 @@ piglit_init(int argc, char **argv)
 		"uniform vsgsfs { float vgf; };\n"
 		"void main() {\n"
 		"	for(int i = 0; i < 3; i++) {\n"
-		"		gl_Position = vec4(g + vg + gf + vgf);\n"
+		"		gl_Position = vec4(g + vg + gf + vgf) + gl_in[i].gl_Position;\n"
 		"		EmitVertex();\n"
 		"	}\n"
 		"}\n";
