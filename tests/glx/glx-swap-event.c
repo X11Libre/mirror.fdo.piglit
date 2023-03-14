@@ -30,6 +30,7 @@
  */
 
 #include "piglit-util-gl.h"
+#include "piglit-glx-util.h"
 #include "GL/glx.h"
 #include <sys/time.h>
 
@@ -58,48 +59,6 @@ static double time_call=0.0, time_fin=0.0;
 double swap_start[STACK_L],swap_returned[STACK_L];
 int interval=0;
 char * swap_event_type=NULL;
-/**
- * Determine whether or not a GLX extension is supported.
- */
-static int
-is_glx_extension_supported(Display *dpy, const char *query)
-{
-    const int scrnum = DefaultScreen(dpy);
-    const char *glx_extensions = NULL;
-    const size_t len = strlen(query);
-    const char *ptr;
-    
-    if (glx_extensions == NULL) {
-        glx_extensions = glXQueryExtensionsString(dpy, scrnum);
-    }
-    
-    ptr = strstr(glx_extensions, query);
-    return ((ptr != NULL) && ((ptr[len] == ' ') || (ptr[len] == '\0')));
-}
-
-static void
-query_swap_event(Display *dpy)
-{
-
-    if ( ! is_glx_extension_supported(dpy, "GLX_INTEL_swap_event")) {
-        printf("The GLX_INTEL_swap_event is not supported in current version.\n");
-        piglit_report_result(PIGLIT_SKIP);
-    } else {
-        printf("The GLX_INTEL_swap_event is supported in current version.\n");
-    }
-    
-    if (interval_diff) {
-        if ( ! is_glx_extension_supported(dpy, "GLX_MESA_swap_control")) {
-            printf("GLX_MESA_swap_control was not supported by the driver.\n");
-            piglit_report_result(PIGLIT_SKIP);
-        } else {
-            pglXGetSwapIntervalMESA = (PFNGLXGETSWAPINTERVALMESAPROC) 
-            glXGetProcAddressARB((const GLubyte *) "glXGetSwapIntervalMESA");
-            pglXSwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC) 
-            glXGetProcAddressARB((const GLubyte *) "glXSwapIntervalMESA");
-        }
-    }
-}
 
 /** Draw single frame, do SwapBuffers, compute FPS */
 static void
@@ -490,11 +449,17 @@ main(int argc, char *argv[])
     
     make_window(dpy, "Swap event test", x, y, winWidth, winHeight, &win, &ctx, &glxWin);
     
-    query_swap_event(dpy);
+    piglit_require_glx_extension(dpy, "GLX_INTEL_swap_event");
     
     glXQueryExtension(dpy, &error_base, &event_base);
     
     if (interval_diff) {
+        piglit_require_glx_extension(dpy, "GLX_INTEL_swap_event");
+        pglXGetSwapIntervalMESA = (PFNGLXGETSWAPINTERVALMESAPROC)
+            glXGetProcAddressARB((const GLubyte *)"glXGetSwapIntervalMESA");
+        pglXSwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)
+            glXGetProcAddressARB((const GLubyte *)"glXSwapIntervalMESA");
+
         ret = (*pglXSwapIntervalMESA)(1);
         if ( ret ) {
 	    printf("Failed to set swap interval to 1 (%d).\n", ret);
