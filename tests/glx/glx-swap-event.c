@@ -51,11 +51,10 @@ static GLboolean verbose = GL_FALSE;    /* Disable verbose.  */
 static GLboolean Automatic = GL_FALSE;    /* Test automatically.  */
 static GLboolean test_events = GL_FALSE;    /* Test event can be received.  */
 static GLboolean interval_diff = GL_FALSE;    /* Test interval can be set.  */
-static GLboolean async = GL_FALSE;    /* Test asynchronize.  */
 int event_base, Glx_event, count=0, swap_count=0, event_count=0;
 static int Intel_swap_event=0;
 int  event_count_total=0, frames_total=0, message_count=0;
-static double time_call=0.0, time_fin=0.0, time_val=0.0;
+static double time_call=0.0, time_fin=0.0;
 double swap_start[STACK_L],swap_returned[STACK_L];
 int interval=0;
 char * swap_event_type=NULL;
@@ -106,7 +105,7 @@ query_swap_event(Display *dpy)
 static void
 draw_frame(Display *dpy, Window win)
 {
-    static int frames = 0, async_swap;
+    static int frames = 0;
     static double tRate0 = -1.0;
     static double swap_freq[2];
     double t = current_time();
@@ -133,12 +132,6 @@ draw_frame(Display *dpy, Window win)
         }
         message_count++;
         seconds = t - tRate0;
-        if ( (time_val / frames) < 0.0016 ) {  
-            // 0.0016 <=> 60Hz * 10 or 100Hz * 6 
-            async_swap=1;
-        } else{
-            async_swap=0;
-        }
         interval=1-interval;
         swap_freq[interval] = frames / seconds;
         if (Automatic) {
@@ -189,22 +182,10 @@ swap_freq[0], swap_freq[1]);
                         piglit_report_result(PIGLIT_FAIL);
                     }
                 }
-                if (async) {
-                    if (verbose) {
-                        printf("It takes about %lf seconds returning back from\
- the glXSwapBuffers call on average.\n", (time_val / frames));
-                    }
-                    if (async_swap ==1 ) {
-                        piglit_report_result(PIGLIT_PASS);
-                    } else{
-                        piglit_report_result(PIGLIT_FAIL);
-                    }
-                }
             }    
         }
         tRate0 = t;
         frames = 0;
-        time_val = 0;
         swap_count= 0;
         event_count= 0;
     }
@@ -223,7 +204,6 @@ swap_freq[0], swap_freq[1]);
     glXSwapBuffers(dpy, win);
     time_fin=current_time();
     swap_returned[count]=time_fin;
-    time_val+=(time_fin-time_call);
     
     frames++;
     frames_total++;
@@ -459,7 +439,6 @@ usage(void)
     printf(" --event         test whether we can get swap events\n");
     printf(" --interval      we expect that swap interval set to 0 should \
 have higher swap frequency than interval to 1\n");
-    printf(" --async   test whether glXSwapBuffers is done asynchronously\n");
 }
  
 
@@ -488,9 +467,6 @@ main(int argc, char *argv[])
         else if (strcmp(argv[i], "--event") == 0) {
             test_events=GL_TRUE;
         }
-        else if (strcmp(argv[i], "--async") == 0) {
-            async = GL_TRUE;
-        }
         else if (strcmp(argv[i], "--interval") == 0) {
             interval_diff = GL_TRUE;
         }
@@ -499,8 +475,8 @@ main(int argc, char *argv[])
             piglit_report_result(PIGLIT_SKIP);
         }
     }
-    if (!( interval_diff || async || test_events )) {
-       printf("Which do you want to test, events? asynchronous? or swap interval?\n");
+    if (!( interval_diff || test_events )) {
+       printf("Which do you want to test, events or swap interval?\n");
        usage();
        piglit_report_result(PIGLIT_SKIP);
     }
