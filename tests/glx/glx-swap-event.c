@@ -53,7 +53,6 @@ static GLboolean Automatic = GL_FALSE;    /* Test automatically.  */
 static GLboolean test_events = GL_FALSE;    /* Test event can be received.  */
 static GLboolean interval_diff = GL_FALSE;    /* Test interval can be set.  */
 int event_base, Glx_event, count=0, swap_count=0, event_count=0;
-static int Intel_swap_event=0;
 int  event_count_total=0, frames_total=0, message_count=0;
 static double time_call=0.0, time_fin=0.0;
 double swap_start[STACK_L],swap_returned[STACK_L];
@@ -96,23 +95,13 @@ draw_frame(Display *dpy, Window win)
         if (Automatic) {
             if (message_count==2) {
                 if (test_events) {
-                    if ( Intel_swap_event != 0 ) {
-                        if (verbose) {
-                            printf("glXSwapBuffers is called %d times and there\
- is %d Intel_swap_event received in past %3.1f seconds.\n", swap_count,
-event_count, seconds);
-                            printf("There is swap event received, and the swap \
-type is %s.\n", swap_event_type);
-                        }
+                        printf("glXSwapBuffers is called %d times and there were"
+			       "%d swap events received in past %3.1f seconds.\n",
+			       swap_count, event_count, seconds);
+                    if ( event_count != 0 ) {
+                        printf("swap type was %s.\n", swap_event_type);
                         piglit_report_result(PIGLIT_PASS);
                     } else{
-                        if (verbose) {
-                            printf("glXSwapBuffers is called %d times and there\
- is %d Intel_swap_event received in past %3.1f seconds.\n", swap_count,
-event_count, seconds);
-                            printf("There is no swap event received, and the \
-swap type is %s.\n", swap_event_type);
-                        }
                         piglit_report_result(PIGLIT_FAIL);
                     }
                     
@@ -350,19 +339,16 @@ swap_start[count], swap_returned[count], (time_fin-swap_start[count]));
 		       (unsigned long long)glx_event->sbc);
         switch (glx_event->event_type) {
         case GLX_EXCHANGE_COMPLETE_INTEL:
-            Intel_swap_event=GLX_EXCHANGE_COMPLETE_INTEL;
             swap_event_type="GLX_EXCHANGE_COMPLETE_INTEL";
             event_count++;
             event_count_total++;
             break;
         case GLX_COPY_COMPLETE_INTEL:
-            Intel_swap_event=GLX_COPY_COMPLETE_INTEL;
             swap_event_type="GLX_COPY_COMPLETE_INTEL";
             event_count++;
             event_count_total++;
             break;
         case GLX_FLIP_COMPLETE_INTEL:
-            Intel_swap_event=GLX_FLIP_COMPLETE_INTEL;
             swap_event_type="GLX_FLIP_COMPLETE_INTEL";
             event_count++;
             event_count_total++;
