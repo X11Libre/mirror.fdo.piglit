@@ -107,14 +107,10 @@ static void
 draw_frame(Display *dpy, Window win)
 {
     static int frames = 0, async_swap;
-    static double tRot0 = -1.0, tRate0 = -1.0;
+    static double tRate0 = -1.0;
     static double swap_freq[2];
     double t = current_time();
     int tem, ret;
-    
-    if (tRot0 < 0.0)
-        tRot0 = t;
-    tRot0 = t;
     
     if (tRate0 < 0.0)
         tRate0 = t;
