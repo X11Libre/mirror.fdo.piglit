@@ -52,24 +52,21 @@ int event_base, Glx_event, count=0, swap_count=0, event_count=0;
 int  event_count_total=0, frames_total=0;
 double swap_start[STACK_L],swap_returned[STACK_L];
 char * swap_event_type=NULL;
+double start_time;
 
 /** Draw single frame, do SwapBuffers, compute FPS */
 static void
 draw_frame(Display *dpy, Window win)
 {
     static int frames = 0;
-    static double tRate0 = -1.0;
     double t = current_time();
 
-    if (tRate0 < 0.0)
-        tRate0 = t;
-    if (t - tRate0 >= 3.0) {
-        GLfloat seconds;
-        seconds = t - tRate0;
+    GLfloat duration = t - start_time;
+    if (duration >= 3.0) {
         if (Automatic) {
 		printf("glXSwapBuffers is called %d times and there were "
 		       "%d swap events received in past %3.1f seconds.\n",
-		       swap_count, event_count, seconds);
+		       swap_count, event_count, duration);
 		if (event_count != 0) {
 			printf("swap type was %s.\n", swap_event_type);
 			piglit_report_result(PIGLIT_PASS);
@@ -77,7 +74,7 @@ draw_frame(Display *dpy, Window win)
 			piglit_report_result(PIGLIT_FAIL);
 		}
         }
-        tRate0 = t;
+        start_time = t;
         frames = 0;
         swap_count= 0;
         event_count= 0;
@@ -304,6 +301,8 @@ swap_start[count], swap_returned[count], (time - swap_start[count]));
 static void
 event_loop(Display *dpy, GLXWindow glxWin, Window win)
 {
+    start_time = current_time();
+
     while (1) {
         while (XPending(dpy) > 0) {
             XEvent event;
