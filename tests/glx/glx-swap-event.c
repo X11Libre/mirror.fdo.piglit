@@ -50,7 +50,6 @@ static GLboolean Automatic = GL_FALSE;    /* Test automatically.  */
 static GLboolean interval_0 = GL_FALSE;   /* Test with swap interval 0.  */
 int event_base, Glx_event, count=0, swap_count=0, event_count=0;
 int  event_count_total=0, frames_total=0;
-static double time_call=0.0, time_fin=0.0;
 double swap_start[STACK_L],swap_returned[STACK_L];
 char * swap_event_type=NULL;
 
@@ -93,11 +92,9 @@ draw_frame(Display *dpy, Window win)
     }
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     count=frames_total%STACK_L;
-    time_call=current_time();
-    swap_start[count]=time_call;
+    swap_start[count] = current_time();
     glXSwapBuffers(dpy, win);
-    time_fin=current_time();
-    swap_returned[count]=time_fin;
+    swap_returned[count] = current_time();
     
     frames++;
     frames_total++;
@@ -246,19 +243,19 @@ handle_event(Display *dpy, Window win, XEvent *event)
         XEvent * event_p=event;
         GLXBufferSwapComplete * glx_event=(GLXBufferSwapComplete *) event_p;
         static double t_last=-1.0;
-        time_fin=current_time();
+        double_t time = current_time();
         if (t_last < 0) {
-            t_last=time_fin;
+            t_last=time;
         }
-        if ( time_fin - t_last >= 3.0) {
+        if ( time - t_last >= 3.0) {
             if ( verbose ) {
                 count=event_count_total%STACK_L;
                 printf("It receives the recent event at %lf seconds, and that\
  glXSwapBuffers was called at %lf seconds, its swap returned at %lf seconds, so\
- the total time of glXSwapBuffers takes is %lf seconds.\n", time_fin,
-swap_start[count], swap_returned[count], (time_fin-swap_start[count]));
+ the total time of glXSwapBuffers takes is %lf seconds.\n", time,
+swap_start[count], swap_returned[count], (time - swap_start[count]));
             }
-            t_last=time_fin;
+            t_last=time;
         }
 
         if (glx_event->drawable != win) {
