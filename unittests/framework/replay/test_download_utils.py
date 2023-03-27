@@ -210,7 +210,7 @@ class TestDownloadUtils(object):
             )
             expectation = (
                 pytest.raises(exceptions.PiglitFatalError)
-                if stored_file_is_wrong
+                if headers and stored_file_is_wrong
                 else does_not_raise()
             )
             with expectation:
