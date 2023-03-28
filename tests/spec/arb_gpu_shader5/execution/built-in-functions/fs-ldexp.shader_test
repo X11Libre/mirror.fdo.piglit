@@ -63,11 +63,6 @@ uniform ivec4 given_exponent 125 125 -128 -128
 draw rect -1 -1 2 2
 probe all rgba 0.0 1.0 0.0 1.0
 
-# Test underflow generates zero with sign of x.
-uniform vec4 expected_float 0.0 -0.0 0.0 -0.0
-uniform vec4 given_float 0.0 -0.0 0.5 -0.5
-uniform ivec4 given_exponent -127 -127 -127 -127
-draw rect -1 -1 2 2
-probe all rgba 0.0 1.0 0.0 1.0
+# Underflow may flush to zero or not, so can't test that with this shader.
 
 # Overflow is undefined according to the GLSL spec, so nothing to test.
