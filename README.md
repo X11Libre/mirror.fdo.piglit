@@ -34,7 +34,7 @@ First of all, you need to make sure that the following are installed:
   - cmake (http://www.cmake.org)
   - GL, glu and glut libraries and development packages (i.e. headers)
   - X11 libraries and development packages (i.e. headers)
-  - waffle (http://www.waffle-gl.org)
+  - waffle (http://waffle.freedesktop.org/)
 
 Optionally, you can install the following:
 
