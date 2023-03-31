@@ -45,11 +45,13 @@ void
 piglit_init(int argc, char **argv)
 {
 	bool pass = true;
+	GLint maxAttribCount = 0;
 
 	if(piglit_get_gl_version() < 33)
 		piglit_require_extension("GL_ARB_instanced_arrays");
 
-	glVertexAttribDivisor(GL_MAX_VERTEX_ATTRIBS, 0);
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttribCount);
+	glVertexAttribDivisor(maxAttribCount, 0);
 	pass = piglit_check_gl_error(GL_INVALID_VALUE) && pass;
 
 	piglit_report_result(pass ? PIGLIT_PASS : PIGLIT_FAIL);
