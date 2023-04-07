@@ -16,14 +16,15 @@ GLSL >= 1.30
 [vertex shader]
 #version 130
 uniform uint test_value;
-/* To prevent linker optimize out test_value. */
-uniform uint dummy;
 flat out uint flat_uint;
 
 void main()
 {
   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-  flat_uint = test_value + dummy;
+
+  // introduce a fake dependency on inputs to prevent the compiler from
+  // moving the uniform to the next shader
+  flat_uint = gl_Position.x < -10.0 ? 0u : test_value;
 }
 
 [fragment shader]
@@ -38,7 +39,6 @@ void main()
 }
 
 [test]
-uniform uint dummy 0
 uniform uint test_value 0
 draw rect -1 -1 2 2
 probe rgba 0 0 0.0 1.0 0.0 1.0

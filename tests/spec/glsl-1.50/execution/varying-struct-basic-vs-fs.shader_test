@@ -41,22 +41,26 @@ void main()
 {
 	gl_Position = piglit_vertex;
 
-	foo.a = mat4(ref,        ref +  1.0, ref +  2.0, ref +  3.0,
-		     ref +  4.0, ref +  5.0, ref +  6.0, ref +  7.0,
-		     ref +  8.0, ref +  9.0, ref + 10.0, ref + 11.0,
-		     ref + 12.0, ref + 13.0, ref + 14.0, ref + 15.0);
+        // introduce a fake dependency on inputs to prevent the compiler from
+        // moving ref to the next shader
+        float refx = piglit_vertex.x < -10.0 ? 0.0 : ref;
 
-	foo.b = mat3(ref + 16.0, ref + 17.0, ref + 18.0,
-		     ref + 19.0, ref + 20.0, ref + 21.0,
-		     ref + 22.0, ref + 23.0, ref + 24.0);
+	foo.a = mat4(refx,        refx +  1.0, refx +  2.0, refx +  3.0,
+		     refx +  4.0, refx +  5.0, refx +  6.0, refx +  7.0,
+		     refx +  8.0, refx +  9.0, refx + 10.0, refx + 11.0,
+		     refx + 12.0, refx + 13.0, refx + 14.0, refx + 15.0);
 
-	foo.c = mat2(ref + 25.0, ref + 26.0,
-		     ref + 27.0, ref + 28.0);
+	foo.b = mat3(refx + 16.0, refx + 17.0, refx + 18.0,
+		     refx + 19.0, refx + 20.0, refx + 21.0,
+		     refx + 22.0, refx + 23.0, refx + 24.0);
 
-	foo.d = vec4(ref + 29.0, ref + 30.0, ref + 31.0, ref + 32.0);
-	foo.e = vec3(ref + 33.0, ref + 34.0, ref + 35.0);
-	foo.f = vec2(ref + 36.0, ref + 37.0);
-	foo.g = ref + 38.0;
+	foo.c = mat2(refx + 25.0, refx + 26.0,
+		     refx + 27.0, refx + 28.0);
+
+	foo.d = vec4(refx + 29.0, refx + 30.0, refx + 31.0, refx + 32.0);
+	foo.e = vec3(refx + 33.0, refx + 34.0, refx + 35.0);
+	foo.f = vec2(refx + 36.0, refx + 37.0);
+	foo.g = refx + 38.0;
 }
 
 [fragment shader]

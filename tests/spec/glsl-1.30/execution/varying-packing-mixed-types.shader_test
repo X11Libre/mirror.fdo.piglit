@@ -24,10 +24,13 @@ flat out int ia[gl_MaxVaryingComponents - 2];
 void main()
 {
 	gl_Position = gl_Vertex;
-	f = f_ref + f_dummy;
-	u = u_ref + u_dummy;
+
+        // introduce a fake dependency on inputs to prevent the compiler from
+        // moving ref to the next shader
+	f = gl_Vertex.x < -10.0 ? 0.0 : f_ref;
+	u = gl_Vertex.x < -10.0 ? 0u : u_ref;
 	for (int i = 0; i < gl_MaxVaryingComponents - 2; i++)
-		ia[i] = i_ref + i;
+		ia[i] = gl_Vertex.x < -10.0 ? 0 : i_ref + i;
 }
 
 [fragment shader]
@@ -59,7 +62,5 @@ void main()
 uniform int i_ref -1000
 uniform uint u_ref 0xfedcba98
 uniform float f_ref 3.1415926
-uniform float f_dummy 0
-uniform uint u_dummy 0
 draw rect -1 -1 2 2
 probe all rgba 0.0 1.0 0.0 1.0
