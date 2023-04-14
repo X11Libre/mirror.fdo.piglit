@@ -121,6 +121,7 @@ static const char *fs_template_write_different =
 static char *fs_write_different;
 static char *test_name, *prog_name;
 static GLuint fb, prog_write_all_red, prog_write_all_different;
+bool (*run_test)(const GLenum drawbuffers[4]);
 
 
 static void
@@ -444,6 +445,42 @@ piglit_init(int argc, char **argv)
 		piglit_report_result(PIGLIT_SKIP);
 	}
 
+	if (streq(test_name, "glClear")) {
+		run_test = &test_glClear;
+	}
+	else if (streq(test_name, "glClearBuffer")) {
+		piglit_require_gl_version(30);
+		run_test = &test_glClearBuffer;
+	}
+	else if (streq(test_name, "gl_FragColor")) {
+		run_test = &test_fragcolor;
+	}
+	else if (streq(test_name, "gl_FragData")) {
+		run_test = &test_fragdata;
+	}
+	else if (streq(test_name, "use_frag_out")) {
+		piglit_require_GLSL_version(130);
+		run_test = &test_fragout;
+	}
+	else if (streq(test_name, "glColorMaskIndexed")) {
+		piglit_require_extension("GL_EXT_draw_buffers2");
+		run_test = &test_glColorMaskIndexed;
+	}
+	else if (streq(test_name, "glBlendFunci")) {
+		piglit_require_extension("GL_ARB_draw_buffers_blend");
+		run_test = &test_glBlendFunci;
+	}
+	else if (streq(test_name, "glDrawPixels")) {
+		run_test = &test_glDrawPixels;
+	}
+	else if (streq(test_name, "glBlitFramebuffer")) {
+		run_test = &test_glBlitFramebuffer;
+	}
+	else {
+		printf("Unknown subtest: %s\n", test_name);
+		print_usage_and_exit();
+	}
+
 	create_shaders();
 	create_and_bind_fbo();
 }
@@ -460,41 +497,7 @@ piglit_display(void)
 
 		glDrawBuffers(4, drawbuf_config[i]);
 
-		if (streq(test_name, "glClear")) {
-			pass = test_glClear(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "glClearBuffer")) {
-			piglit_require_gl_version(30);
-			pass = test_glClearBuffer(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "gl_FragColor")) {
-			pass = test_fragcolor(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "gl_FragData")) {
-			pass = test_fragdata(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "use_frag_out")) {
-			piglit_require_GLSL_version(130);
-			pass = test_fragout(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "glColorMaskIndexed")) {
-			piglit_require_extension("GL_EXT_draw_buffers2");
-			pass = test_glColorMaskIndexed(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "glBlendFunci")) {
-			piglit_require_extension("GL_ARB_draw_buffers_blend");
-			pass = test_glBlendFunci(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "glDrawPixels")) {
-			pass = test_glDrawPixels(drawbuf_config[i]) && pass;
-		}
-		else if (streq(test_name, "glBlitFramebuffer")) {
-			pass = test_glBlitFramebuffer(drawbuf_config[i]) && pass;
-		}
-		else {
-			printf("Unknown subtest: %s\n", test_name);
-			print_usage_and_exit();
-		}
+		pass = run_test(drawbuf_config[i]) && pass;
 	}
 
 	pass = piglit_check_gl_error(GL_NO_ERROR) && pass;
