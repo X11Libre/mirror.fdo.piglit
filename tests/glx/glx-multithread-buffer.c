@@ -76,6 +76,8 @@ draw(Display *dpy)
 
   piglit_dispatch_default_init(PIGLIT_DISPATCH_GL);
 
+  piglit_require_GLSL_version(140);
+
   glGenBuffers(1, &buf);
   glBindBuffer(GL_UNIFORM_BUFFER, buf);
   glBufferData(GL_UNIFORM_BUFFER, 2048, NULL, GL_DYNAMIC_DRAW);
