@@ -12,6 +12,7 @@ endif(PIGLIT_BUILD_GLX_TESTS)
 
 link_libraries (
 	${OPENGL_gl_LIBRARY}
+	${CMAKE_THREAD_LIBS_INIT}
 )
 
 IF(PIGLIT_BUILD_GLX_TESTS)
@@ -56,6 +57,8 @@ IF(PIGLIT_BUILD_GLX_TESTS)
 	piglit_add_executable (glx-multithread-shader-compile glx-multithread-shader-compile.c)
 	target_link_libraries(glx-multithread-shader-compile pthread)
 	piglit_add_executable (glx-make-current glx-make-current.c)
+	piglit_add_executable (glx-make-current-other-thread glx-make-current-other-thread.c)
+	piglit_add_executable (glx-copy-context-dest-current glx-copy-context-dest-current.c)
 	piglit_add_executable (glx-swap-event glx-swap-event.c)
 	piglit_add_executable (glx-make-glxdrawable-current glx-make-glxdrawable-current.c)
 	piglit_add_executable (glx-swap-exchange glx-swap-exchange.c)
