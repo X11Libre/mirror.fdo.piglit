@@ -84,7 +84,7 @@ get_bitmap_bit(int x, int y)
 }
 
 static GLboolean
-verify_bitmap_pixel(struct probes *probes, int i, int x, int y)
+verify_bitmap_pixel(float *pixels, struct probes *probes, int i, int x, int y)
 {
 	const GLfloat black[4] = {0.0, 0.0, 0.0, 0.0};
 	int x1 = probes->probes[i].x;
@@ -111,7 +111,9 @@ verify_bitmap_pixel(struct probes *probes, int i, int x, int y)
 	}
 
 	/* Make sure the region is black */
-	pass = piglit_probe_pixel_rgb(x, y, expected);
+	pass = piglit_compare_pixels(x, y, expected,
+				     pixels + (y * piglit_width + x) * 3,
+				     piglit_tolerance, 3);
 	if (!pass)
 		printf("glBitmap error in %s (test offset %d,%d)\n",
 		       probes->probes[i].name,
@@ -121,7 +123,7 @@ verify_bitmap_pixel(struct probes *probes, int i, int x, int y)
 }
 
 static GLboolean
-verify_bitmap_contents(struct probes *probes, int i)
+verify_bitmap_contents(float *pixels, struct probes *probes, int i)
 {
 	int x, y;
 	int x1 = probes->probes[i].x;
@@ -137,7 +139,7 @@ verify_bitmap_contents(struct probes *probes, int i)
 			if (x < 0 || x >= piglit_width)
 				continue;
 
-			pass &= verify_bitmap_pixel(probes, i, x, y);
+			pass &= verify_bitmap_pixel(pixels, probes, i, x, y);
 			if (!pass)
 				return pass;
 		}
@@ -145,7 +147,6 @@ verify_bitmap_contents(struct probes *probes, int i)
 
 	return pass;
 }
-
 enum piglit_result
 piglit_display()
 {
@@ -291,9 +292,12 @@ piglit_display()
 		  fdo_bitmap_width, fdo_bitmap_height * 3 / 4,
 		  0, 0);
 
+	float *pixels = malloc(piglit_width * piglit_height * 3 * sizeof(float));
+	glReadPixels(0, 0, piglit_width, piglit_height, GL_RGB, GL_FLOAT, pixels);
 	for (i = 0; i < probes.n_probes; i++) {
-		pass = pass && verify_bitmap_contents(&probes, i);
+		pass = pass && verify_bitmap_contents(pixels, &probes, i);
 	}
+	free(pixels);
 
 	piglit_present_results();
 
