@@ -92,7 +92,6 @@ create_fbo(unsigned width, unsigned height, GLuint *out_tex)
 enum piglit_result
 piglit_display(void)
 {
-	GLboolean pass = GL_TRUE;
 	int x, y;
 	GLuint fb, tex;
 
@@ -127,19 +126,19 @@ piglit_display(void)
 	if (!piglit_check_gl_error(GL_NO_ERROR))
 		piglit_report_result(PIGLIT_FAIL);
 
+	float *color = malloc(piglit_width * piglit_height * 3 * sizeof(float));
+
 	for (y = 0; y < piglit_height; y++) {
 		for (x = 0; x < piglit_width; x++) {
-			float color[3];
-
-			color[0] = x / 256.0;
-			color[1] = y / 256.0;
-			color[2] = 0;
-
-			pass &= piglit_probe_pixel_rgb(x, y, color);
-			if (!pass)
-				break;
+			color[(y * piglit_width + x) * 3 + 0] = x / 256.0;
+			color[(y * piglit_width + x) * 3 + 1] = y / 256.0;
+			color[(y * piglit_width + x) * 3 + 2] = 0;
 		}
 	}
+
+	bool pass = piglit_probe_image_rgb(0, 0, piglit_width, piglit_height, color);
+
+	free(color);
 
 	piglit_present_results();
 
