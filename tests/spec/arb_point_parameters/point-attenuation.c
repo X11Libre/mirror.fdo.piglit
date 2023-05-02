@@ -87,25 +87,20 @@ expectedSize(GLfloat initSize,
 
 /* measure size of rendered point at yPos (in model coords) */
 static GLfloat
-measureSize(GLfloat yPos)
+measureSize(float *pixels, GLfloat yPos)
 {
 	assert(yPos >= -10.0);
 	assert(yPos <= 10.0);
 	float yNdc = (yPos + 10.0) / 20.0;  /* See glOrtho above */
-	int x = 0;
 	int y = (int) (yNdc * windowHeight);
 	int w = windowWidth;
-	int h = 3;
-	GLfloat image[3 * windowWidth * 3]; /* three rows of RGB values */
 
-	/* Read three row of pixels and add up colors in each row.
-	 * Use the row with the greatest sum.  This helps gives us a bit
-	 * of leeway in vertical point positioning.
+	/* Add up colors in 3 rows, and use the row with the greatest sum.
+	 * This helps gives us a bit of leeway in vertical point positioning.
 	 * Colors should be white or shades of gray if smoothing is enabled.
-     */
-	glReadPixels(x, y - 1, w, h, GL_RGB, GL_FLOAT, image);
-
-	float sum[3] = { 0.0, 0.0, 0.0 };
+     	 */
+	float *image = pixels + (y - 1) * windowWidth * 3;
+	float sum[3] = {0.0, 0.0, 0.0};
 	for (int j = 0; j < 3; j++) {
 		for (int i = 0; i < w; i++) {
 			int k = j * 3 * w + i * 3;
@@ -142,6 +137,8 @@ testPointRendering(bool smooth)
 		glDisable(GL_BLEND);
 	}
 
+	float *pixels = malloc(piglit_width * piglit_height * 3 * sizeof(float));
+
 	for (int a = 0; a < 3; a++) {
 		atten[0] = pow(10.0, -a);
 		for (int b = -2; b < 3; b++) {
@@ -164,12 +161,14 @@ testPointRendering(bool smooth)
 							}
 							glEnd();
 
+							glReadPixels(0, 0, piglit_width, piglit_height, GL_RGB, GL_FLOAT, pixels);
+
 							/* test the column of points */
 							for (float z = -6.0; z <= 6.0; z += 1.0) {
 								float expected
 									= expectedSize(size, atten, min, max,
 												   z, smooth);
-								float actual = measureSize(z);
+								float actual = measureSize(pixels, z);
 								if (fabs(expected - actual) > epsilon) {
 									reportFailure(size, atten, min, max,
 												  z, expected, actual);
@@ -186,6 +185,8 @@ testPointRendering(bool smooth)
 			}
 		}
 	}
+
+	free(pixels);
 
 	if (!piglit_check_gl_error(0))
 		return false;
