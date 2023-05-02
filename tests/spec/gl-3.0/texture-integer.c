@@ -40,6 +40,7 @@ PIGLIT_GL_TEST_CONFIG_END
 static const char *TestName = "texture-integer";
 static GLint TexWidth = 16, TexHeight = 16;
 static GLint BiasUniform = -1, TexUniform = -1;
+static GLuint iProgram, uProgram;
 
 struct format_info
 {
@@ -105,10 +106,10 @@ static const struct format_info Formats[] = {
 static const char *FragShaderText =
 	"#version 130 \n"
 	"uniform vec4 bias; \n"
-	"uniform isampler2D tex; \n"
+	"uniform %csampler2D tex; \n"
 	"void main() \n"
 	"{ \n"
-	"   ivec4 t = texture(tex, gl_TexCoord[0].xy); \n"
+	"   %cvec4 t = texture(tex, gl_TexCoord[0].xy); \n"
 	"   gl_FragColor = vec4(t) + bias; \n"
 	"} \n";
 
@@ -314,6 +315,19 @@ test_format(const struct format_info *info)
 		;
 	}
 
+	if (info->Signed) {
+		glUseProgram(iProgram);
+		BiasUniform = glGetUniformLocation(iProgram, "bias");
+		TexUniform = glGetUniformLocation(iProgram, "tex");
+	} else {
+		glUseProgram(uProgram);
+		BiasUniform = glGetUniformLocation(uProgram, "bias");
+		TexUniform = glGetUniformLocation(uProgram, "tex");
+	}
+
+
+	/* tex unit zero */
+	glUniform1i(TexUniform, 0);
 	/* compute, set test bias */
 	bias[0] = expected[0] - value[0];
 	bias[1] = expected[1] - value[1];
@@ -349,6 +363,8 @@ test_format(const struct format_info *info)
 		return false;
 	}
 
+	glUseProgram(0);
+
 	piglit_present_results();
 
 	free(buf);
@@ -376,18 +392,16 @@ piglit_display(void)
 void
 piglit_init(int argc, char **argv)
 {
-	GLuint program;
         static GLuint tex;
+	char shaderText[1024];
 
 	piglit_require_gl_version(30);
 
-	program = piglit_build_simple_program(NULL, FragShaderText);
-	glUseProgram(program);
+	sprintf(shaderText, FragShaderText, 'i', 'i');
+	iProgram = piglit_build_simple_program(NULL, shaderText);
 
-	BiasUniform = glGetUniformLocation(program, "bias");
-	TexUniform = glGetUniformLocation(program, "tex");
-
-	glUniform1i(TexUniform, 0);  /* tex unit zero */
+	sprintf(shaderText, FragShaderText, 'u', 'u');
+	uProgram = piglit_build_simple_program(NULL, shaderText);
 
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
