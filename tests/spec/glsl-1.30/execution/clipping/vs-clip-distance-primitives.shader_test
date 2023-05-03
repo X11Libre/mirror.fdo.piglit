@@ -44,7 +44,7 @@ uniform vec2 u_offset 0.5 0.5
 draw arrays GL_POINTS 0 1
 probe rect rgba ( 0, 0, 20, 20) (0, 0, 0, 0)
 
-uniform vec2 u_offset 20 0.5
+uniform vec2 u_offset 20.5 0.5
 draw arrays GL_LINES 0 2
 probe rect rgba (20, 0, 20, 20) (0, 0, 0, 0)
 
@@ -59,7 +59,7 @@ uniform vec2 u_offset 0.5 20.5
 draw arrays GL_POINTS 0 1
 probe rect rgba ( 0, 20, 1, 1) (1, 0, 0, 1)
 
-uniform vec2 u_offset 20 20.5
+uniform vec2 u_offset 20.5 20.5
 draw arrays GL_LINES 0 2
 probe rect rgba (20, 20, 10, 1) (1, 0, 0, 1)
 
