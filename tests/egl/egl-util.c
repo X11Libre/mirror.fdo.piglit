@@ -210,7 +210,7 @@ egl_util_run(const struct egl_test *test, int argc, char *argv[])
 	struct egl_state state = { 0 };
 	EGLint count;
 	enum piglit_result result = PIGLIT_PASS;
-	int i, dispatch_api, api_bit = EGL_OPENGL_BIT;
+	int i, dispatch_api, api_bit = ~0;
 
 	EGLint nCtxAttribs = 0;
 	EGLint ctxAttribs[40];
@@ -246,6 +246,9 @@ egl_util_run(const struct egl_test *test, int argc, char *argv[])
 		dispatch_api = PIGLIT_DISPATCH_ES2;
 		ctxAttribs[nCtxAttribs++] = EGL_CONTEXT_CLIENT_VERSION;
 		ctxAttribs[nCtxAttribs++] = 2;
+		break;
+	case EGL_OPENGL_BIT:
+		dispatch_api = PIGLIT_DISPATCH_GL;
 		break;
 	default:
 		fprintf(stderr, "Note: No EGL_RENDERABLE_TYPE defined in test attributes, defaulted to gl\n");
