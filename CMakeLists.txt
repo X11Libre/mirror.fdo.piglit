@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.4)
 
 # http://www.cmake.org/cmake/help/v3.0/policy/CMP0042.html
 if (POLICY CMP0042)
@@ -246,7 +246,7 @@ find_package(PythonInterp REQUIRED)
 find_package(PythonNumpy 1.7.0 REQUIRED)
 find_package(PythonMako 1.0.2 REQUIRED)
 
-find_package(bash-completion NO_MODULE)
+pkg_search_module(BASH_COMPLETION bash-completion)
 
 # Default to compiling with debug information (`gcc -g`):
 if(NOT CMAKE_BUILD_TYPE)
@@ -577,9 +577,17 @@ install (
 )
 
 if (BASH_COMPLETION_FOUND)
+	pkg_get_variable(BASH_COMPLETION_COMPLETIONSDIR bash-completion completionsdir)
+
+	if(NOT "${BASH_COMPLETION_PREFIX}" STREQUAL "${CMAKE_INSTALL_PREFIX}")
+		string(REGEX REPLACE "^${BASH_COMPLETION_PREFIX}" "${CMAKE_INSTALL_PREFIX}" COMP_DIR ${BASH_COMPLETION_COMPLETIONSDIR})
+		set(BASH_COMPLETION_COMPLETIONSDIR ${COMP_DIR})
+		unset(COMP_DIR)
+	endif()
+
 	install(
 		FILES completions/bash/piglit
-		DESTINATION ${CMAKE_INSTALL_PREFIX}/${BASH_COMPLETION_COMPLETIONSDIR}/
+		DESTINATION ${BASH_COMPLETION_COMPLETIONSDIR}
 	)
 endif (BASH_COMPLETION_FOUND)
 
