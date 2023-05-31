@@ -166,35 +166,32 @@ automatically by the cgit frontend are official release tarballs.
 \ Contributing Patches
  ---------------------
 
-If you want to contribute patches, please subscribe to the piglit
-mailing list (http://lists.freedesktop.org/mailman/listinfo/piglit)
-and then send them to piglit@lists.freedesktop.org using "git
-send-email".  One of the core piglit developers should respond with
-comments and suggested improvements.  The piglit mailing list is also
-a good place for general discussion about piglit development, such as
-future plans for the project, and coordinating work between
-developers.
+If you want to contribute patches, please submit an MR
+(https://gitlab.freedesktop.org/mesa/piglit/-/merge_requests/new)
 
-Note that Piglit patches use the terms "Reviewed-by", "Tested-by", and
-"Acked-by" in the same way as they are used for Linux kernel patches
-(see https://www.kernel.org/doc/Documentation/SubmittingPatches).  You
-are also welcome to add a "Signed-off-by" line to your patch, but it
-is not required.
+Patches should not mix code changes with code formatting changes (except,
+perhaps, in very trivial cases.)
 
-For developers who are new to piglit: when submitting a patch, it is
-helpful to add a note (after the "---" line in the patch file)
-indicating that you are new to the project and don't have commit
-access; that way once your patch has been revised to meet our
-standards of correctness and coding style, we will know that we should
-commit it for you.  If we forget, please remind us!  Once you have
-successfully contributed a handful of patches, feel free to apply for
-commit access using the process described here:
-http://www.freedesktop.org/wiki/AccountRequests/
+Patches should never introduce build breaks and should be bisectable (see Git
+bisect.)
 
-Please be patient--most of us develop graphics drivers (such as Mesa)
-as our primary job, so we have limited time to respond to your patches
-on the piglit mailing list.  If your patch hasn't received a reply in
-a week, send a follow-up email to make sure we haven't missed it.  If
-you have questions that are better discussed in real time, many piglit
-developers can also be found in the #dri-devel channel on Freenode
-IRC.
+Reviewed MRs must be assigned to marge-bot for merging into the main repository,
+rather than directly merging them or using "Merge after pipeline succeeds".
+This ensures that the CI pipeline stays green, and each commit links to its MR.
+
+Reviewers may use the "Approve" button to indicate that they think the whole MR
+is acceptable for merge, but want to let the submitter collect more review.
+
+Note that Piglit reviewers use the terms "Reviewed-by", "Tested-by", and
+"Acked-by" in the same way as they are used for Linux kernel patches (see
+https://www.kernel.org/doc/Documentation/SubmittingPatches).  They are not
+required to be squashed into commit messages, given that marge-bot will include
+a link to the MR discussion in each commit message.  You are also welcome to add
+a "Signed-off-by" line to your patch, but it is not required.
+
+Please be patient -- most of us develop graphics drivers (such as Mesa) as our
+primary job, so we have limited time to respond to your MRs.  If your MR hasn't
+received a reply in a week, you may try sending a ping to a developer of related
+ tests, or who provided feedback on your MR.  If you have questions that are
+better discussed in real time, many piglit developers can also be found in the
+#dri-devel channel on OFTC IRC.

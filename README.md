@@ -427,6 +427,9 @@ python framework:
     It is generally unnecessary to call this class directly as it uses a helper
     function to search directories for tests.
 
+## 5.1 Contributing
+
+  See the [HACKING](HACKING) file.
 
 ## 6. Integration
 
