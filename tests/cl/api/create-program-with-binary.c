@@ -168,8 +168,15 @@ piglit_cl_test(const int argc,
 		goto fail;
 	}
 
+	/* test0: Pass binary program to clBuildProgram() */
+	errNo = clBuildProgram(binary_program, ctx->num_devices,
+				ctx->device_ids, NULL, NULL, NULL);
+	if (!piglit_cl_check_error(errNo, CL_SUCCESS)) {
+		fprintf(stderr, "Failed to compile binary program.");
+		piglit_merge_result(&result, PIGLIT_FAIL);
+	}
 
-	/* test0: Execute a binary program */
+	/* test1: Execute a binary program */
 	kernel = clCreateKernel(binary_program, "dummy_kernel", &errNo);
 
 	if (!piglit_cl_check_error(errNo, CL_SUCCESS)) {
@@ -177,7 +184,7 @@ piglit_cl_test(const int argc,
 				"(error code: %s)\n",
 		        piglit_cl_get_error_name(errNo));
 		piglit_merge_result(&result, PIGLIT_FAIL);
-		goto done_test0;
+		goto fail;
 	}
 
 	for (i = 0; i < ctx->num_devices; i++) {
@@ -190,29 +197,20 @@ piglit_cl_test(const int argc,
 			fprintf(stderr, "Failed to execute binary kernel.");
 			piglit_merge_result(&result, PIGLIT_FAIL);
 		}
+		clFinish(queue);
 	}
 
 	clReleaseKernel(kernel);
-done_test0:
-
-	/* test1: Pass binary program to clBuildProgram() */
-	errNo = clBuildProgram(binary_program, ctx->num_devices,
-				ctx->device_ids, NULL, NULL, NULL);
-	if (!piglit_cl_check_error(errNo, CL_SUCCESS)) {
-		fprintf(stderr, "Failed to compile binary program.");
-		piglit_merge_result(&result, PIGLIT_FAIL);
-	}
 
 	/* test2 Pass binary program to clCompileProgram() */
 
 #ifdef CL_VERSION_1_2
-
 	if (piglit_cl_get_platform_version(ctx->platform_id) >= 12) {
 		errNo = clCompileProgram(binary_program, ctx->num_devices,
 					ctx->device_ids, NULL, 0, NULL, NULL,
 					NULL, NULL);
 		if (!piglit_cl_check_error(errNo, CL_INVALID_OPERATION)) {
-			fprintf(stderr, "Passing a binary program to "
+			fprintf(stderr, "if program has no source or IL available"
 				"clCompileProgram() should return "
 				"CL_INVALID_OPERATION");
 			piglit_merge_result(&result, PIGLIT_FAIL);
