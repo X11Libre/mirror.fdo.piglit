@@ -499,6 +499,7 @@ piglit_assemble_spirv(GLenum target,
 		getenv("PIGLIT_SPIRV_AS_BINARY"),
 		"--target-env", "opengl4.5",
 		"-o", "-",
+		"-",
 		NULL
 	};
 
