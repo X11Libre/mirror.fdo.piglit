@@ -42,3 +42,8 @@ uniform vec4 u 0 1 0 0
 uniform int j 1
 draw rect -1 -1 2 2
 probe all rgba 0 1 1 0
+
+uniform vec4 u 0 1 0 0
+uniform int j 2
+draw rect -1 -1 2 2
+probe all rgba 0 1 0 0
