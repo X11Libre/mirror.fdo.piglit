@@ -51,7 +51,7 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 PIGLIT_GL_TEST_CONFIG_END
 
 static unsigned gpu_freq_mhz;
-static GLint progs[4];
+static GLint progs[9];
 
 void
 piglit_init(int argc, char **argv)
@@ -64,6 +64,32 @@ piglit_init(int argc, char **argv)
 	piglit_require_gl_version(32);
 
 	progs[0] = piglit_build_simple_program(
+			  "#version 150 compatibility \n"
+			  "void main() { \n"
+			  "  gl_Position = gl_Vertex; \n"
+			  "}",
+
+			  "#version 150 compatibility \n"
+			  "void main() { \n"
+			  "  gl_FragColor = vec4(1.0); \n"
+			  "}");
+
+	progs[1] = piglit_build_simple_program(
+			  "#version 150 compatibility \n"
+			  "varying vec4 v[1]; \n"
+			  "attribute vec4 a[1]; \n"
+			  "void main() { \n"
+			  "  for (int i = 0; i < 1; i++) v[i] = a[i]; \n"
+			  "  gl_Position = gl_Vertex; \n"
+			  "}",
+
+			  "#version 150 compatibility \n"
+			  "varying vec4 v[1]; \n"
+			  "void main() { \n"
+			  "  gl_FragColor = v[0]; \n"
+			  "}");
+
+	progs[2] = piglit_build_simple_program(
 			  "#version 150 compatibility \n"
 			  "varying vec4 v[2]; \n"
 			  "attribute vec4 a[2]; \n"
@@ -78,7 +104,22 @@ piglit_init(int argc, char **argv)
 			  "  gl_FragColor = vec4(dot(v[0] * v[1], vec4(1.0)) == 1.0 ? 1.0 : 0.0); \n"
 			  "}");
 
-	progs[1] = piglit_build_simple_program(
+	progs[3] = piglit_build_simple_program(
+			  "#version 150 compatibility \n"
+			  "varying vec4 v[3]; \n"
+			  "attribute vec4 a[3]; \n"
+			  "void main() { \n"
+			  "  for (int i = 0; i < 3; i++) v[i] = a[i]; \n"
+			  "  gl_Position = gl_Vertex; \n"
+			  "}",
+
+			  "#version 150 compatibility \n"
+			  "varying vec4 v[3]; \n"
+			  "void main() { \n"
+			  "  gl_FragColor = vec4(dot(v[0] * v[1] * v[2], vec4(1.0)) == 1.0 ? 1.0 : 0.0); \n"
+			  "}");
+
+	progs[4] = piglit_build_simple_program(
 			  "#version 150 compatibility \n"
 			  "varying vec4 v[4]; \n"
 			  "attribute vec4 a[4]; \n"
@@ -93,7 +134,7 @@ piglit_init(int argc, char **argv)
 			  "  gl_FragColor = vec4(dot(v[0] * v[1] * v[2] * v[3], vec4(1.0)) == 1.0 ? 1.0 : 0.0); \n"
 			  "}");
 
-	progs[2] = piglit_build_simple_program(
+	progs[6] = piglit_build_simple_program(
 			  "#version 150 compatibility \n"
 			  "varying vec4 v[6]; \n"
 			  "attribute vec4 a[6]; \n"
@@ -108,7 +149,7 @@ piglit_init(int argc, char **argv)
 			  "  gl_FragColor = vec4(dot(v[0] * v[1] * v[2] * v[3] * v[4] * v[5], vec4(1.0)) == 1.0 ? 1.0 : 0.0); \n"
 			  "}");
 
-	progs[3] = piglit_build_simple_program(
+	progs[8] = piglit_build_simple_program(
 			  "#version 150 compatibility \n"
 			  "varying vec4 v[8]; \n"
 			  "attribute vec4 a[8]; \n"
@@ -647,6 +688,9 @@ run(enum draw_method draw_method, enum cull_method cull_method,
 		fflush(stdout);
 
 		for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
+			if (!progs[prog])
+				continue;
+
 			glUseProgram(progs[prog]);
 
 			if (prog)
@@ -678,7 +722,7 @@ piglit_display(void)
 
 	/* for debugging */
 	if (getenv("ONE")) {
-		glUseProgram(progs[0]);
+		glUseProgram(progs[2]);
 		run_test(1, INDEXED_TRIANGLES_2VTX, BACK_FACE_CULLING, ceil(sqrt(0.5 * 512000)), 2, 50);
 		piglit_swap_buffers();
 		return PIGLIT_PASS;
@@ -698,12 +742,16 @@ piglit_display(void)
 		num_prims[i] = num_quads_per_dim[i] * num_quads_per_dim[i] * 2;
 
 	printf("  Measuring %-27s,    ", gpu_freq_mhz ? "Prims/clock," : "GPrims/second,");
-	for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++)
-		printf("%u Varyings %27s", 2 + prog * 2, " ");
+	for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
+		if (progs[prog])
+			printf("%u Varyings %27s", prog, " ");
+	}
 	printf("\n");
 
 	printf("  Draw Call     ,  Cull Method         ");
 	for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
+		if (!progs[prog])
+			continue;
 		if (prog)
 			printf("   ");
 		for (int i = 0; i < ARRAY_SIZE(num_prims); i++)
