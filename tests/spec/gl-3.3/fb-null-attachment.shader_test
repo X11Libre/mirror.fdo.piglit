@@ -1,0 +1,33 @@
+# Verify that a null framebuffer attachment doesn't affect framebuffer size
+#
+# This verifies that drivers aren't clamping framebuffers to a smaller size in the
+# presence of null framebuffer attachments
+
+[require]
+GL >= 3.3
+GLSL >= 3.30
+SIZE 1920 1080
+
+[vertex shader passthrough]
+
+[fragment shader]
+#version 330
+
+out vec4 outcolor;
+
+void main()
+{
+	outcolor = vec4(0.0, 1.0, 0.0, 1.0);
+}
+
+[test]
+texture rgbw 0 (1920, 1080) GL_RGBA8
+texture rgbw 1 (1920, 1080) GL_RGBA8
+
+fb tex 2d 0 -1 1
+
+clear color 0.2 0.2 0.2 0.2
+clear
+draw rect -1 -1 2 2
+
+probe all rgba 0.0 1.0 0.0 1.0
