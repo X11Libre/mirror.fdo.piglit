@@ -225,11 +225,11 @@ piglit_init(int argc, char **argv)
 	piglit_require_egl_extension(egl_dpy, "EGL_KHR_gl_texture_2D_image");
 	piglit_require_extension("GL_OES_EGL_image_external");
 
-	fprintf(stderr, "Testing glFinish before dmabuf export\n");
+	printf("Testing glFinish before dmabuf export\n");
 	if (!test(egl_dpy, false))
 		piglit_report_result(PIGLIT_FAIL);
 
-	fprintf(stderr, "Testing glFinish after dmabuf export\n");
+	printf("Testing glFinish after dmabuf export\n");
 	if (!test(egl_dpy, true))
 		piglit_report_result(PIGLIT_FAIL);
 
