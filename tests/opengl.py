@@ -1709,6 +1709,19 @@ with profile.test_list.group_manager(
     g(['arb_sync-ClientWaitSync-timeout'], 'ClientWaitSync-timeout')
     g(['sync_api'])
 
+# Group APPLE_sync
+with profile.test_list.group_manager(
+        PiglitGLTest, grouptools.join('spec', 'APPLE_sync')) as g:
+    g(['apple_sync-client-wait-errors'], 'ClientWaitSync-errors')
+    g(['apple_sync-delete'], 'DeleteSync')
+    g(['apple_sync-fence-sync-errors'], 'FenceSync-errors')
+    g(['apple_sync-get-sync-errors'], 'GetSynciv-errors')
+    g(['apple_sync-is-sync'], 'IsSync')
+    g(['apple_sync-repeat-wait'], 'repeat-wait')
+    g(['apple_sync-sync-initialize'], 'sync-initialize')
+    g(['apple_sync-timeout-zero'], 'timeout-zero')
+    g(['apple_sync-WaitSync-errors'], 'WaitSync-errors')
+
 # Group ARB_ES2_compatibility
 with profile.test_list.group_manager(
         PiglitGLTest, grouptools.join('spec', 'ARB_ES2_compatibility')) as g:
