@@ -23,7 +23,7 @@
 #ifndef PIGLIT_DRM_DMA_BUF_H
 #define PIGLIT_DRM_DMA_BUF_H
 
-#include "drm_fourcc.h"
+#include "drm-uapi/drm_fourcc.h"
 
 struct piglit_dma_buf {
 	unsigned w;

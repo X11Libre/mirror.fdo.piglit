@@ -32,7 +32,7 @@
  */
 
 #include <unistd.h>
-#include <drm_fourcc.h>
+#include "drm-uapi/drm_fourcc.h"
 
 #include "piglit-util-egl.h"
 #include "piglit-util-gl.h"

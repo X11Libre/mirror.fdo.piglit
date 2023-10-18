@@ -25,7 +25,7 @@
  * \brief Tests for libgbm.
  */
 
-#include <drm_fourcc.h>
+#include "drm-uapi/drm_fourcc.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <gbm.h>

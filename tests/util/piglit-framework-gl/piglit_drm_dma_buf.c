@@ -23,7 +23,7 @@
 
 #include "piglit-util-gl.h"
 #include "piglit_drm_dma_buf.h"
-#include "drm_fourcc.h"
+#include "drm-uapi/drm_fourcc.h"
 #ifdef PIGLIT_HAS_GBM_BO_MAP
 #include <gbm.h>
 #endif
