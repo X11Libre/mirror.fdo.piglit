@@ -193,6 +193,40 @@ piglit_subprocess(char * const *arguments,
 
 #else /* _WIN32 */
 
+static bool
+stream_data(HANDLE to_child,
+	    HANDLE from_child,
+	    size_t input_size,
+	    const uint8_t *input,
+	    size_t *output_size,
+	    uint8_t **output)
+{
+	DWORD bytes = 0;
+	if (!WriteFile(to_child, input, (DWORD)input_size, &bytes, NULL)) {
+		fprintf(stderr, "failed to write to child stdin\n");
+		return false;
+	}
+	CloseHandle(to_child);
+
+	size_t buf_size = 128;
+
+	*output = malloc(buf_size);
+	*output_size = 0;
+
+	while (true) {
+		if (buf_size - *output_size < 128) {
+			buf_size *=2;
+			*output = realloc(*output, buf_size);
+		}
+		if (ReadFile(from_child, *output + *output_size, buf_size - *output_size, &bytes, NULL) && bytes) {
+			*output_size += bytes;
+		} else {
+			CloseHandle(from_child);
+			return true;
+		}
+	}
+}
+
 bool
 piglit_subprocess(char * const *arguments,
 		  size_t input_size,
@@ -200,8 +234,97 @@ piglit_subprocess(char * const *arguments,
 		  size_t *output_size,
 		  uint8_t **output)
 {
-	fprintf(stderr, "piglit_subprocess is not implemented on Windows\n");
-	return false;
+	char *app_name = arguments[0];
+	char cmdline[1024];
+	char *append_loc = cmdline;
+	for (char * const *arg = arguments; *arg != NULL; ++arg) {
+		bool has_space = strchr(*arg, ' ') != NULL;
+		bool has_quotes = strchr(*arg, '"') != NULL;
+		int ret = sprintf(append_loc,
+				  has_space && !has_quotes ? "%s\"%s\"" : "%s%s",
+				  arg == arguments ? "" : " ",
+				  *arg);
+		if (ret < 0) {
+			fprintf(stderr, "failed to construct command line\n");
+			return false;
+		}
+		append_loc += ret;
+	}
+
+	HANDLE stdin_read = NULL;
+	HANDLE stdin_write = NULL;
+	HANDLE stdout_read = NULL;
+	HANDLE stdout_write = NULL;
+
+	SECURITY_ATTRIBUTES sattr;
+	sattr.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sattr.bInheritHandle = TRUE;
+	sattr.lpSecurityDescriptor = NULL;
+	bool success = false;
+
+	PROCESS_INFORMATION pinfo = { 0 };
+	STARTUPINFO startup_info = { 0 };
+	startup_info.cb = sizeof(STARTUPINFO);
+
+	if (!CreatePipe(&stdin_read, &stdin_write, &sattr, 0) ||
+	    !CreatePipe(&stdout_read, &stdout_write, &sattr, 0) ||
+	    /* Child process doesn't need to write to stdin or read from stdout */
+	    !SetHandleInformation(stdin_write, HANDLE_FLAG_INHERIT, 0) ||
+	    !SetHandleInformation(stdout_read, HANDLE_FLAG_INHERIT, 0)) {
+		fprintf(stderr, "CreatePipe or SetHandleInformation failed\n");
+		goto cleanup;
+	}
+
+	startup_info.hStdInput = stdin_read;
+	startup_info.hStdOutput = stdout_write;
+	startup_info.hStdError = NULL;
+	startup_info.dwFlags = STARTF_USESTDHANDLES;
+	if (!CreateProcessA(
+		app_name,
+		cmdline,
+		NULL, /* Security attributes */
+		NULL, /* Thread attributes */
+		TRUE, /* Inherit handles */
+		0, /* Creation flags */
+		NULL, /* Environment (use parent) */
+		NULL, /* Working directory (use parent) */
+		&startup_info,
+		&pinfo
+	)) {
+		fprintf(stderr, "CreateProcess failed\n");
+		goto cleanup;
+	}
+
+	/* Close unneeded handles */
+	CloseHandle(pinfo.hThread);
+	CloseHandle(stdin_read);
+	stdin_read = NULL;
+	CloseHandle(stdout_write);
+	stdout_write = NULL;
+
+	success = stream_data(stdin_write, stdout_read, input_size, input, output_size, output);
+	stdin_write = NULL;
+	stdout_read = NULL;
+	WaitForSingleObject(pinfo.hProcess, INFINITE);
+	DWORD exit_code;
+	if (!GetExitCodeProcess(pinfo.hProcess, &exit_code) || exit_code != 0) {
+		if (success)
+			free(*output);
+		success = false;
+	}
+
+cleanup:
+	if (stdin_read)
+		CloseHandle(stdin_read);
+	if (stdin_write)
+		CloseHandle(stdin_write);
+	if (stdout_read)
+		CloseHandle(stdout_read);
+	if (stdout_write)
+		CloseHandle(stdout_write);
+	if (pinfo.hProcess)
+		CloseHandle(pinfo.hProcess);
+	return success;
 }
 
 #endif /* _WIN32 */
