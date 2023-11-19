@@ -1,0 +1,44 @@
+# A color varying qualified with smooth shouldn't be affected by
+# glShadeModel(GL_FLAT). If compiler optimizations are applied that perform
+# color deduplication and compaction, they should not merge color varyings
+# with different qualifiers.
+
+[require]
+GLSL >= 1.30
+
+[vertex shader]
+#version 130
+smooth out vec4 gl_FrontSecondaryColor;
+
+void main()
+{
+        gl_Position = gl_Vertex;
+        vec4 color = vec4(float(gl_VertexID) / 3.0);
+        gl_FrontColor = color;
+        gl_FrontSecondaryColor = color;
+}
+
+[fragment shader]
+#version 130
+uniform int b;
+smooth in vec4 gl_SecondaryColor;
+
+void main()
+{
+	gl_FragColor = b != 0 ? gl_SecondaryColor : gl_Color;
+}
+
+[test]
+shade model flat
+
+uniform int b 0
+draw rect -1 -1 1 1
+
+uniform int b 1
+draw rect 0 -1 1 1
+
+probe rgb 50 50 0.666667 0.666667 0.666667
+probe rgb 100 100 1 1 1
+
+probe rgb 175 50 0.403922 0.403922 0.403922
+probe rgb 225 100 0.803922 0.803922 0.803922
