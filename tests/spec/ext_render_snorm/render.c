@@ -174,7 +174,7 @@ static GLuint
 create_and_bind_fbo(const struct fmt_test *test, GLuint *tex)
 {
 	GLuint fbo;
-	GLuint fbo_tex = create_and_bind_empty_texture(test);
+	GLuint fbo_tex = create_and_bind_empty_texture();
 	upload(test, NULL);
 
 	*tex = fbo_tex;
