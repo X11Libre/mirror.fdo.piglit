@@ -141,7 +141,7 @@ test_coverage(bool mode)
 static bool
 test_state(bool enable_on, bool coverage_mode)
 {
-	return test_enable_bits(enable_on) & test_coverage(coverage_mode);
+	return test_enable_bits(enable_on) && test_coverage(coverage_mode);
 }
 
 static void
