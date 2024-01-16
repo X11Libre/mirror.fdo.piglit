@@ -224,7 +224,7 @@ piglit_gl_test_run(int argc, char *argv[],
 	}
 
 	atexit(destroy);
-	gl_fw->run_test(gl_fw, argc, argv);
+	gl_fw->run_test(&gl_fw, argc, argv);
 	assert(false);
 }
 

@@ -41,15 +41,19 @@ destroy(struct piglit_gl_framework *gl_fw)
 }
 
 static void
-run_test(struct piglit_gl_framework *gl_fw,
+run_test(struct piglit_gl_framework **pgl_fw,
          int argc, char *argv[])
 {
+	assert(pgl_fw);
 	enum piglit_result result = PIGLIT_PASS;
+	struct piglit_gl_framework *gl_fw = *pgl_fw;
 
 	if (gl_fw->test_config->init)
 		gl_fw->test_config->init(argc, argv);
 	if (gl_fw->test_config->display)
 		result = gl_fw->test_config->display();
+	destroy(gl_fw);
+	*pgl_fw = NULL;
 	piglit_report_result(result);
 }
 

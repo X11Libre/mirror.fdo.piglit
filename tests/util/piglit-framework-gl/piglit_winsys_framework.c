@@ -50,9 +50,11 @@ swap_buffers(struct piglit_gl_framework *gl_fw)
 }
 
 static void
-run_test(struct piglit_gl_framework *gl_fw,
+run_test(struct piglit_gl_framework **pgl_fw,
          int argc, char *argv[])
 {
+	assert(pgl_fw);
+	struct piglit_gl_framework *gl_fw = *pgl_fw;
 	struct piglit_winsys_framework *winsys_fw = piglit_winsys_framework(gl_fw);
 	bool no_window = false;
 	const char *env_no_window = getenv("PIGLIT_NO_WINDOW");

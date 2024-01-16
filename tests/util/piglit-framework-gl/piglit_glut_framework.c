@@ -276,7 +276,7 @@ init_glut(void)
 }
 
 static void
-run_test(struct piglit_gl_framework *gl_fw,
+run_test(struct piglit_gl_framework **pgl_fw,
          int argc, char *argv[])
 {
 	const struct piglit_gl_test_config *test_config = glut_fw.gl_fw.test_config;

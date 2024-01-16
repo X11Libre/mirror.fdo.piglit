@@ -40,7 +40,7 @@ struct piglit_gl_framework {
 	 * Does not return.
 	 */
 	void
-	(*run_test)(struct piglit_gl_framework *gl_fw,
+	(*run_test)(struct piglit_gl_framework **pgl_fw,
 		    int argc, char *argv[]);
 
 	/**
