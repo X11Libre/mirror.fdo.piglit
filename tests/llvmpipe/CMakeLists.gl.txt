@@ -28,22 +28,9 @@ IF( GIT_FOUND )
         IF( NOT ${GIT_RESULT} EQUAL 0 )
             MESSAGE( SEND_ERROR "Command '${GIT_EXECUTABLE} -C ${CMAKE_SOURCE_DIR} rev-parse HEAD' failed with following output:\n${GIT_ERROR}" )
         ENDIF( NOT ${GIT_RESULT} EQUAL 0 )
-
-        EXECUTE_PROCESS( COMMAND "${GIT_EXECUTABLE}" -C "${CMAKE_SOURCE_DIR}" rev-parse --short HEAD
-                         WORKING_DIRECTORY "${DIR}"
-                         RESULT_VARIABLE   GIT_RESULT
-                         OUTPUT_VARIABLE   "GIT_HEAD_HASH_SHORT"
-                         ERROR_VARIABLE    GIT_ERROR
-                         OUTPUT_STRIP_TRAILING_WHITESPACE )
-
-        IF( NOT ${GIT_RESULT} EQUAL 0 )
-            MESSAGE( SEND_ERROR "Command '${GIT_EXECUTABLE} -C ${CMAKE_SOURCE_DIR} rev-parse --short HEAD' failed with following output:\n${GIT_ERROR}" )
-        ENDIF( NOT ${GIT_RESULT} EQUAL 0 )
-
 ENDIF( GIT_FOUND )
 
 set ("GIT_HEAD_HASH"       "${GIT_HEAD_HASH}"      )
-set ("GIT_HEAD_HASH_SHORT" "${GIT_HEAD_HASH_SHORT}")
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.h.in
