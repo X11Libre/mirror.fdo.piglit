@@ -56,9 +56,6 @@ static void
 vk_subtest_cleanup(void);
 
 static void
-gl_cleanup(void);
-
-static void
 gl_subtest_cleanup(void);
 
 static void
@@ -408,21 +405,7 @@ vk_cleanup(void)
 }
 
 static void
-gl_cleanup(void)
-{
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glUseProgram(0);
-
-	glDeleteTextures(1, &gl_color_tex);
-	glDeleteFramebuffers(1, &gl_fbo);
-
-	glDeleteProgram(gl_prog);
-	glDeleteProgram(gl_rnd2fbo_prog);
-}
-
-static void
 cleanup(void)
 {
-	gl_cleanup();
 	vk_cleanup();
 }

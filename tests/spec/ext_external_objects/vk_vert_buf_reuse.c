@@ -60,7 +60,6 @@ static GLuint gl_disp_vk_prog;
 
 static void cleanup();
 static void vk_cleanup();
-static void gl_cleanup();
 static bool vk_init();
 static bool gl_init();
 
@@ -239,18 +238,9 @@ vk_cleanup()
 }
 
 static void
-gl_cleanup()
-{
-	glDeleteProgram(gl_prog);
-	glDeleteMemoryObjectsEXT(1, &gl_memobj);
-	glDeleteBuffers(1, &gl_vk_vb);
-}
-
-static void
 cleanup()
 {
 	vk_cleanup();
-	gl_cleanup();
 }
 
 static bool

@@ -83,9 +83,6 @@ vk_cleanup(void);
 static bool
 gl_init();
 
-static void
-gl_cleanup(void);
-
 static struct vk_ctx vk_core;
 static struct vk_image_att vk_color_att;
 static struct vk_image_att vk_depth_att;
@@ -301,7 +298,6 @@ gl_init()
 static void
 cleanup(void)
 {
-	gl_cleanup();
 	vk_cleanup();
 }
 
@@ -313,12 +309,4 @@ vk_cleanup(void)
 	vk_destroy_renderer(&vk_core, &vk_rnd);
 	vk_destroy_buffer(&vk_core, &vk_bo);
 	vk_cleanup_ctx(&vk_core);
-}
-
-static void
-gl_cleanup(void)
-{
-	glDeleteProgram(gl_prog);
-	glDeleteMemoryObjectsEXT(1, &gl_memobj);
-	glDeleteBuffers(1, &gl_bo);
 }

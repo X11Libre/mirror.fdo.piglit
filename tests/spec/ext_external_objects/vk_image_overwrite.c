@@ -116,9 +116,6 @@ static bool
 gl_draw_texture(enum fragment_type fs_type, uint32_t w, uint32_t h);
 
 static void
-gl_cleanup(void);
-
-static void
 cleanup(void);
 
 void
@@ -201,7 +198,6 @@ run_subtest(int case_num)
 					     "%s: Failed to create texture from GL memory object.",
 					     vk_gl_format[case_num].name);
 		vk_destroy_ext_image(&vk_core, &vk_img_obj);
-		gl_cleanup();
 		return PIGLIT_FAIL;
 	}
 
@@ -210,7 +206,6 @@ run_subtest(int case_num)
 					     "%s: Failed to initialize OpenGL FBO/RBO",
 					     vk_gl_format[case_num].name);
 		vk_destroy_ext_image(&vk_core, &vk_img_obj);
-		gl_cleanup();
 		return PIGLIT_FAIL;
 	}
 
@@ -269,7 +264,6 @@ run_subtest(int case_num)
 	default:
 		fprintf(stderr, "Invalid format. Shouldn't reach.\n");
 		vk_destroy_ext_image(&vk_core, &vk_img_obj);
-		gl_cleanup();
 		return PIGLIT_FAIL;
 	};
 
@@ -290,7 +284,6 @@ run_subtest(int case_num)
 	piglit_present_results();
 
 	vk_destroy_ext_image(&vk_core, &vk_img_obj);
-	gl_cleanup();
 
 	return subtest_result;
 }
@@ -353,21 +346,9 @@ gl_draw_texture(enum fragment_type fs_type, uint32_t w, uint32_t h)
 }
 
 static void
-gl_cleanup(void)
-{
-	glBindTexture(gl_get_target(&vk_img_props), 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glUseProgram(0);
-
-	glDeleteTextures(1, &gl_tex);
-	glDeleteMemoryObjectsEXT(1, &gl_mem_obj);
-}
-
-static void
 cleanup(void)
 {
 	vk_cleanup_ctx(&vk_core);
-	gl_cleanup();
 
 	glDeleteFramebuffers(1, &gl_fbo);
 

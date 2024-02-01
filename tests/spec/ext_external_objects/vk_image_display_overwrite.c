@@ -107,9 +107,6 @@ vk_cleanup(void);
 static bool
 gl_init();
 
-static void
-gl_cleanup(void);
-
 static struct vk_ctx vk_core;
 static struct vk_image_att vk_color_att;
 static struct vk_image_att vk_depth_att;
@@ -384,7 +381,6 @@ vk_cleanup(void)
 static void
 cleanup(void)
 {
-	gl_cleanup();
 	vk_cleanup();
 }
 
@@ -422,20 +418,4 @@ gl_init()
 	glClearColor(0.1, 0.1, 0.1, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	return glGetError() == GL_NO_ERROR;
-}
-
-static void
-gl_cleanup(void)
-{
-	glBindTexture(gl_target, 0);
-
-	glDeleteTextures(1, &gl_tex);
-	glDeleteProgram(gl_prog);
-
-	glDeleteSemaphoresEXT(1, &gl_sem.gl_frame_ready);
-	glDeleteSemaphoresEXT(1, &gl_sem.vk_frame_done);
-
-	glDeleteFramebuffers(1, &gl_fbo);
-
-	glDeleteMemoryObjectsEXT(1, &gl_mem_obj);
 }

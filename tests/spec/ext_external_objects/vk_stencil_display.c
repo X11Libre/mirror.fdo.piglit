@@ -56,9 +56,6 @@ static void
 vk_subtest_cleanup(void);
 
 static void
-gl_cleanup(void);
-
-static void
 gl_subtest_cleanup(void);
 
 static void
@@ -75,7 +72,6 @@ static struct vk_renderer vk_rnd;
 static GLuint gl_mem_obj;
 static float vk_fb_color[4] = { 1.0, 0.0, 1.0, 1.0 };
 
-static GLenum gl_target = GL_TEXTURE_2D;
 static GLuint vkgl_stencil_tex;
 static GLuint gl_fbo;
 static GLuint gl_color_tex;
@@ -407,22 +403,8 @@ vk_cleanup(void)
 }
 
 static void
-gl_cleanup(void)
-{
-	glBindTexture(gl_target, 0);
-	glUseProgram(0);
-
-	glDeleteTextures(1, &gl_color_tex);
-	glDeleteFramebuffers(1, &gl_fbo);
-
-	glDeleteProgram(gl_prog);
-	glDeleteProgram(gl_rnd2fbo_prog);
-}
-
-static void
 cleanup(void)
 {
-	gl_cleanup();
 	vk_cleanup();
 }
 
