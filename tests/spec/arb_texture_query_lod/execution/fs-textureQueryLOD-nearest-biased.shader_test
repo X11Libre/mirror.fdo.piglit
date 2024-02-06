@@ -68,11 +68,12 @@ void main()
 
     vec4 frag1 = texture(tex, gl_TexCoord[0].st);
     vec4 frag2 = textureLod(tex, gl_TexCoord[0].st, nearest_lod);
+    vec2 queried_lod = textureQueryLOD(tex, gl_TexCoord[0].st);
+
     if (frag1 != frag2) {
 	discard;
     }
 
-    vec2 queried_lod = textureQueryLOD(tex, gl_TexCoord[0].st);
     if (!equal(queried_lod.x, min(queried_lod.y, MAX_MIPMAP_LEVEL))) {
 	discard;
     }

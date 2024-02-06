@@ -57,11 +57,13 @@ uniform float lambda_prime;
 
 void main()
 {
+    vec4 color = texture(tex, gl_TexCoord[0].st);
+
     if (!equal_v2(textureQueryLOD(tex, gl_TexCoord[0].st), vec2(0.0f, lambda_prime))) {
 	discard;
     }
 
-    gl_FragColor = texture(tex, gl_TexCoord[0].st);
+    gl_FragColor = color;
 }
 
 [vertex shader]
