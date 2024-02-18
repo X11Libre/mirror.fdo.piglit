@@ -169,8 +169,11 @@ piglit_init(int argc, char **argv)
 
 		name = calloc(strlen(lead) + ext_len + 1, 1);
 		opt = calloc(ext_len + 1, 1);
-		if (!name || !opt)
+		if (!name || !opt) {
+			free(name);
+			free(opt);
 			return;
+		}
 
 		strcat(name, lead);
 
