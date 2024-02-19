@@ -1,0 +1,77 @@
+# Test the direct copy of an entire named block
+
+[require]
+GLSL >= 1.50
+
+[vertex shader]
+#version 150
+
+out Data
+{
+    vec3 a;
+    float b;
+} outData;
+
+out vec4 vertex_to_gs;
+
+in vec4 piglit_vertex;
+
+void main()
+{
+  outData.a = vec3(0.0, 0.75, 1.0);
+  outData.b = 0.5;
+
+  vertex_to_gs = piglit_vertex;
+}
+
+[geometry shader]
+#version 150
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 3) out;
+
+in vec4 vertex_to_gs[3];
+
+in Data
+{
+    vec3 a;
+    float b;
+} inData[];
+
+out Data
+{
+    vec3 a;
+    float b;
+} outData;
+
+void main()
+{
+  for (int i = 0; i < 3; i++) {
+    gl_Position = vertex_to_gs[i];
+    outData = inData[i];
+    EmitVertex();
+  }
+}
+
+[fragment shader]
+#version 150
+
+out vec4 color;
+
+in Data
+{
+    vec3 a;
+    float b;
+} inData;
+
+void main()
+{
+  color = vec4(inData.b, inData.a);
+}
+
+[test]
+clear color 0.1 0.1 0.1 0.1
+clear
+
+draw rect -1 -1 2 2
+probe all rgb 0.5 0 0.75
