@@ -1,0 +1,45 @@
+# Intel compiler has a very old optimization for various combination
+# of u2f or i2f of an extract_* source. However, the variations that
+# do u2f of an extract_i* are incorrect.
+#
+# There are two ways the fast path could be incorrect. It could either
+# emit
+#
+#    mov(8)   g1F, g2<4,1,0>B
+#
+# or it could emit
+#
+#    mov(8)   g1F, g2<4,1,0>UB
+#
+# The former produce -1.0 and the latter would produce 255.0. The
+# current incorrect implementation just happens to be the former, but
+# the latter has equal probability of being implemented. I implemented
+# the test so either of the possible incorrect fast path
+# implementations would render blue, but any other kind of bug would
+# render red.
+
+[require]
+GLSL >= 1.30
+
+[vertex shader passthrough]
+
+[fragment shader]
+#version 130
+
+uniform int a = 0x000000ff;
+
+void main()
+{
+   float f = float(uint((a << 24) >> 24));
+
+   if (f == float(uint(0xffffffff))) {
+      gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+   } else {
+     gl_FragColor = (f == 255.0 || f == -1.0)
+	 ? vec4(0.0, 0.0, 1.0, 1.0) : vec4(1.0, 0.0, 0.0, 1.0);
+   }
+}
+
+[test]
+draw rect -1 -1 2 2
+probe all rgba 0.0 1.0 0.0 1.0
