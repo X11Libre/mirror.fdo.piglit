@@ -206,40 +206,6 @@ is_format_compressed(const struct texture_format *format)
 }
 
 static bool
-is_format_integer(const struct texture_format *format)
-{
-	switch (format->internal_format) {
-	case GL_R8I:
-	case GL_R8UI:
-	case GL_R16I:
-	case GL_R16UI:
-	case GL_R32I:
-	case GL_R32UI:
-	case GL_RG8I:
-	case GL_RG8UI:
-	case GL_RG16I:
-	case GL_RG16UI:
-	case GL_RG32I:
-	case GL_RG32UI:
-	case GL_RGB8I:
-	case GL_RGB8UI:
-	case GL_RGB16I:
-	case GL_RGB16UI:
-	case GL_RGB32I:
-	case GL_RGB32UI:
-	case GL_RGBA8I:
-	case GL_RGBA8UI:
-	case GL_RGBA16I:
-	case GL_RGBA16UI:
-	case GL_RGBA32I:
-	case GL_RGBA32UI:
-		return true;
-	default:
-		return false;
-	}
-}
-
-static bool
 is_format_supported(const struct texture_format *format)
 {
 	switch (format->internal_format) {
@@ -973,9 +939,6 @@ piglit_display(void)
 			} else {
 				if (is_format_compressed(src_format) ||
 				    is_format_compressed(dst_format))
-					continue;
-
-				if (is_format_integer(dst_format))
 					continue;
 
 				subtest = run_multisample_test(src_format,

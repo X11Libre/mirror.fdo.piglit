@@ -3212,6 +3212,52 @@ piglit_array_texture(GLenum target, GLenum internalformat,
 	return tex;
 }
 
+/* utility functions for testing format */
+static bool
+is_format_sint(const GLenum format)
+{
+       switch (format) {
+       case GL_R8I:
+       case GL_R16I:
+       case GL_R32I:
+       case GL_RG8I:
+       case GL_RG16I:
+       case GL_RG32I:
+       case GL_RGB8I:
+       case GL_RGB16I:
+       case GL_RGB32I:
+       case GL_RGBA8I:
+       case GL_RGBA16I:
+       case GL_RGBA32I:
+               return true;
+       default:
+               return false;
+       }
+}
+
+static bool
+is_format_uint(const GLenum format)
+{
+       switch (format) {
+       case GL_R8UI:
+       case GL_R16UI:
+       case GL_R32UI:
+       case GL_RG8UI:
+       case GL_RG16UI:
+       case GL_RG32UI:
+       case GL_RGB8UI:
+       case GL_RGB16UI:
+       case GL_RGB32UI:
+       case GL_RGBA8UI:
+       case GL_RGBA16UI:
+       case GL_RGBA32UI:
+               return true;
+       default:
+               return false;
+       }
+}
+
+
 static const char multisample_texture_vs_source[] =
 "#version 130\n"
 "in vec2 vertex;\n"
@@ -3223,17 +3269,18 @@ static const char multisample_texture_vs_source[] =
 "	gl_Position = vec4(pos, 0, 1);\n"
 "}\n";
 
-static const char multisample_texture_fs_source[] =
+static const char multisample_texture_fs_template[] =
 "#version 130\n"
 "#extension GL_ARB_sample_shading : enable\n"
 "in vec2 tex_coords;\n"
 "uniform sampler2DArray tex;\n"
 "uniform int tex_depth;\n"
 "uniform int z;\n"
+"out %svec4 fragColor;\n"
 "void main()\n"
 "{\n"
 "	int layer = (gl_SampleID * tex_depth) + z;\n"
-"	gl_FragColor = texture(tex, vec3(tex_coords, layer));\n"
+"	fragColor = %stexture(tex, vec3(tex_coords, layer));\n"
 "}\n";
 
 /**
@@ -3263,14 +3310,22 @@ static const char multisample_texture_fs_source[] =
  *
  * \return the new texture object id
  */
+
+/*
+ * depending on the output format, the shader must write either
+ * a vec4, ivec4, or uvec4. This enum select amongst those.
+ */
+enum { MS_OUT_VEC4 = 0, MS_OUT_IVEC4, MS_OUT_UVEC4, MS_OUT_COUNT };
+static char *vec_char[MS_OUT_COUNT] = { "", "i", "u" };
+
 GLuint
 piglit_multisample_texture(GLenum target, GLuint tex, GLenum internalFormat,
 			   unsigned width, unsigned height,
 			   unsigned depth, unsigned samples,
 			   GLenum format, GLenum type, const void *data)
 {
-	static GLuint prog = 0;
-	static GLint tex_loc, tex_depth_loc, z_loc;
+	static GLuint prog[MS_OUT_COUNT] = {0};
+	static GLint tex_loc[MS_OUT_COUNT], tex_depth_loc[MS_OUT_COUNT], z_loc[MS_OUT_COUNT];
 	static GLuint fbo, array_tex, ms_tex;
 	static const float verts[] = {
 		0.0, 0.0,
@@ -3281,6 +3336,7 @@ piglit_multisample_texture(GLenum target, GLuint tex, GLenum internalFormat,
 		0.0, 0.0
 	};
 	unsigned z;
+	unsigned out_fmt;
 
 	struct {
 		GLint active_tex;
@@ -3303,21 +3359,34 @@ piglit_multisample_texture(GLenum target, GLuint tex, GLenum internalFormat,
 		return 0;
 	}
 
-	if (prog == 0) {
+	/* pick which kind of output we need; integer output formats must be
+	 *  written as integer, not float, or else undefined behavior is triggered
+	 */
+	if (is_format_uint(internalFormat)) {
+		out_fmt = MS_OUT_UVEC4;
+	} else if (is_format_sint(internalFormat)) {
+		out_fmt = MS_OUT_IVEC4;
+	} else {
+		out_fmt = MS_OUT_VEC4;
+	}
+	if (prog[out_fmt] == 0) {
+		static char fs_temp[1024];
+		snprintf(fs_temp, sizeof(fs_temp), multisample_texture_fs_template,
+			 vec_char[out_fmt], vec_char[out_fmt]);
 		/* First-run setup */
-		prog = piglit_build_simple_program_unlinked(
+		prog[out_fmt] = piglit_build_simple_program_unlinked(
 			multisample_texture_vs_source,
-			multisample_texture_fs_source);
-		glBindAttribLocation(prog, 0, "vertex");
-		glLinkProgram(prog);
-		if (!piglit_link_check_status(prog)) {
-			prog = 0;
+			fs_temp);
+		glBindAttribLocation(prog[out_fmt], 0, "vertex");
+		glLinkProgram(prog[out_fmt]);
+		if (!piglit_link_check_status(prog[out_fmt])) {
+			prog[out_fmt] = 0;
 			return 0;
 		}
 
-		tex_loc = glGetUniformLocation(prog, "tex");
-		tex_depth_loc = glGetUniformLocation(prog, "tex_depth");
-		z_loc = glGetUniformLocation(prog, "z");
+		tex_loc[out_fmt] = glGetUniformLocation(prog[out_fmt], "tex");
+		tex_depth_loc[out_fmt] = glGetUniformLocation(prog[out_fmt], "tex_depth");
+		z_loc[out_fmt] = glGetUniformLocation(prog[out_fmt], "z");
 
 		glGenFramebuffers(1, &fbo);
 		glGenTextures(1, &array_tex);
@@ -3361,15 +3430,15 @@ piglit_multisample_texture(GLenum target, GLuint tex, GLenum internalFormat,
 
 	glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
 
-	glUseProgram(prog);
-	glUniform1i(tex_loc, backup.active_tex - GL_TEXTURE0);
-	glUniform1i(tex_depth_loc, depth);
+	glUseProgram(prog[out_fmt]);
+	glUniform1i(tex_loc[out_fmt], backup.active_tex - GL_TEXTURE0);
+	glUniform1i(tex_depth_loc[out_fmt], depth);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, verts);
 
 	if (target == GL_TEXTURE_2D_MULTISAMPLE) {
-		glUniform1i(z_loc, 0);
+		glUniform1i(z_loc[out_fmt], 0);
 		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
 				       GL_COLOR_ATTACHMENT0,
 				       target, ms_tex, 0);
@@ -3380,7 +3449,7 @@ piglit_multisample_texture(GLenum target, GLuint tex, GLenum internalFormat,
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	} else {
 		for (z = 0; z < depth; ++z) {
-			glUniform1i(z_loc, z);
+			glUniform1i(z_loc[out_fmt], z);
 			glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER,
 						  GL_COLOR_ATTACHMENT0,
 						  ms_tex, 0, z);
