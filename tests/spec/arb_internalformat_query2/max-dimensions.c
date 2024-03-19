@@ -478,7 +478,7 @@ try_max_layers(const GLenum *targets, unsigned num_targets,
                                 value_test =
                                         check_params_against_dimension(data,
                                                                        targets[i],
-                                                                       internalformats[i]);
+                                                                       internalformats[j]);
                                 /* We check that is the returned value by GetInteger */
                                 value_test = value_test &&
                                         check_params_against_get_integer(data,
