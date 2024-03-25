@@ -45,7 +45,7 @@ __all__ = ['LogManager']
 class BaseLog(metaclass=abc.ABCMeta):
     """ Abstract base class for Log objects
 
-    It provides a lock, which should be used to lock whever the shared state is
+    It provides a lock, which should be used to lock whenever the shared state is
     modified, or when printing to the screen (or both).
 
     Arguments:

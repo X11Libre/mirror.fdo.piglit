@@ -81,7 +81,7 @@ class Backend(metaclass=abc.ABCMeta):
 
         This method should setup the container and open any files or connections
         as necessary. It should not however, write anything into the backend
-        store, that job is for the iniitalize method.
+        store, that job is for the initialize method.
 
         In addition it takes keyword arguments that define options for the
         backends. Options should be prefixed to identify which backends they

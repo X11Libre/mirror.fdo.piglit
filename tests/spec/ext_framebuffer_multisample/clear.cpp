@@ -264,7 +264,7 @@ piglit_display()
 	pass = test_clear(1.0, 1.0, 1.0, 0.5, false) && pass;
 
 	/* Test with color values compatible with Intel's i965 driver's
-	 * 'fast clear' constraints. It varifies the 'fast clear' path
+	 * 'fast clear' constraints. It verifies the 'fast clear' path
 	 * if supported by the implementation.
 	 */
 	pass = test_clear(1.0, 1.0, 1.0, 0.0, true) && pass;

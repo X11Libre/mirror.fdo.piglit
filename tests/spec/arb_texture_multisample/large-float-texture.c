@@ -351,7 +351,7 @@ extract_texture_image(GLuint readbackProg,
 static bool
 nearly_equal(const GLfloat x[4], const GLfloat y[4])
 {
-	/* XXX this tolerance was chosen emperically */
+	/* XXX this tolerance was chosen empirically */
 	const float maxRelDiff = 0.0005;
 	int i;
 	for (i = 0; i < 4; i++) {

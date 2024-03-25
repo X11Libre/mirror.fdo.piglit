@@ -319,7 +319,7 @@ draw_sphere(void)
       assert(&v[8] == &vertex_data[ARRAY_SIZE(vertex_data)]);
 
       for (i = 0; i < slices; i++) {
-	 /* The outer loop walks around the first circluar slice of vertex
+	 /* The outer loop walks around the first circular slice of vertex
 	  * data.  This occupies vertices [0, slices].  Looking at the sphere,
 	  * there is a vertex on the left side of the polygon being emitted,
 	  * and the next vertex in the sequence is on the right.

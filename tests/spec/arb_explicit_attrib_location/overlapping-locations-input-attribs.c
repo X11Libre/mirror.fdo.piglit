@@ -36,7 +36,7 @@
  *     in this case."
  *
  *     Aliasing of vertex input variables is allowed in: OpenGL
- *     2.0 (and above) and OpenGL ES 2.0. This test varifies
+ *     2.0 (and above) and OpenGL ES 2.0. This test verifies
  *     that aliasing can be used successfully in a vertex shader
  *     under the constraints defined in OpenGL spec.
  */

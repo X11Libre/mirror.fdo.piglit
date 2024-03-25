@@ -24,7 +24,7 @@
 #include "common.h"
 /**
  * @file turn-on-off.c
- * This test varifies turning multisampling on/off by setting up FBO with
+ * This test verifies turning multisampling on/off by setting up FBO with
  * appropriate sample count.
  * Test algorithm:
  * 1. Render the geometry to left half of default framebuffer and read color
@@ -34,7 +34,7 @@
  *    buffer in Step 1. It is expected to match.
  *
  * 3. Turn ON MSAA in FBO. Render the scene, draw reference image and measure
- *    the accuracy of MSAA. This varifies if MSAA is turned ON.
+ *    the accuracy of MSAA. This verifies if MSAA is turned ON.
  *
  * 4. Turn OFF MSAA in FBO. Render the scene and compare to the buffer in
  *    step 1. It is expected to match.
@@ -98,7 +98,7 @@ piglit_display(void)
 	test->draw_reference_image();
 
 	/* Measure the accuracy of MSAA in multisample FBO by comparing the
-	 * test image to reference image. This varifies if MSAA is actually
+	 * test image to reference image. This verifies if MSAA is actually
 	 * switched on.
 	 */
 	pass = test->measure_accuracy() && pass;

@@ -39,7 +39,7 @@ static bool try_reset_strategy(int reset_strategy)
 	if (ctx != NULL) {
 		fprintf(stderr,
 			"Created OpenGL context with invalid reset "
-			"notifiction strategy\n"
+			"notification strategy\n"
 			"0x%08x, but this should have failed.\n",
 			reset_strategy);
 		glXDestroyContext(dpy, ctx);

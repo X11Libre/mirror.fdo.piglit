@@ -220,7 +220,7 @@ class _MinVersion(object):
         'tese': Version('400'),
         'comp': Version('430'),
     }
-    # Only versions that actaly change are here, the function will return the
+    # Only versions that actually change are here, the function will return the
     # values from __gl_stage_min if they're not here
     __gl_stage_min_ext = {
         # geometry_shader4 is not included here intentionally. It is
@@ -237,7 +237,7 @@ class _MinVersion(object):
         'tesc': Version('320 es'),
         'tese': Version('320 es'),
     }
-    # Only versions that actaly change are here, the function will return the
+    # Only versions that actually change are here, the function will return the
     # values from __gles_stage_min if they're not here
     __gles_stage_min_ext = {
         'geom': (Version('310 es'), 'GL_OES_geometry_shader'),

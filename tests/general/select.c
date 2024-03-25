@@ -173,8 +173,8 @@ validate_select_buffer(GLuint* buffer)
 	}
 
 	ptr = buffer;
-	/* ordering in select buffer isn't necessarly the same as drawing order,
-	 *  so we need to look for each hit entry
+	/* ordering in select buffer isn't necessarily the same as drawing order,
+	 * so we need to look for each hit entry
 	 */
 	for (i=0; i<hits; i++) {
 		for (j=0; j<3; j++) {

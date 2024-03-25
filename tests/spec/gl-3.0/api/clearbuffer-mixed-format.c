@@ -70,7 +70,7 @@
 		GLenum type;
 		const GLvoid *clear_color;
 	} test_vectors[] = {
-		/* GL_RGBA8, GL_RGBA16 clamps the color vaues to [0, 1] */
+		/* GL_RGBA8, GL_RGBA16 clamps the color values to [0, 1] */
 		{ GL_RGBA8,	  GL_FLOAT,	    (const GLvoid *)fcolor[0] },
 		{ GL_RGBA16,	  GL_FLOAT,	    (const GLvoid *)fcolor[1] },
 

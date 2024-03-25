@@ -306,7 +306,7 @@ print_usage_and_exit(char *prog_name)
 	       "  where <test_type> is one of:\n"
 	       "    non-centroid-disabled: non-centroid varying, MSAA off\n"
 	       "    centroid-disabled: centroid varying, MSAA off\n"
-	       "    centroid-edges: centroid behaviour at trinagle edges\n"
+	       "    centroid-edges: centroid behaviour at triangle edges\n"
 	       "    non-centroid-deriv: dFdx/dFdy on non-centroid varying\n"
 	       "    non-centroid-deriv-disabled: As above, with MSAA off\n"
 	       "    centroid-deriv: dFdx/dFdy on centroid varying\n"

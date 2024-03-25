@@ -129,7 +129,7 @@ void piglit_init(int argc, char **argv)
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, id);
 	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf);
 
-	/* Verify the initial state of transform feedback object queires.
+	/* Verify the initial state of transform feedback object queries.
 	 */
 	pass = check_int(GL_TRANSFORM_FEEDBACK_BINDING, id) && pass;
 

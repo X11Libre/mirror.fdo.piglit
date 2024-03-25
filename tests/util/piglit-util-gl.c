@@ -518,7 +518,7 @@ piglit_escape_exit_key(unsigned char key, int x, int y)
 }
 
 /**
- * Convenience function to configure an abitrary orthogonal projection matrix
+ * Convenience function to configure an arbitrary orthogonal projection matrix
  */
 void
 piglit_gen_ortho_projection(double left, double right, double bottom,

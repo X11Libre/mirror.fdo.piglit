@@ -48,7 +48,7 @@ static int get_program_i(GLenum pname)
  * Generate a program that samples the texture into the same temporary over
  * and over..
  *
- * This should excersize case (2) of question (24) of the ARB_fragment_program
+ * This should exercise case (2) of question (24) of the ARB_fragment_program
  * spec.
  *
  * Note that the compiler could optimize out our inner TEX instructions
@@ -105,7 +105,7 @@ static char *gen_temporary_dest_indirections(int sample_count,
  * Generate a program that samples two textures into a pair of temporaries
  * over and over.
  *
- * This should excersize case (1) of question (24) of the ARB_fragment_program
+ * This should exercise case (1) of question (24) of the ARB_fragment_program
  * spec without hitting case (2) at the same time.
  *
  * Note that the compiler could optimize out our inner TEX instructions

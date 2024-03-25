@@ -17,7 +17,7 @@
  *      the same set of qualifiers."
  *
  * Tests the case when all the fragment shaders which use gl_FragCoord,
- * redeclare it with conflicting layout qualifiers. It varifies that
+ * redeclare it with conflicting layout qualifiers. It verifies that
  * link error is not effected by the presence of a fragment shader which
  * doesn't use gl_FragCoord.
  */

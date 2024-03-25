@@ -46,7 +46,7 @@ crash
 incomplete
 
 SKIP and NOTRUN are not factored into regressions and fixes, they are counted
-separately. They also derive from a sublcass of Status, which always returns
+separately. They also derive from a subclass of Status, which always returns
 False
 
 The formula for determining regressions is:
@@ -202,7 +202,7 @@ class Status(object):
 
 
 class NoChangeStatus(Status):
-    """ Special sublcass of status that overrides rich comparison methods
+    """ Special subclass of status that overrides rich comparison methods
 
     This special class of a Status is for use with NOTRUN and SKIP, it never
     returns that it is a pass or regression

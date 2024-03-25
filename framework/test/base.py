@@ -540,6 +540,6 @@ class ReducedProcessMixin(metaclass=abc.ABCMeta):
         _run_command method to determine how many subtests have successfully
         been run.
 
-        Should simply return True if the line reprents a test starting, or
+        Should simply return True if the line represents a test starting, or
         False if it does not.
         """

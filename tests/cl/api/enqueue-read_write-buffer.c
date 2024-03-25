@@ -423,22 +423,22 @@ piglit_cl_test(const int argc,
 	           BUFFER_SIZE+1, host_buffer_write,
 	           0, NULL, NULL,
 	           CL_INVALID_VALUE, &result,
-	           "Trigger CL_INVALID_VALUE when the region being read spcified by (offset, cb) is out of bounds");
+	           "Trigger CL_INVALID_VALUE when the region being read specified by (offset, cb) is out of bounds");
 	test_read(env->context->command_queues[0], mem, true, 0,
 	          BUFFER_SIZE+1, host_buffer_read,
 	          0, NULL, NULL,
 	          CL_INVALID_VALUE, &result,
-	          "Trigger CL_INVALID_VALUE when the region being read spcified by (offset, cb) is out of bounds");
+	          "Trigger CL_INVALID_VALUE when the region being read specified by (offset, cb) is out of bounds");
 	test_write(env->context->command_queues[0], mem, true, 1,
 	           BUFFER_SIZE, host_buffer_write,
 	           0, NULL, NULL,
 	           CL_INVALID_VALUE, &result,
-	           "Trigger CL_INVALID_VALUE when the region being read spcified by (offset, cb) is out of bounds");
+	           "Trigger CL_INVALID_VALUE when the region being read specified by (offset, cb) is out of bounds");
 	test_read(env->context->command_queues[0], mem, true, 1,
 	          BUFFER_SIZE, host_buffer_read,
 	          0, NULL, NULL,
 	          CL_INVALID_VALUE, &result,
-	          "Trigger CL_INVALID_VALUE when the region being read spcified by (offset, cb) is out of bounds");
+	          "Trigger CL_INVALID_VALUE when the region being read specified by (offset, cb) is out of bounds");
 	test_write(env->context->command_queues[0], mem, true, 0,
 	           BUFFER_SIZE, NULL,
 	           0, NULL, NULL,

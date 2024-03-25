@@ -5,7 +5,7 @@
 #   stage, as described in section 13.5.
 #
 # This test checks that the arrays gl_ClipDistance and gl_CullDistance only
-# interfer by gl_MaxCombinedClipAndCullDistances and not by its entries.
+# interfere by gl_MaxCombinedClipAndCullDistances and not by its entries.
 
 [require]
 GLSL >= 1.30

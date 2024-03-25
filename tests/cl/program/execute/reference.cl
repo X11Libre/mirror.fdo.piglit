@@ -1,6 +1,6 @@
 /*!
 [config]
-name: Reference and dereferance operators
+name: Reference and dereference operators
 clc_version_min: 10
 
 [test]

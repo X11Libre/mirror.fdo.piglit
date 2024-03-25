@@ -312,7 +312,7 @@ class GLSLParserTest(FastSkipMixin, PiglitBaseTest):
 
         :param str filepath: the file to parse
         :param Optional[str] installpath:
-            The relative path the file will be isntalled to if different than
+            The relative path the file will be installed to if different than
             filepath
         """
         parsed = Parser(filepath, installpath)

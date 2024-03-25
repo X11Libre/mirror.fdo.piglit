@@ -1,5 +1,5 @@
 # This test is essentially the same as the "instanced-inputs.shader_test" test
-# except that it makes use of gl_Position between the vertx and geometry
+# except that it makes use of gl_Position between the vertex and geometry
 # shader. Using gl_Position allows us to reproduce Mesa bug #96354.
 
 [require]

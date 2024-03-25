@@ -28,10 +28,10 @@
  * On Intel hardware at least, SIMD16 dual source rendering requires handling
  * pixel data in two sets of 8 pixels each. Incorrect implementations may fail
  * to map correct colors for each pixel group (for example by using the color
- * for the first group as the color for the second group or viceversa). However,
- * tests that render using solid colors across the entire polygon won't catch
- * these cases (since in that case the color is the same for both groups of
- * pixels).
+ * for the first group as the color for the second group or vice-versa).
+ * However, tests that render using solid colors across the entire polygon
+ * won't catch these cases (since in that case the color is the same for both
+ * groups of pixels).
  *
  * This test blends using a checker board pattern where each cell is
  * 10px wide and 10px tall. This makes it so that the two sets of 8 pixels

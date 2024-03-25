@@ -172,7 +172,7 @@ piglit_init(int argc, char **argv)
 	/* test max boundary */
 	if(!run_test_sampler_max_bindings(max_samp_binding-array_elements))
 		subtest_fail(&status, "Test sampler binding on boundary "
-				      "of maximum number of texure "
+				      "of maximum number of texture "
 				      "unit bindings");
 
 	if (piglit_is_extension_supported("GL_ARB_shader_atomic_counters")) {
