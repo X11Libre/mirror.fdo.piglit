@@ -377,7 +377,7 @@ if (APPLE)
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 endif ()
 
-if (OPENGL_FOUND)
+if (PIGLIT_BUILD_GL_TESTS)
 	if (APPLE)
 		find_path(GLEXT_INCLUDE_DIR
 			NAMES OpenGL/glext.h
