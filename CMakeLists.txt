@@ -80,6 +80,9 @@ option(PIGLIT_BUILD_GLES3_TESTS "Build tests for OpenGL ES3" ${DEFAULT_GLES_TEST
 option(PIGLIT_BUILD_CL_TESTS "Build tests for OpenCL" OFF)
 option(PIGLIT_BUILD_VK_TESTS "Build tests for Vulkan" ${DEFAULT_VK_TESTS_BUILD})
 
+option(PIGLIT_BUILD_DMA_BUF_TESTS "Build tests that use dma_buf" ${DEFAULT_GBM})
+
+
 find_package(Threads)
 find_package(PNG)
 if(PNG_FOUND)
@@ -89,6 +92,11 @@ endif(PNG_FOUND)
 if(PIGLIT_BUILD_GLX_TESTS AND NOT PIGLIT_USE_X11)
 	message(FATAL_ERROR "X11 has to be enabled for GLX to build")
 endif()
+
+if(PIGLIT_BUILD_DMA_BUF_TESTS AND NOT PIGLIT_USE_GBM)
+	message(FATAL_ERROR "PIGLIT_BUILD_DMA_BUF_TESTS require GBM")
+endif()
+
 
 if(PIGLIT_USE_X11)
 	find_package(X11 REQUIRED)
@@ -241,24 +249,15 @@ endif(PIGLIT_BUILD_VK_TESTS)
 # gbm_bo_map() to be available for generating dma_bufs, and libdrm for fourcc
 # definitions.
 #
-if(LIBDRM_FOUND AND LIBDRM_VERSION VERSION_GREATER "2.4.97" AND XCB_DRI2_FOUND AND PIGLIT_HAS_GBM_BO_MAP)
-	set(PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID true)
-else()
-	set(PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID false)
-endif()
-
-if(PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID)
-	option(PIGLIT_BUILD_DMA_BUF_TESTS "Build tests that use dma_buf" ON)
-else()
-	option(PIGLIT_BUILD_DMA_BUF_TESTS "Build tests that use dma_buf" OFF)
-endif()
-
-# If the users has updated PIGLIT_BUILD_DMA_BUF_TESTS in the CMakeCache, then
-# we need to validate it.
-if(PIGLIT_BUILD_DMA_BUF_TESTS AND NOT PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID)
-	message(FATAL_ERROR
-		"PIGLIT_BUILD_DMA_BUF_TESTS require libdrm, "
-		"gbm_bo_map(), libdrm>=2.4.98 and xcb-dri2")
+if(PIGLIT_BUILD_DMA_BUF_TESTS)
+	if(PIGLIT_HAS_GBM_BO_MAP AND LIBDRM_FOUND AND LIBDRM_VERSION VERSION_GREATER "2.4.97" AND XCB_DRI2_FOUND)
+		set(PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID true)
+	else()
+		message(FATAL_ERROR
+			"PIGLIT_BUILD_DMA_BUF_TESTS require libdrm, "
+			"gbm_bo_map(), libdrm>=2.4.98 and xcb-dri2")
+		set(PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID false)
+	endif()
 endif()
 
 IF(PIGLIT_BUILD_GLX_TESTS)
