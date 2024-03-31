@@ -61,7 +61,7 @@ For testing the python framework using `py.test unittests/framework`
 
 Now configure the build system:
 
-    $ ccmake .
+    $ cmake .
 
 This will start cmake's configuration tool, just follow the onscreen
 instructions. The default settings should be fine, but I recommend you:
