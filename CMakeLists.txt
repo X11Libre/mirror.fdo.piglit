@@ -23,7 +23,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(DEFAULT_EGL ON)
 	set(DEFAULT_GLX ON)
 	set(DEFAULT_WGL OFF)
+
 	set(DEFAULT_WAFFLE ON)
+
+	set(DEFAULT_GBM ON)
+	set(DEFAULT_WAYLAND ON)
 	set(DEFAULT_X11 ON)
 
 	set(DEFAULT_GLES_TESTS_BUILD ON)
@@ -32,7 +36,11 @@ elseif(APPLE)
 	set(DEFAULT_EGL OFF)
 	set(DEFAULT_GLX OFF)
 	set(DEFAULT_WGL OFF)
+
 	set(DEFAULT_WAFFLE OFF)
+
+	set(DEFAULT_GBM OFF)
+	set(DEFAULT_WAYLAND OFF)
 	set(DEFAULT_X11 OFF)
 
 	set(DEFAULT_GLES_TESTS_BUILD OFF)
@@ -41,7 +49,11 @@ elseif(WIN32)
 	set(DEFAULT_EGL OFF)
 	set(DEFAULT_GLX OFF)
 	set(DEFAULT_WGL ON)
+
 	set(DEFAULT_WAFFLE OFF)
+
+	set(DEFAULT_GBM OFF)
+	set(DEFAULT_WAYLAND OFF)
 	set(DEFAULT_X11 OFF)
 
 	set(DEFAULT_GLES_TESTS_BUILD OFF)
@@ -54,6 +66,8 @@ option(PIGLIT_SSE2 "Build with SSE2 support on 32-bit x86 architecture" ON)
 
 option(PIGLIT_USE_WAFFLE "Use Waffle in place of GLUT" ${DEFAULT_WAFFLE})
 
+option(PIGLIT_USE_GBM "Use GBM" ${DEFAULT_GBM})
+option(PIGLIT_USE_WAYLAND "Use Wayland" ${DEFAULT_WAYLAND})
 option(PIGLIT_USE_X11 "Use X11" ${DEFAULT_X11})
 
 option(PIGLIT_BUILD_GLX_TESTS "Build tests that require GLX" ${DEFAULT_GLX})
@@ -159,41 +173,44 @@ if(PIGLIT_BUILD_CL_TESTS)
 	find_package(OpenCL 1.2 REQUIRED)
 endif(PIGLIT_BUILD_CL_TESTS)
 
+
+if(PIGLIT_USE_GBM)
+	pkg_check_modules(GBM REQUIRED gbm>=17.1)
+	set(PIGLIT_HAS_GBM True)
+	add_definitions(-DPIGLIT_HAS_GBM)
+	set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${GBM_LIBRARIES})
+
+	CHECK_FUNCTION_EXISTS(gbm_bo_map PIGLIT_HAS_GBM_BO_MAP)
+	if (PIGLIT_HAS_GBM_BO_MAP)
+		add_definitions(-DPIGLIT_HAS_GBM_BO_MAP)
+	endif()
+
+	CHECK_FUNCTION_EXISTS(gbm_bo_get_fd_for_plane PIGLIT_HAS_GBM_BO_GET_FD_FOR_PLANE)
+	if (PIGLIT_HAS_GBM_BO_GET_FD_FOR_PLANE)
+		add_definitions(-DPIGLIT_HAS_GBM_BO_GET_FD_FOR_PLANE)
+	endif()
+endif()
+
+if(PIGLIT_USE_WAYLAND)
+	pkg_check_modules(WAYLAND REQUIRED wayland-client)
+	set(PIGLIT_HAS_WAYLAND True)
+	add_definitions(-DPIGLIT_HAS_WAYLAND)
+	include_directories(${WAYLAND_INCLUDE_DIRS})
+
+	FIND_LIBRARY(HAVE_XKBCOMMON NAMES xkbcommon)
+	if(NOT HAVE_XKBCOMMON)
+		message(FATAL_ERROR "Wayland support requires xkbcommon. "
+			"Failed to find xkbcommon library.")
+	endif()
+	pkg_check_modules(XKBCOMMON QUIET xkbcommon)
+endif()
+
 if(PIGLIT_USE_X11 AND OPENGL_gl_LIBRARY AND PIGLIT_BUILD_GLX_TESTS)
 	set(PIGLIT_HAS_GLX True)
 	add_definitions(-DPIGLIT_HAS_GLX)
 endif()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	pkg_check_modules(GBM QUIET gbm>=17.1)
-	if(GBM_FOUND)
-		set(PIGLIT_HAS_GBM True)
-		add_definitions(-DPIGLIT_HAS_GBM)
-		set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${GBM_LIBRARIES})
-		CHECK_FUNCTION_EXISTS(gbm_bo_map PIGLIT_HAS_GBM_BO_MAP)
-		if (PIGLIT_HAS_GBM_BO_MAP)
-			add_definitions(-DPIGLIT_HAS_GBM_BO_MAP)
-		endif()
-		CHECK_FUNCTION_EXISTS(gbm_bo_get_fd_for_plane PIGLIT_HAS_GBM_BO_GET_FD_FOR_PLANE)
-		if (PIGLIT_HAS_GBM_BO_GET_FD_FOR_PLANE)
-			add_definitions(-DPIGLIT_HAS_GBM_BO_GET_FD_FOR_PLANE)
-		endif()
-	endif(GBM_FOUND)
-
-	pkg_check_modules(WAYLAND QUIET wayland-client)
-	if (WAYLAND_FOUND)
-		set(PIGLIT_HAS_WAYLAND True)
-		add_definitions(-DPIGLIT_HAS_WAYLAND)
-		include_directories(${WAYLAND_INCLUDE_DIRS})
-
-		FIND_LIBRARY(HAVE_XKBCOMMON NAMES xkbcommon)
-		if(NOT HAVE_XKBCOMMON)
-			message(FATAL_ERROR "Wayland support requires xkbcommon. "
-				"Failed to find xkbcommon library.")
-		endif()
-		pkg_check_modules(XKBCOMMON QUIET xkbcommon)
-	endif()
-
 	pkg_check_modules(LIBDRM QUIET libdrm)
 	pkg_check_modules(XCB QUIET xcb)
 	pkg_check_modules(XCB_DRI2 QUIET xcb-dri2)
