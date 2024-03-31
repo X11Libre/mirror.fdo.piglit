@@ -377,13 +377,13 @@ if (OPENGL_FOUND)
 			PATHS ${OPENGL_INCLUDE_DIR}
 			DOC "Include for OpenGL/glext.h on OSX"
 		)
-	else (APPLE)
+	else()
 		find_path(GLEXT_INCLUDE_DIR
 			NAMES GL/glext.h
 			PATHS ${OPENGL_INCLUDE_DIR}
 			DOC "Include for GL/glext.h"
 		)
-	endif (APPLE)
+	endif()
 endif()
 
 if(CMAKE_USE_PTHREADS_INIT)
