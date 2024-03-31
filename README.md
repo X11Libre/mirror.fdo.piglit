@@ -61,15 +61,11 @@ For testing the python framework using `py.test unittests/framework`
 
 Now configure the build system:
 
-    $ cmake .
+    $ cmake . -G Ninja
 
-This will start cmake's configuration tool, just follow the onscreen
-instructions. The default settings should be fine, but I recommend you:
- - Press 'c' once (this will also check for dependencies) and then
- - Set `CMAKE_BUILD_TYPE` to `Debug` Now you can press 'c' again and then 'g' to generate the build system.
 Now build everything:
 
-    $ make
+    $ cmake --build .
 
 
 ### 2.1 Cross Compiling
@@ -88,8 +84,8 @@ Install development packages.
 
 Configure and build.
 
-    $ cmake .
-    $ make
+    $ cmake . -G Ninja
+    $ cmake --build .
 
 
 ### 2.3 Mac OS X
@@ -104,7 +100,7 @@ http://developer.apple.com/xcode
 Configure and build.
 
     $ cmake .
-    $ make
+    $ cmake --build .
 
 
 ### 2.4 Cygwin
@@ -122,7 +118,7 @@ Install development packages.
 Configure and build.
 
     $ cmake .
-    $ make
+    $ cmake --build .
 
 
 ### 2.5 Windows
