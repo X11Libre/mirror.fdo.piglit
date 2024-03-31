@@ -54,6 +54,8 @@ option(PIGLIT_SSE2 "Build with SSE2 support on 32-bit x86 architecture" ON)
 
 option(PIGLIT_USE_WAFFLE "Use Waffle in place of GLUT" ${DEFAULT_WAFFLE})
 
+option(PIGLIT_USE_X11 "Use X11" ${DEFAULT_X11})
+
 option(PIGLIT_BUILD_GLX_TESTS "Build tests that require GLX" ${DEFAULT_GLX})
 option(PIGLIT_BUILD_WGL_TESTS "Build tests that require WGL" ${DEFAULT_WGL})
 
@@ -69,8 +71,13 @@ find_package(PNG)
 if(PNG_FOUND)
 	add_definitions(-DPIGLIT_HAS_PNG)
 endif(PNG_FOUND)
-find_package(X11)
-if(X11_FOUND)
+
+if(PIGLIT_BUILD_GLX_TESTS AND NOT PIGLIT_USE_X11)
+	message(FATAL_ERROR "X11 has to be enabled for GLX to build")
+endif()
+
+if(PIGLIT_USE_X11)
+	find_package(X11 REQUIRED)
 	set(PIGLIT_HAS_X11 True)
 	add_definitions(-DPIGLIT_HAS_X11)
 endif()
@@ -152,12 +159,12 @@ if(PIGLIT_BUILD_CL_TESTS)
 	find_package(OpenCL 1.2 REQUIRED)
 endif(PIGLIT_BUILD_CL_TESTS)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	if(X11_FOUND AND OPENGL_gl_LIBRARY AND PIGLIT_BUILD_GLX_TESTS)
-		set(PIGLIT_HAS_GLX True)
-		add_definitions(-DPIGLIT_HAS_GLX)
-	endif()
+if(PIGLIT_USE_X11 AND OPENGL_gl_LIBRARY AND PIGLIT_BUILD_GLX_TESTS)
+	set(PIGLIT_HAS_GLX True)
+	add_definitions(-DPIGLIT_HAS_GLX)
+endif()
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	pkg_check_modules(GBM QUIET gbm>=17.1)
 	if(GBM_FOUND)
 		set(PIGLIT_HAS_GBM True)
