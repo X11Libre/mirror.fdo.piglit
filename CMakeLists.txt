@@ -54,6 +54,9 @@ option(PIGLIT_SSE2 "Build with SSE2 support on 32-bit x86 architecture" ON)
 
 option(PIGLIT_USE_WAFFLE "Use Waffle in place of GLUT" ${DEFAULT_WAFFLE})
 
+option(PIGLIT_BUILD_GLX_TESTS "Build tests that require GLX" ${DEFAULT_GLX})
+option(PIGLIT_BUILD_WGL_TESTS "Build tests that require WGL" ${DEFAULT_WGL})
+
 option(PIGLIT_BUILD_GL_TESTS "Build tests for OpenGL" ON)
 option(PIGLIT_BUILD_GLES1_TESTS "Build tests for OpenGL ES1" ${DEFAULT_GLES_TESTS_BUILD})
 option(PIGLIT_BUILD_GLES2_TESTS "Build tests for OpenGL ES2" ${DEFAULT_GLES_TESTS_BUILD})
@@ -207,19 +210,6 @@ if(PIGLIT_BUILD_VK_TESTS)
 		message(FATAL_ERROR "glslangValidator required by vulkan tests not found")
 	endif()
 endif(PIGLIT_BUILD_VK_TESTS)
-
-IF(PIGLIT_HAS_GLX)
-	option(PIGLIT_BUILD_GLX_TESTS "Build tests that require GLX" ON)
-ELSE()
-	option(PIGLIT_BUILD_GLX_TESTS "Build tests that require GLX" OFF)
-ENDIF()
-
-IF(PIGLIT_HAS_WGL)
-	option(PIGLIT_BUILD_WGL_TESTS "Build tests that require WGL" ON)
-ELSE()
-	option(PIGLIT_BUILD_WGL_TESTS "Build tests that require WGL" OFF)
-ENDIF()
-
 
 # Choose to build tests that use dma_buf.
 #
