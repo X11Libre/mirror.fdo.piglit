@@ -33,11 +33,12 @@ First of all, you need to make sure that the following are installed:
   - numpy (http://www.numpy.org)
   - cmake (http://www.cmake.org)
   - GL, glu and glut libraries and development packages (i.e. headers)
-  - X11 libraries and development packages (i.e. headers)
   - waffle (http://waffle.freedesktop.org/)
 
 Optionally, you can install the following:
 
+  - X11 libraries and development packages (i.e. headers)
+  - ninja. For a faster build.
   - lxml. An accelerated python xml library using libxml2 (http://lxml.de/)
   - jsonstreams. A JSON stream writer for python.
     (https://jsonstreams.readthedocs.io/en/stable/)
