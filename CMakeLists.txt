@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.4)
 if (POLICY CMP0072)
         cmake_policy (SET CMP0072 OLD)
 endif()
+if (POLICY CMP0148)
+        cmake_policy (SET CMP0148 OLD)
+endif()
 
 project (piglit)
 
