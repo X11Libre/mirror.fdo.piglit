@@ -947,6 +947,7 @@ with profile.test_list.group_manager(
     g(['generatemipmap-base-change', 'format'])
     g(['generatemipmap-cubemap'])
     g(['viewport-clamp'])
+    g(['texsubimage-sync'])
 
 with profile.test_list.group_manager(
         PiglitGLTest,
