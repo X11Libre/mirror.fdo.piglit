@@ -61,10 +61,10 @@ DOUBLE_FLOAT_VALUES         = ['0xc7efffffefffffff', # Negative maximum normaliz
                                '0xc170000000000000', # -16777216.0
                                '0xc014000000000000', # -5.0
                                '0xbfff25ce60000000', # -1.9467300176620483
-                               '0xb80fffffe0000000', # Negative minimum normalized
+                               '0xb810000000000000', # Negative minimum normalized
                                '0xb69fffffffffffff', # Negative underflow
                                '0x369fffffffffffff', # Positive underflow
-                               '0x380fffffe0000000', # Positive minimum normalized
+                               '0x3810000000000000', # Positive minimum normalized
                                '0x3fff25ce60000000', # +1.9467300176620483
                                '0x4014000000000000', # +5.0
                                '0x4170000000000000', # +16777216.0
