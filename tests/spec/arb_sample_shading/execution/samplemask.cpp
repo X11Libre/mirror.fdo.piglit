@@ -309,6 +309,9 @@ test_fix(enum rate_mode mode, float sample_rate)
 static enum piglit_result
 test_mask_in_one(enum rate_mode mode, float sample_rate)
 {
+	if (!mask_in_one_supported)
+		return PIGLIT_SKIP;
+
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 
 	/* 1. Draw everything outputting gl_SampleMaskIn, with msaa disabled; */
