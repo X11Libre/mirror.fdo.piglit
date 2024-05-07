@@ -46,6 +46,9 @@ void main()
 }
 
 [test]
+texture junk 2DArray 0 ( 64 , 64 , 2 )
+fb tex layered 0
+
 clear color 0.0 0.0 0.0 0.0
 clear
 
