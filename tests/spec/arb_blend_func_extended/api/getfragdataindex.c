@@ -119,7 +119,6 @@ piglit_display(void)
 
 void piglit_init(int argc, char **argv)
 {
-	GLint max_dual_source;
 	GLuint prog;
 	GLuint vs;
 	GLuint fs, fs2, fs3;
@@ -133,15 +132,7 @@ void piglit_init(int argc, char **argv)
 	piglit_require_extension("GL_EXT_blend_func_extended");
 	piglit_require_minimum_getinteger(GL_MAX_DRAW_BUFFERS, 4);
 #endif
-
-	glGetIntegerv(GL_MAX_DUAL_SOURCE_DRAW_BUFFERS, &max_dual_source);
-	if (max_dual_source < 1) {
-		fprintf(stderr,
-			"blend_func_extended requires GL_MAX_DUAL_SOURCE_DRAW_BUFFERS >= 1.  "
-			"Only got %d!\n",
-			max_dual_source);
-		piglit_report_result(PIGLIT_FAIL);
-	}
+	piglit_require_minimum_getinteger(GL_MAX_DUAL_SOURCE_DRAW_BUFFERS, 1);
 
 	prog = glCreateProgram();
 	vs = piglit_compile_shader_text(GL_VERTEX_SHADER, vs_text);
