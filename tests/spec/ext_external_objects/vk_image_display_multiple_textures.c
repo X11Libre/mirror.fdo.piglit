@@ -117,7 +117,7 @@ void piglit_init(int argc, char **argv)
 				color_tiling, depth_tiling,
 				color_in_layout, depth_in_layout,
 				color_end_layout, depth_end_layout)) {
-		fprintf(stderr, "Failed to initialize Vulkan, skipping the test.\n");
+		fprintf(stdout, "Failed to initialize Vulkan, skipping the test.\n");
 		piglit_report_result(PIGLIT_SKIP);
 	}
 

@@ -89,7 +89,7 @@ piglit_init(int argc, char **argv)
 	atexit(cleanup);
 
 	if (!vk_init()) {
-		fprintf(stderr, "Failed to initialize Vulkan, skipping the test.\n");
+		fprintf(stdout, "Failed to initialize Vulkan, skipping the test.\n");
 		piglit_report_result(PIGLIT_SKIP);
 	}
 
@@ -203,7 +203,7 @@ static bool
 vk_init()
 {
 	if (!vk_init_ctx(&vk_core)) {
-		fprintf(stderr, "Failed to initialize Vulkan context.\n");
+		fprintf(stdout, "Failed to initialize Vulkan context.\n");
 		return false;
 	}
 

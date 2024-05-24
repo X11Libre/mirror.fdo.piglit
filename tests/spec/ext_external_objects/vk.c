@@ -1022,7 +1022,7 @@ bool
 vk_init_ctx_for_rendering(struct vk_ctx *ctx)
 {
 	if (!vk_init_ctx(ctx)) {
-		fprintf(stderr, "Failed to initialize Vulkan.\n");
+		fprintf(stdout, "Failed to initialize Vulkan.\n");
 		return false;
 	}
 

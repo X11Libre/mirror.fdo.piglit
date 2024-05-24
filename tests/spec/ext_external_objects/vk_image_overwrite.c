@@ -292,7 +292,7 @@ static bool
 vk_init(void)
 {
 	if (!vk_init_ctx(&vk_core)) {
-		fprintf(stderr, "Failed to initialize Vulkan\n");
+		fprintf(stdout, "Failed to initialize Vulkan\n");
 		return false;
 	}
 

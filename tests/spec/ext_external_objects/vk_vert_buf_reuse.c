@@ -123,7 +123,7 @@ piglit_init(int argc, char **argv)
 	atexit(cleanup);
 
 	if (!vk_init()) {
-		fprintf(stderr, "Failed to initialize Vulkan, skipping the test.\n");
+		fprintf(stdout, "Failed to initialize Vulkan, skipping the test.\n");
 		piglit_report_result(PIGLIT_SKIP);
 	}
 
@@ -248,7 +248,7 @@ static bool
 vk_init()
 {
 	if (!vk_init_ctx_for_rendering(&vk_core)) {
-		fprintf(stderr, "Failed to initialize Vulkan context.\n");
+		fprintf(stdout, "Failed to initialize Vulkan context.\n");
 		return false;
 	}
 
@@ -273,7 +273,7 @@ vk_init()
 	vkUnmapMemory(vk_core.dev, vk_vb.mobj.mem);
 
 	if (!vk_init_vulkan_drawing()) {
-		fprintf(stderr, "Failed to initialize Vulkan drawing.\n");
+		fprintf(stdout, "Failed to initialize Vulkan drawing.\n");
 		return false;
 	}
 	return true;
