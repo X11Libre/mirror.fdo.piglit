@@ -661,6 +661,14 @@ const char* piglit_cl_get_error_name(cl_int error) {
 	CASE(CL_INVALID_LINKER_OPTIONS)                   // -67
 	CASE(CL_INVALID_DEVICE_PARTITION_COUNT)           // -68
 #endif //CL_VERSION_1_2
+#ifdef CL_VERSION_2_0
+	CASE(CL_INVALID_PIPE_SIZE)                        // -69
+	CASE(CL_INVALID_DEVICE_QUEUE)                     // -70
+#endif // CL_VERSION_2_0
+#ifdef CL_VERSION_2_2
+	CASE(CL_INVALID_SPEC_ID)                          // -71
+	CASE(CL_MAX_SIZE_RESTRICTION_EXCEEDED)            // -72
+#endif // CL_VERSION_2_2
 
     default:
         return "(unrecognized error)";
