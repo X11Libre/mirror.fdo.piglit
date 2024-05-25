@@ -29,23 +29,6 @@
 #include "piglit_ktx.h"
 #include "piglit-util-gl.h"
 
-/* FIXME: Remove #defines when piglit-dispatch gains support for GLES. */
-#define GL_TEXTURE_1D				0x0DE0
-#define GL_TEXTURE_1D_ARRAY			0x8C18
-#define GL_TEXTURE_2D				0x0DE1
-#define GL_TEXTURE_2D_ARRAY			0x8C1A
-#define GL_TEXTURE_3D				0x806F
-#define GL_TEXTURE_CUBE_MAP			0x8513
-#define GL_TEXTURE_CUBE_MAP_ARRAY		0x9009
-
-#define GL_TEXTURE_BINDING_1D			0x8068
-#define GL_TEXTURE_BINDING_1D_ARRAY		0x8C1C
-#define GL_TEXTURE_BINDING_2D			0x8069
-#define GL_TEXTURE_BINDING_2D_ARRAY		0x8C1D
-#define GL_TEXTURE_BINDING_3D			0x806A
-#define GL_TEXTURE_BINDING_CUBE_MAP		0x8514
-#define GL_TEXTURE_BINDING_CUBE_MAP_ARRAY	0x900A
-
 static const int piglit_ktx_header_length = 64;
 static const char piglit_ktx_magic_number[12] =
 	{ 0xab, 'K', 'T', 'X', ' ', '1', '1', 0xbb, '\r', '\n', 0x1a, '\n' };
