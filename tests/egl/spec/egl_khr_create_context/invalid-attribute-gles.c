@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
 	if (!EGL_KHR_create_context_setup(EGL_OPENGL_ES_BIT)) {
 		if (!EGL_KHR_create_context_setup(EGL_OPENGL_ES2_BIT)) {
-			fprintf(stderr, "ES 2 not available.\n");
+			printf("ES 2 eglChooseConfig() returned no configs\n");
 			piglit_report_result(PIGLIT_SKIP);
 		}
 	}
