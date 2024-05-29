@@ -63,11 +63,6 @@ int main(int argc, char **argv)
 	char frag_shader_text1[256];
 	char frag_shader_text2[386];
 
-	if (!piglit_is_gles() || piglit_get_gl_version() < 32) {
-		printf("Test requires at least ES 3.2.");
-		piglit_report_result(PIGLIT_SKIP);
-	}
-
 	srand(time(NULL));
 
 	snprintf(frag_shader_text1, sizeof(frag_shader_text1),
@@ -107,9 +102,18 @@ int main(int argc, char **argv)
 
 	ctx1 = eglCreateContext(dpy, EGL_NO_CONFIG_KHR, EGL_NO_CONTEXT, attr);
 
-	if (!ctx1) {
-		fprintf(stderr, "glsl-bug-110796: first context creation failed\n");
-		piglit_report_result(PIGLIT_FAIL);
+	if (ctx1 == EGL_NO_CONTEXT) {
+		EGLint error = eglGetError();
+		switch (error) {
+			case EGL_BAD_MATCH:
+				printf("EGL_BAD_MATCH: Test requires at least ES 3.2.\n");
+				piglit_report_result(PIGLIT_SKIP);
+				break;
+			default:
+				fprintf(stderr, "glsl-bug-110796: first context creation failed\n");
+				piglit_report_result(PIGLIT_FAIL);
+				break;
+		}
 	}
 
 	dpy = piglit_egl_get_default_display(EGL_NONE);
