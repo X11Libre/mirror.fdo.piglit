@@ -2558,6 +2558,11 @@ with profile.test_list.group_manager(
 
 with profile.test_list.group_manager(
         PiglitGLTest,
+        grouptools.join('spec', 'EXT_texture_storage_compression')) as g:
+    g(['ext_texture_storage_compression-tex-storage'], 'tex-storage')
+
+with profile.test_list.group_manager(
+        PiglitGLTest,
         grouptools.join('spec', 'ARB_texture_view')) as g:
     g(['arb_texture_view-bug-layers-image'], 'bug-layers-image')
     g(['arb_texture_view-cubemap-view'], 'cubemap-view')
@@ -4923,6 +4928,14 @@ with profile.test_list.group_manager(
         grouptools.join('spec', 'egl_ext_protected_content'),
         exclude_platforms=['glx']) as g:
     g(['egl_ext_protected_content'], 'conformance')
+
+with profile.test_list.group_manager(
+        PiglitGLTest,
+        grouptools.join('spec', 'egl_ext_surface_compression'),
+        exclude_platforms=['glx']) as g:
+    g(['egl_ext_surface_compression-query'], 'conformance')
+    g(['egl_ext_surface_compression-create'], 'create')
+    g(['egl_ext_surface_compression-image'], 'image')
 
 with profile.test_list.group_manager(
         PiglitGLTest, grouptools.join('spec', '!opengl ES 2.0')) as g:

@@ -193,7 +193,7 @@ if(PIGLIT_USE_GBM)
 endif()
 
 if(PIGLIT_USE_WAYLAND)
-	pkg_check_modules(WAYLAND REQUIRED wayland-client)
+	pkg_check_modules(WAYLAND REQUIRED wayland-client wayland-egl)
 	set(PIGLIT_HAS_WAYLAND True)
 	add_definitions(-DPIGLIT_HAS_WAYLAND)
 	include_directories(${WAYLAND_INCLUDE_DIRS})

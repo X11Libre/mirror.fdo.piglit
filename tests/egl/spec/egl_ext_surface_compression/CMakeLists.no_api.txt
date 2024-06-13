@@ -1,0 +1,7 @@
+link_libraries(
+	piglitutil
+)
+
+piglit_add_executable(egl_ext_storage_compression-query query_compression_rates.c)
+
+# vim: ft=cmake:
