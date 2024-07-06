@@ -741,7 +741,8 @@ const struct piglit_subtest *
 piglit_find_subtest(const struct piglit_subtest *subtests, const char *name)
 {
 	unsigned i;
-
+	if (!subtests)
+		return NULL;
 	for (i = 0; !PIGLIT_SUBTEST_END(&subtests[i]); i++) {
 		if (strcmp(subtests[i].option, name) == 0)
 			return &subtests[i];
