@@ -702,6 +702,11 @@ create_program(struct program *program, const char *type)
 
 	prog = piglit_build_simple_program(vs_source, fs_source);
 
+	if (test_vs)
+		free(vs_source);
+	else
+		free(fs_source);
+
 	program->prog = prog;
         program->pos_location = glGetUniformLocation(prog, "pos");
         program->expected_location = glGetUniformLocation(prog,
