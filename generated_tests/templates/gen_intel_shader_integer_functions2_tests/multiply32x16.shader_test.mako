@@ -1,5 +1,12 @@
 <%!
 import numpy as np
+
+def uint32(val):
+    return np.array([val]).astype(np.uint32)[0]
+
+def int32(val):
+    return np.array([val]).astype(np.int32)[0]
+
 %>
 [require]
 GL >= 3.0
@@ -92,16 +99,16 @@ void main()
 
 [test]
 % for i, s in enumerate(sources):
-uniform ${input_type} src[${i}] ${"{:#010x}".format(np.uint32(s))}
+uniform ${input_type} src[${i}] ${"{:#010x}".format(uint32(s))}
 % endfor
 
 % if input_type == "int":
     % for i, s in enumerate(sources):
-uniform ${input_type} src_as_16bits[${i}] ${"{:#010x}".format(np.uint32((np.int32(np.uint32(s) << 16) >> 16)))}
+uniform ${input_type} src_as_16bits[${i}] ${"{:#010x}".format(uint32((int32(uint32(s) << 16) >> 16)))}
     % endfor
 % else:
     % for i, s in enumerate(sources):
-uniform ${input_type} src_as_16bits[${i}] ${"{:#010x}".format(np.uint32(s) & 0x0000ffff)}
+uniform ${input_type} src_as_16bits[${i}] ${"{:#010x}".format(uint32(s) & 0x0000ffff)}
     % endfor
 % endif
 

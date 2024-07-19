@@ -1,5 +1,12 @@
 <%!
 import numpy as np
+
+def uint32(val):
+    return np.array([val]).astype(np.uint32)[0]
+
+def uint64(val):
+    return np.array([val]).astype(np.uint64)[0]
+
 %>
 [require]
 GLSL >= ${version}
@@ -156,19 +163,19 @@ void main()
 [test]
 % if output_type in {"uint", "int"}:
     % for i, s in enumerate(sources):
-uniform ${input_type} src[${i}] ${"{:#010x}".format(np.uint32(s))}
+uniform ${input_type} src[${i}] ${"{:#010x}".format(uint32(s))}
     % endfor
 
     % for i, s in enumerate(results):
-uniform ${output_type} expected[${i}] ${"{:#010x}".format(np.uint32(s))}
+uniform ${output_type} expected[${i}] ${"{:#010x}".format(uint32(s))}
     % endfor
 % else:
     % for i, s in enumerate(sources):
-uniform ${input_type} src[${i}] ${"{:#018x}".format(np.uint64(s))}
+uniform ${input_type} src[${i}] ${"{:#018x}".format(uint64(s))}
     % endfor
 
     % for i in range((len(results) + 1) // 2):
-uniform u64vec2 expected[${i}] ${"{:#018x}".format(np.uint64(results[i*2 + 0]))} ${"{:#018x}".format(np.uint64(results[i*2 + 1])) if len(results) > (i*2 + 1) else "0xDEADBEEFDEADBEEF"}
+uniform u64vec2 expected[${i}] ${"{:#018x}".format(uint64(results[i*2 + 0]))} ${"{:#018x}".format(uint64(results[i*2 + 1])) if len(results) > (i*2 + 1) else "0xDEADBEEFDEADBEEF"}
     % endfor
 % endif
 draw rect -1 -1 2 2

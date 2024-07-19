@@ -32,6 +32,27 @@ from mako import exceptions
 from templates import template_file
 from modules import utils
 
+def _as_type(val, type):
+    """Helper that casts with overflow"""
+    return np.array([val]).astype(type)[0]
+
+
+def int32(val):
+    return _as_type(val, np.int32)
+
+
+def int64(val):
+    return _as_type(val, np.int64)
+
+
+def uint32(val):
+    return _as_type(val, np.uint32)
+
+
+def uint64(val):
+    return _as_type(val, np.uint64)
+
+
 def generate_results_commutative(srcs, operator):
     """Generate results for an operator that is commutative.
 
@@ -77,8 +98,8 @@ def generate_results_empty(unused1, unused2):
 
 
 def abs_isub32(_a, _b):
-    a = np.int32(np.uint32(_a))
-    b = np.int32(np.uint32(_b))
+    a = int32(uint32(_a))
+    b = int32(uint32(_b))
 
     err = np.geterr()
     np.seterr(over='ignore')
@@ -89,7 +110,7 @@ def abs_isub32(_a, _b):
 
 
 def abs_isub64(_a, _b):
-    a = np.int64(_a)
+    a = int64(_a)
     b = _b.astype(np.int64)
 
     err = np.geterr()
@@ -101,22 +122,22 @@ def abs_isub64(_a, _b):
 
 
 def abs_usub32(_a, _b):
-    a = np.uint32(_a)
-    b = np.uint32(_b)
+    a = uint32(_a)
+    b = uint32(_b)
 
     return a - b if a > b else b - a
 
 
 def abs_usub64(_a, _b):
-    a = np.uint64(_a)
-    b = np.uint64(_b)
+    a = uint64(_a)
+    b = uint64(_b)
 
     return a - b if a > b else b - a
 
 
 def iadd_sat32(_a, _b):
-    a = np.int32(np.uint32(_a))
-    b = np.int32(np.uint32(_b))
+    a = int32(uint32(_a))
+    b = int32(uint32(_b))
 
     if a > 0:
         if b > (np.iinfo(np.int32).max - a):
@@ -129,8 +150,8 @@ def iadd_sat32(_a, _b):
 
 
 def uadd_sat32(_a, _b):
-    a = np.uint32(_a)
-    b = np.uint32(_b)
+    a = uint32(_a)
+    b = uint32(_b)
 
     if b > (np.iinfo(np.uint32).max - a):
         return np.iinfo(np.uint32).max
@@ -139,8 +160,8 @@ def uadd_sat32(_a, _b):
 
 
 def iadd_sat64(_a, _b):
-    a = np.int64(_a)
-    b = np.int64(_b)
+    a = int64(_a)
+    b = int64(_b)
 
     if a > 0:
         if b > (np.iinfo(np.int64).max - a):
@@ -153,8 +174,8 @@ def iadd_sat64(_a, _b):
 
 
 def uadd_sat64(_a, _b):
-    a = np.uint64(_a)
-    b = np.uint64(_b)
+    a = uint64(_a)
+    b = uint64(_b)
 
     if b > (np.iinfo(np.uint64).max - a):
         return np.iinfo(np.uint64).max
@@ -163,27 +184,27 @@ def uadd_sat64(_a, _b):
 
 
 def isub_sat32(a, b):
-    r = np.int64(np.int32(a)) - np.int64(np.int32(b))
+    r = int64(int32(a)) - int64(int32(b))
 
-    if r > np.int64(0x07fffffff):
-        return np.int32(0x7fffffff)
+    if r > int64(0x07fffffff):
+        return int32(0x7fffffff)
 
-    if r < np.int64(-0x080000000):
-        return np.int32(-0x80000000)
+    if r < int64(-0x080000000):
+        return int32(-0x80000000)
 
-    return np.int32(r)
+    return int32(r)
 
 
 def usub_sat32(_a, _b):
-    a = np.uint32(_a)
-    b = np.uint32(_b)
+    a = uint32(_a)
+    b = uint32(_b)
 
-    return a - b if a > b else np.uint32(0)
+    return a - b if a > b else uint32(0)
 
 
 def isub_sat64(_a, _b):
-    a = np.int64(_a)
-    b = np.int64(_b)
+    a = int64(_a)
+    b = int64(_b)
 
     if a >= 0:
         if (a - np.iinfo(np.int64).max) > b:
@@ -196,74 +217,74 @@ def isub_sat64(_a, _b):
 
 
 def usub_sat64(_a, _b):
-    a = np.uint64(_a)
-    b = np.uint64(_b)
+    a = uint64(_a)
+    b = uint64(_b)
 
-    return a - b if a > b else np.uint64(0)
+    return a - b if a > b else uint64(0)
 
 
 def u_hadd32(_a, _b):
-    a = np.uint32(_a)
-    b = np.uint32(_b)
+    a = uint32(_a)
+    b = uint32(_b)
 
     return (a >> 1) + (b >> 1) + ((a & b) & 1)
 
 
 def s_hadd32(_a, _b):
-    a = np.int32(np.uint32(_a))
-    b = np.int32(np.uint32(_b))
+    a = int32(uint32(_a))
+    b = int32(uint32(_b))
 
     return (a >> 1) + (b >> 1) + ((a & b) & 1)
 
 
 def u_hadd64(_a, _b):
-    a = np.uint64(_a)
-    b = np.uint64(_b)
+    a = uint64(_a)
+    b = uint64(_b)
 
-    return (a >> np.uint64(1)) + (b >> np.uint64(1)) + ((a & b) & np.uint64(1))
+    return (a >> uint64(1)) + (b >> uint64(1)) + ((a & b) & uint64(1))
 
 
 def s_hadd64(_a, _b):
-    a = np.int64(_a)
-    b = np.int64(_b)
+    a = int64(_a)
+    b = int64(_b)
 
-    return (a >> np.int64(1)) + (b >> np.int64(1)) + ((a & b) & np.int64(1))
+    return (a >> int64(1)) + (b >> int64(1)) + ((a & b) & int64(1))
 
 
 def u_rhadd32(_a, _b):
-    a = np.uint32(_a)
-    b = np.uint32(_b)
+    a = uint32(_a)
+    b = uint32(_b)
 
     return (a >> 1) + (b >> 1) + ((a | b) & 1)
 
 
 def s_rhadd32(_a, _b):
-    a = np.int32(np.uint32(_a))
-    b = np.int32(np.uint32(_b))
+    a = int32(uint32(_a))
+    b = int32(uint32(_b))
 
     return (a >> 1) + (b >> 1) + ((a | b) & 1)
 
 
 def u_rhadd64(_a, _b):
-    a = np.uint64(_a)
-    b = np.uint64(_b)
+    a = uint64(_a)
+    b = uint64(_b)
 
-    return (a >> np.uint64(1)) + (b >> np.uint64(1)) + ((a | b) & np.uint64(1))
+    return (a >> uint64(1)) + (b >> uint64(1)) + ((a | b) & uint64(1))
 
 
 def s_rhadd64(_a, _b):
-    a = np.int64(_a)
-    b = np.int64(_b)
+    a = int64(_a)
+    b = int64(_b)
 
-    return (a >> np.int64(1)) + (b >> np.int64(1)) + ((a | b) & np.int64(1))
+    return (a >> int64(1)) + (b >> int64(1)) + ((a | b) & int64(1))
 
 
 def imul_32x16(a, b):
-    return np.int32(a) * ((np.int32(b) << 16) >> 16)
+    return int32(a) * ((int32(b) << 16) >> 16)
 
 
 def umul_32x16(a, b):
-    return np.uint32(np.uint32(a) * (np.uint32(b) & 0x0000ffff))
+    return uint32(uint32(a) * (uint32(b) & 0x0000ffff))
 
 
 def absoluteDifference32_sources():
@@ -320,7 +341,7 @@ def absoluteDifference64_sources():
     ]
 
     assert len(srcs) == 64
-    return [np.uint64(x) for x in srcs]
+    return [uint64(x) for x in srcs]
 
 
 def addSaturate_int32_sources():
@@ -362,7 +383,7 @@ def addSaturate_int64_sources():
         srcs.append(random.randint(-0x7ffffffffffffffe, -2))
 
     assert len(srcs) == 62
-    return [np.int64(np.uint64(x)) for x in srcs]
+    return [int64(uint64(x)) for x in srcs]
 
 
 def addSaturate_uint64_sources():
@@ -375,10 +396,10 @@ def addSaturate_uint64_sources():
     while len(srcs) < 61:
         srcs.append(random.randint(0, 0xffffffffffffffff))
 
-    srcs.append(np.uint64(0xdeadbeefdeadbeef))
+    srcs.append(uint64(0xdeadbeefdeadbeef))
 
     assert len(srcs) == 62
-    return [np.uint64(x) for x in srcs]
+    return [uint64(x) for x in srcs]
 
 
 def countLeadingZeros_sources():
@@ -412,7 +433,7 @@ def countTrailingZeros_sources():
 
 
 def multiply32x16_int32_sources():
-    srcs = [0, 1, -1, np.int32(-0x80000000), -0x7fffffff, 0x7fffffff ]
+    srcs = [0, 1, -1, int32(-0x80000000), -0x7fffffff, 0x7fffffff ]
 
     random.seed(0)
     for i in range(2, 32, 3):
@@ -432,7 +453,7 @@ def multiply32x16_int32_sources():
 
 
 def subtractSaturate_int32_sources():
-    srcs = [0, 1, -1, np.int32(-0x80000000), -0x7fffffff, 0x7fffffff ]
+    srcs = [0, 1, -1, int32(-0x80000000), -0x7fffffff, 0x7fffffff ]
 
     random.seed(0)
     for i in range(2, 32, 3):
@@ -449,7 +470,7 @@ def subtractSaturate_int32_sources():
         srcs.append(random.randint(-0x80000000, 0x7fffffff))
 
     assert len(srcs) == 32
-    return [np.int32(x) for x in srcs]
+    return [int32(x) for x in srcs]
 
 
 def subtractSaturate_uint32_sources():
@@ -481,7 +502,7 @@ def subtractSaturate_int64_sources():
         srcs.append(random.randint(-0x8000000000000000, 0x7fffffffffffffff))
 
     assert len(srcs) == 45
-    return [np.int64(x) for x in srcs]
+    return [int64(x) for x in srcs]
 
 
 def subtractSaturate_uint64_sources():
