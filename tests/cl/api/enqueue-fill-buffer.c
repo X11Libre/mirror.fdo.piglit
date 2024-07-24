@@ -88,7 +88,7 @@ piglit_cl_test(const int argc,
 	cl_int err;
 
 	cl_int src_buf[15] = { 2,  3,  4,  5,  6,  7,  8,  9,  8,  7,  6,  5,  4,  3,  2};
-	cl_int dst_buf[15] = { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+	cl_int dst_buf[15] = { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
 	cl_int exp_buf[15] = { 2,  3,  4,  5, 21, 21, 21, 21, 21, 21, 21, 21,  4,  3,  2};
 	cl_int pattern[ 4] = {21, 21, 21, 21};
 	cl_event event;
