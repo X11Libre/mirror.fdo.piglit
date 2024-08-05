@@ -2908,6 +2908,7 @@ with profile.test_list.group_manager(
         PiglitGLTest, grouptools.join('spec', 'ext_framebuffer_blit')) as g:
     g(['fbo-blit'], run_concurrent=False)
     g(['fbo-copypix'], run_concurrent=False)
+    g(['fbo-blit-fence-reg'], run_concurrent=False)
     g(['fbo-readdrawpix'], run_concurrent=False)
     g(['fbo-sys-blit'], run_concurrent=False)
     g(['fbo-sys-sub-blit'], run_concurrent=False)
