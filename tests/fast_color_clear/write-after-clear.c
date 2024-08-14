@@ -175,6 +175,7 @@ piglit_init(int argc, char **argv)
 {
 	bool pass = true;
 
+	const union color_value flt_zero = { .flt = {0.0, 0.0, 0.0, 0.0} };
 	const union color_value flt_one = { .flt = {1.0, 1.0, 1.0, 1.0} };
 	const union color_value flt_half = { .flt = {0.5, 0.5, 0.5, 0.5} };
 	union color_value half_linear_to_srgb;
@@ -228,6 +229,18 @@ piglit_init(int argc, char **argv)
 	pass &= test_clear_after_clear(GL_RGBA8, 32, 32, flt_one,
 				       GL_RGBA8_SNORM, 8, 4, flt_one,
 				       0, 0, flt_half);
+
+	puts("Testing fast-clear tracking on 128Bx32 "
+	     "channels zero -> channels one");
+	pass &= test_clear_after_clear(GL_RGBA8, 32, 32, flt_zero,
+				       GL_RGBA8, 32, 32, flt_one,
+				       0, 0, flt_one);
+
+	puts("Testing fast-clear tracking on 16Bx4 "
+	     "channels zero -> channels one");
+	pass &= test_clear_after_clear(GL_RGBA8, 4, 4, flt_zero,
+				       GL_RGBA8, 4, 4, flt_one,
+				       0, 0, flt_one);
 
 	puts("Testing fast-clear tracking across layers 1 -> 0 -> 1");
 	{
