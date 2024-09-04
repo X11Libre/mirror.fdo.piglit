@@ -413,12 +413,16 @@ check_info(const struct piglit_cl_api_test_env* env,
 			    check_fp_config(kind, *(cl_device_fp_config*)param_value, result)) {
 				cl_device_fp_config value = *(cl_device_fp_config*)param_value;
 				if (device_config->type != CL_DEVICE_TYPE_CUSTOM &&
-				    device_config->has_double &&
-				    !(value & (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|
+				    device_config->has_double) {
+					if (env->version <= 12 && !(value & (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|
 				               CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM))) {
-					printf(": failed, expected CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|" \
-					       "CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM. Got %lx", value);
-					piglit_merge_result(result, PIGLIT_FAIL);
+						printf(": failed, expected CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|" \
+						       "CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM. Got %lx", value);
+						piglit_merge_result(result, PIGLIT_FAIL);
+					} else if /* OpenCL >= 2.0 */ (!(value & (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_INF_NAN|CL_FP_DENORM))) {
+						printf(": failed, expected CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_INF_NAN|CL_FP_DENORM. Got %lx", value);
+						piglit_merge_result(result, PIGLIT_FAIL);
+					}
 				} else {
 					printf(": %lx", value);
 				}
