@@ -650,7 +650,7 @@ piglit_cl_test(const int argc,
 {
 	enum piglit_result result = PIGLIT_PASS;
 
-	struct device_config device_config;
+	struct device_config device_config = {0};
 
 	int i;
 	cl_int errNo;
