@@ -1020,7 +1020,7 @@ piglit_init(int argc, char **argv)
                         barrier_subtest(&status,
                                         (get_image_stage(GL_VERTEX_SHADER) &&
                                          piglit_is_extension_supported(
-                                                 "GL_ARB_draw_indirect")),
+                                                 "GL_ARB_multi_draw_indirect")),
                                         run_test_indirect_raw,
                                         "Indirect/RaW", bar, l);
 
