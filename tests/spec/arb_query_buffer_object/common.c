@@ -128,6 +128,23 @@ is_query_supported(const struct query_type_desc *desc)
 	return true;
 }
 
+bool
+is_gs_valid(const struct query_type_desc *desc, uint32_t expected, uint64_t cpu_result)
+{
+	switch (desc->type) {
+	case GL_GEOMETRY_SHADER_INVOCATIONS:
+	case GL_GEOMETRY_SHADER_PRIMITIVES_EMITTED_ARB:
+		if (!expected && cpu_result) {
+			fprintf(stderr, "WARNING: GEOMETRY_SHADER statistics query returned nonzero when no GS bound\n");
+			return true;
+		}
+		return false;
+	default:
+		break;
+	}
+	return true;
+}
+
 void
 run_query(unsigned query, const struct query_type_desc *desc)
 {

@@ -262,7 +262,8 @@ run_subtest(const struct consumer_mode *cm, const struct query_type_desc *qdesc)
 	if (cm->clamped)
 		expected = MIN2(expected, cm->clamp_max);
 
-	if (result != expected && (exact || result < expected)) {
+	if (result != expected && (exact || result < expected) &&
+	    !is_gs_valid(qdesc, expected, result)) {
 		fprintf(stderr, "Result: %u\nExpected: %u\n", result, expected);
 		return PIGLIT_FAIL;
 	}

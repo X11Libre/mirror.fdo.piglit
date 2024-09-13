@@ -97,23 +97,6 @@ cpu_gather_query(bool exact, uint32_t expected, uint64_t *cpu_result)
 		? PIGLIT_PASS : PIGLIT_FAIL;
 }
 
-static bool
-is_gs_valid(const struct query_type_desc *desc, uint32_t expected, uint64_t cpu_result)
-{
-	switch (desc->type) {
-	case GL_GEOMETRY_SHADER_INVOCATIONS:
-	case GL_GEOMETRY_SHADER_PRIMITIVES_EMITTED_ARB:
-		if (!expected && cpu_result) {
-			fprintf(stderr, "WARNING: GEOMETRY_SHADER statistics query returned nonzero when no GS bound\n");
-			return true;
-		}
-		return false;
-	default:
-		break;
-	}
-	return true;
-}
-
 enum piglit_result
 run_subtest(void)
 {

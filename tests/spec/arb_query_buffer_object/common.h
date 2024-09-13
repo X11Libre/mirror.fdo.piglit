@@ -48,6 +48,9 @@ get_query_values(const struct query_type_desc *desc, bool *exact, uint32_t *expe
 bool
 is_query_supported(const struct query_type_desc *desc);
 
+bool
+is_gs_valid(const struct query_type_desc *desc, uint32_t expected, uint64_t cpu_result);
+
 void
 run_query(unsigned query, const struct query_type_desc *desc);
 
