@@ -53,6 +53,11 @@ main(int argc, char *argv[])
 	struct wl_display *native_display;
 
 	display = create_wayland_display();
+	if (!display) {
+		piglit_loge("failed to connect to Wayland display\n");
+		piglit_report_result(PIGLIT_SKIP);
+	}
+
 	native_display = get_wayland_native_display(display);
 	dpy = piglit_egl_get_display(EGL_PLATFORM_WAYLAND_EXT, native_display);
 	if (!dpy) {
