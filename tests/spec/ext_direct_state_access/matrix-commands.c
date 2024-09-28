@@ -440,7 +440,7 @@ test_matrix_command(void* data)
 		test_fn(EXT_DSA_PASS, modes[i]);
 
 		if (use_display_list != GL_NONE) {
-			glEndList(list);
+			glEndList();
 		}
 
 		/* Verify state wasn't changed */
