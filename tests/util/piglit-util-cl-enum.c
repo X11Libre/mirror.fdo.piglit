@@ -696,7 +696,7 @@ const char* piglit_cl_get_error_name(cl_int error) {
         PIGLIT_CL_DEFINE_ENUM_PTR(name, name)
 
 
-PIGLIT_CL_DEFINE_ENUM_2(cl_mem_flags, 6, 6, 9, 9, 9) = {
+PIGLIT_CL_DEFINE_ENUM_2(cl_mem_flags, 6, 6, 9, 10, 10) = {
 	CL_MEM_READ_WRITE,
 	CL_MEM_READ_ONLY,
 	CL_MEM_WRITE_ONLY,
@@ -708,6 +708,9 @@ PIGLIT_CL_DEFINE_ENUM_2(cl_mem_flags, 6, 6, 9, 9, 9) = {
 	CL_MEM_HOST_READ_ONLY,
 	CL_MEM_HOST_NO_ACCESS,
 #endif //CL_VERSION_1_2
+#if defined(CL_VERSION_2_0)
+       CL_MEM_KERNEL_READ_AND_WRITE,
+#endif //CL_VERSION_2_0
 };
 PIGLIT_CL_DEFINE_ENUM_PTR_2(cl_mem_flags);
 
