@@ -1,0 +1,64 @@
+# This tests that we do not unroll a loop in error thinking we know the max
+# trip count due to the induction variable being uint. i.e The max trip count
+# here is 4294967295 with this test we are making sure the compiler doesn't
+# mistakenly think the trip count is 4.
+[require]
+GLSL >= 1.20
+
+[vertex shader]
+#version 130
+
+uniform uint induction_init;
+
+void main()
+{
+  gl_Position = gl_Vertex;
+
+  vec4 colour = vec4(1.0, 1.0, 1.0, 1.0);
+  vec4 colour2 = vec4(0.0, 0.0, 0.0, 1.0);
+
+  uint j = 0u;
+  uint i = induction_init;
+  while (true) {
+
+     if (j > 4u) {
+        colour = vec4(1.0, 0.0, 0.0, 1.0);
+     }
+
+     if (!(3u < i)) {
+        break;
+     }
+
+     colour = vec4(0.0, 1.0, 0.0, 1.0);
+
+     i++;
+     j++;
+  }
+
+  gl_FrontColor = colour + colour2;
+}
+
+[fragment shader]
+void main()
+{
+  gl_FragColor = gl_Color;
+}
+
+[test]
+clear color 0.5 0.5 0.5 0.5
+
+# unit_max 4294967295
+
+# induction_init equivalent to starting at int -5
+uniform uint induction_init 4294967291
+draw rect -1 -1 2 2
+probe all rgba 1.0 0.0 0.0 1.0
+
+# induction_init equivalent to starting at int -3
+uniform uint induction_init 4294967293
+draw rect -1 -1 2 2
+probe all rgba 0.0 1.0 0.0 1.0
+
+uniform uint induction_init 0
+draw rect -1 -1 2 2
+probe all rgba 1.0 1.0 1.0 1.0
