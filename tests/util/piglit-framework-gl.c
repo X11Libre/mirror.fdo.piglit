@@ -198,24 +198,12 @@ piglit_gl_process_args(int *argc, char *argv[],
 
 }
 
-static void
-destroy(void)
-{
-	if (!gl_fw)
-		return;
-
-	if (gl_fw->destroy)
-		gl_fw->destroy(gl_fw);
-	gl_fw = NULL;
-}
-
 void
 piglit_gl_test_run(int argc, char *argv[],
 		   const struct piglit_gl_test_config *config)
 {
 	piglit_width = config->window_width;
 	piglit_height = config->window_height;
-	atexit(destroy);
 
 	gl_fw = piglit_gl_framework_factory(config);
 	if (gl_fw == NULL) {

@@ -222,6 +222,9 @@ piglit_result_to_string(enum piglit_result result)
         return "Unknown result";
 }
 
+static void (*destroy_func)(void*);
+static void *destroy_data;
+
 void
 piglit_report_result(enum piglit_result result)
 {
@@ -238,6 +241,8 @@ piglit_report_result(enum piglit_result result)
 	printf("PIGLIT: {\"result\": \"%s\" }\n", result_str);
 	fflush(stdout);
 
+	if (destroy_func)
+		destroy_func(destroy_data);
 	switch(result) {
 	case PIGLIT_PASS:
 	case PIGLIT_SKIP:
@@ -900,4 +905,11 @@ piglit_env_var_as_boolean(const char *var_name, bool default_value)
    } else {
       return default_value;
    }
+}
+
+void
+piglit_set_destroy_func(void (*destroy)(void*), void *data)
+{
+	destroy_func = destroy;
+	destroy_data = data;
 }
