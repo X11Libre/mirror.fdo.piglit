@@ -131,7 +131,7 @@ piglit_cl_test(const int argc,
 
 	for (i = 0; i < BUFFER_SIZE / sizeof(int); i++) {
 		if (data[i]) {
-			fprintf(stderr, "Error at data[%u]\n", i);
+			fprintf(stderr, "Error at data[%u], unexpected value 0x%02x\n", i, data[i]);
 			return PIGLIT_FAIL;
 		}
 	}
