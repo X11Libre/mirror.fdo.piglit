@@ -1,0 +1,67 @@
+# This tests that we do not unroll a loop in error thinking we know the max
+# trip count due to the induction variable being uint.
+[require]
+GLSL >= 1.30
+
+[vertex shader]
+#version 130
+
+uniform uint induction_init;
+
+void main()
+{
+  gl_Position = gl_Vertex;
+
+  vec4 colour = vec4(1.0, 1.0, 1.0, 1.0);
+  vec4 colour2 = vec4(0.0, 0.0, 0.0, 1.0);
+
+  uint j = 0u;
+  uint i = induction_init;
+  while (true) {
+
+     if (j >= 3u) {
+        colour = vec4(1.0, 0.0, 0.0, 1.0);
+     }
+
+     if (j == 2u)
+        colour = vec4(0.0, 1.0, 0.0, 1.0);
+
+     if (i >= 2147483650u) {
+        break;
+     }
+
+     i = i + 2147483647u;
+     j++;
+  }
+
+  gl_FrontColor = colour + colour2;
+}
+
+[fragment shader]
+void main()
+{
+  gl_FragColor = gl_Color;
+}
+
+[test]
+clear color 0.5 0.5 0.5 0.5
+
+# unit_max 4294967295
+
+# if induction_init is 0x80000001, then the induction variable is
+# [0x80000001,0x00000000,0x7fffffff] until it's larger than the limit,
+# so loop iterates 3 times.
+uniform uint induction_init 2147483649
+draw rect -1 -1 2 2
+probe all rgba 1.0 0.0 0.0 1.0
+
+# if induction_init is 0x00000000, then the induction variable is
+# [0x00000000,0x7fffffff] until it's larger than the limit,
+# so loop iterates 2 times
+uniform uint induction_init 0
+draw rect -1 -1 2 2
+probe all rgba 0.0 1.0 0.0 1.0
+
+uniform uint induction_init 2147483651
+draw rect -1 -1 2 2
+probe all rgba 1.0 1.0 1.0 1.0
