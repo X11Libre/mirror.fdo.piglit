@@ -128,7 +128,6 @@ piglit_init(int argc, char **argv)
 
 	for (i = 0; i < num_uniforms_used; i++) {
 		GLint ref_vs = 0, ref_gs = 0, ref_fs = 0;
-		bool block_fail = false;
 
 		glGetActiveUniformBlockName(prog, i, sizeof(name), NULL, name);
 
@@ -150,16 +149,10 @@ piglit_init(int argc, char **argv)
 			printf("%10s: %d %d", name, ref_vs, ref_fs);
 		}
 
-		if ((strstr(name, "vs") != 0) != ref_vs)
-			block_fail = true;
-		if (use_gs) {
-			if ((strstr(name, "gs") != 0) != ref_gs)
-				block_fail = true;
-		}
-		if ((strstr(name, "fs") != 0) != ref_fs)
-			block_fail = true;
-
-		if (block_fail) {
+		/* The shader compiler can move UBOs between shaders, so we can't expect them
+		 * to be where we declared them.
+		 */
+		if (!ref_vs && !ref_gs && !ref_fs) {
 			printf(" FAIL");
 			pass = false;
 		}
