@@ -2,8 +2,10 @@ link_libraries(
 	piglitutil_${piglit_target_api}
 )
 
+if (PIGLIT_HAS_WAYLAND)
 piglit_add_executable(egl_ext_surface_compression-create
 	../../egl-wayland.c create_surface.c)
+endif (PIGLIT_HAS_WAYLAND)
 
 piglit_add_executable(egl_ext_surface_compression-image
 	image_storage.c)
