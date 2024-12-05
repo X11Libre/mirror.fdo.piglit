@@ -25,7 +25,6 @@
 #include "piglit-util.h"
 #include "piglit-util-egl.h"
 #include "piglit-util-gl.h"
-#include "../../egl-util.h"
 #include "../../egl-wayland.h"
 
 static enum piglit_result
