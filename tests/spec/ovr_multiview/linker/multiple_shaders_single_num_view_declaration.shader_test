@@ -1,0 +1,19 @@
+[require]
+GLSL >= 1.30
+GL_OVR_multiview
+
+[vertex shader]
+#version 130
+#extension GL_OVR_multiview : require
+
+layout(num_views = 2) in;
+
+[vertex shader]
+#version 130
+
+void main() {
+   gl_Position = vec4(1.0);
+}
+
+[test]
+link success
