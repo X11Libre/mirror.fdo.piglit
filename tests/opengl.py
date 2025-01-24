@@ -5372,5 +5372,10 @@ with profile.test_list.group_manager(
             g(['arm_shader_framebuffer_fetch_depth_stencil', format, samples])
             g(['arm_shader_framebuffer_fetch_depth_stencil_gles3', format, samples])
 
+with profile.test_list.group_manager(
+        PiglitGLTest,
+        grouptools.join('spec', 'OVR_multiview')) as g:
+    g(['ovr_multiview-fb_texture_errors'], 'fb_texture_errors')
+
 if platform.system() == 'Windows':
     profile.filters.append(lambda p, _: not p.startswith('glx'))
