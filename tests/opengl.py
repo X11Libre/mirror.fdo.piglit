@@ -5376,6 +5376,7 @@ with profile.test_list.group_manager(
         PiglitGLTest,
         grouptools.join('spec', 'OVR_multiview')) as g:
     g(['ovr_multiview-fb_incomplete_view_range'], 'fb_incomplete_view_range')
+    g(['ovr_multiview-fb_incomplete_view_targets'], 'fb_incomplete_view_targets')
     g(['ovr_multiview-fb_texture_errors'], 'fb_texture_errors')
 
 if platform.system() == 'Windows':
