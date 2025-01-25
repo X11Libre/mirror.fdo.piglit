@@ -5379,6 +5379,33 @@ with profile.test_list.group_manager(
     g(['ovr_multiview-fb_incomplete_view_range'], 'fb_incomplete_view_range')
     g(['ovr_multiview-fb_incomplete_view_targets'], 'fb_incomplete_view_targets')
     g(['ovr_multiview-fb_texture_errors'], 'fb_texture_errors')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', '1'], 'triangle_compare_1')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', '1', '1'], 'triangle_compare_1_base1')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', '2'], 'triangle_compare_2')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', '2', '1'], 'triangle_compare_2_base1')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', '2', '1', '+1'], 'triangle_compare_2_base1_spare1')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', '4'], 'triangle_compare_4')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', '4', '2'], 'triangle_compare_4_base2')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', 'max'], 'triangle_compare_max')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', 'max', '2'], 'triangle_compare_max_base2')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', 'max', '7'], 'triangle_compare_max_base7')
+    g(['ovr_multiview-triangle_compare', 'basic', 'none', 'max', 'max', 'max'], 'triangle_compare_max_basemax_layersmax')
+    g(['ovr_multiview-triangle_compare', 'basic', 'depth', 'max'], 'triangle_compare_depth_max')
+    g(['ovr_multiview-triangle_compare', 'basic', 'depth', 'max', '2'], 'triangle_compare_depth_max_base2')
+    g(['ovr_multiview-triangle_compare', 'basic', 'lists', 'max'], 'triangle_compare_lists_max')
+    g(['ovr_multiview-triangle_compare', 'basic', 'lists', 'max', '2'], 'triangle_compare_lists_max_base2')
+
+with profile.test_list.group_manager(
+        PiglitGLTest,
+        grouptools.join('spec', 'OVR_multiview2')) as g:
+    g(['ovr_multiview-triangle_compare', 'vert_color', 'none', 'max'], 'triangle_compare_vert_vary_color')
+    g(['ovr_multiview-triangle_compare', 'vert_color', 'none', 'max', '2'], 'triangle_compare_vert_vary_color_base2')
+    g(['ovr_multiview-triangle_compare', 'frag_color', 'none', 'max'], 'triangle_compare_frag_vary_color')
+    g(['ovr_multiview-triangle_compare', 'frag_color', 'none', 'max', '2'], 'triangle_compare_frag_vary_color_base2')
+    g(['ovr_multiview-triangle_compare', 'vert_index_uniform', 'none', 'max'], 'triangle_compare_vert_index_uniform')
+    g(['ovr_multiview-triangle_compare', 'vert_index_uniform', 'none', 'max', '2'], 'triangle_compare_vert_index_uniform_base2')
+    g(['ovr_multiview-triangle_compare', 'frag_index_uniform', 'none', 'max'], 'triangle_compare_frag_index_uniform')
+    g(['ovr_multiview-triangle_compare', 'frag_index_uniform', 'none', 'max', '2'], 'triangle_compare_frag_index_uniform_base2')
 
 if platform.system() == 'Windows':
     profile.filters.append(lambda p, _: not p.startswith('glx'))

@@ -12,5 +12,6 @@ piglit_add_executable (ovr_multiview-fb_attachment_params fb_attachment_params.c
 piglit_add_executable (ovr_multiview-fb_incomplete_view_range fb_incomplete_view_range.c)
 piglit_add_executable (ovr_multiview-fb_incomplete_view_targets fb_incomplete_view_targets.c)
 piglit_add_executable (ovr_multiview-fb_texture_errors fb_texture_errors.c)
+piglit_add_executable (ovr_multiview-triangle_compare triangle_compare.c)
 
 # vim: ft=cmake:
