@@ -5378,6 +5378,7 @@ with profile.test_list.group_manager(
     g(['ovr_multiview-fb_attachment_params'], 'fb_attachment_params')
     g(['ovr_multiview-fb_incomplete_view_range'], 'fb_incomplete_view_range')
     g(['ovr_multiview-fb_incomplete_view_targets'], 'fb_incomplete_view_targets')
+    g(['ovr_multiview-fb_read_errors'], 'fb_read_errors')
     g(['ovr_multiview-fb_texture_errors'], 'fb_texture_errors')
     g(['ovr_multiview-triangle_compare', 'basic', 'none', '1'], 'triangle_compare_1')
     g(['ovr_multiview-triangle_compare', 'basic', 'none', '1', '1'], 'triangle_compare_1_base1')
