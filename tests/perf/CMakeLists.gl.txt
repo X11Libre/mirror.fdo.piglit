@@ -19,6 +19,7 @@ piglit_add_executable (pbobench pbobench.c common.c)
 piglit_add_executable (pixel-rate pixel-rate.c common.c)
 piglit_add_executable (readpixels readpixels.c common.c)
 piglit_add_executable (shader-io-rate shader-io-rate.c common.c)
+piglit_add_executable (small-prim-filter small-prim-filter.c common.c)
 piglit_add_executable (teximage teximage.c common.c)
 piglit_add_executable (vbo vbo.c common.c)
 
