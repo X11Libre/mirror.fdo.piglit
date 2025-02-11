@@ -529,6 +529,8 @@ piglit_init(int argc, char **argv)
 		}
 	}
 
+	glDisable(GL_DITHER);
+
 	glGenTextures(1, &texture_id);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
