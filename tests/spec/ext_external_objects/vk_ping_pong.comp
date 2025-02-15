@@ -1,0 +1,15 @@
+#version 310 es
+
+layout(set = 0, binding = 0, std430) buffer Storage {
+    ivec2 data[];
+} ssbo;
+
+layout (local_size_x = 128) in;
+
+void main()
+{
+    ivec2 data = ssbo.data[gl_LocalInvocationID.x];
+    data.x = data.x ^ data.y;
+    data.x = data.x * 0x01000193 + 0x0050230f;
+    ssbo.data[gl_LocalInvocationID.x].x = data.x;
+}

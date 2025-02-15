@@ -1577,7 +1577,7 @@ fail:
 
 bool
 vk_update_buffer_data(struct vk_ctx *ctx,
-		      void *data,
+		      const void *data,
 		      uint32_t data_sz,
 		      struct vk_buf *bo)
 {
@@ -1598,6 +1598,25 @@ fail:
 	vk_destroy_buffer(ctx, bo);
 
 	return false;
+}
+
+bool
+vk_get_buffer_data(struct vk_ctx *ctx,
+		   void *data,
+		   uint32_t data_sz,
+		   struct vk_buf *bo)
+{
+	void *map;
+
+	if (vkMapMemory(ctx->dev, bo->mobj.mem, 0, data_sz, 0, &map) != VK_SUCCESS) {
+		fprintf(stderr, "Failed to map buffer memory.\n");
+		return false;
+	}
+
+	memcpy(data, map, data_sz);
+
+	vkUnmapMemory(ctx->dev, bo->mobj.mem);
+	return true;
 }
 
 void

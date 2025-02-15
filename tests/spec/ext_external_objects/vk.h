@@ -234,9 +234,15 @@ vk_create_buffer(struct vk_ctx *ctx,
 
 bool
 vk_update_buffer_data(struct vk_ctx *ctx,
-		      void *data,
+		      const void *data,
 		      uint32_t data_sz,
 		      struct vk_buf *bo);
+
+bool
+vk_get_buffer_data(struct vk_ctx *ctx,
+		   void *data,
+		   uint32_t data_sz,
+		   struct vk_buf *bo);
 
 void
 vk_destroy_buffer(struct vk_ctx *ctx,

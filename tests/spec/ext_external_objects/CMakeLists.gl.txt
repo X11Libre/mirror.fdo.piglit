@@ -29,6 +29,11 @@ IF(PIGLIT_BUILD_VK_TESTS)
 	add_definitions(-DVK_BLUE_VERT="${VK_BLUE_VERT}")
 	add_definitions(-DVK_BLUE_FRAG="${VK_BLUE_FRAG}")
 
+	set(VK_PING_PONG_COMP vk_blue.comp.spv)
+	set(VK_PING_PONG_COMP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${VK_PING_PONG_COMP})
+
+	add_definitions(-DVK_PING_PONG_COMP="${VK_PING_PONG_COMP}")
+
 	set(VK_ZQUAD_VERT vk_zquad.vert.spv)
 	set(VK_ZQUAD_FRAG vk_zquad.frag.spv)
 	set(VK_ZQUAD_VERT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${VK_ZQUAD_VERT})
@@ -68,6 +73,12 @@ IF(PIGLIT_BUILD_VK_TESTS)
 	)
 
 	add_custom_command(
+		OUTPUT ${VK_PING_PONG_COMP_PATH}
+		COMMAND ${GLSLANG_VALIDATOR} -V ${CMAKE_CURRENT_SOURCE_DIR}/vk_ping_pong.comp -o ${VK_PING_PONG_COMP_PATH}
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vk_ping_pong.comp
+	)
+
+	add_custom_command(
 		OUTPUT ${VK_ZQUAD_VERT_PATH}
 		COMMAND ${GLSLANG_VALIDATOR} -V ${CMAKE_CURRENT_SOURCE_DIR}/vk_zquad.vert -o ${VK_ZQUAD_VERT_PATH}
 		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/vk_zquad.vert
@@ -101,6 +112,8 @@ IF(PIGLIT_BUILD_VK_TESTS)
 		vk.c interop.c helpers.c vk_buf_exchange.c ${VK_BANDS_VERT_PATH} ${VK_BANDS_FRAG_PATH})
 	piglit_add_executable (ext_external_objects-vk-pix-buf-update-errors
 		vk.c interop.c helpers.c vk_pix_buf_update_errors.c ${VK_BANDS_VERT_PATH} ${VK_BANDS_FRAG_PATH} ${VK_BANDS_REVERSE_FRAG_PATH})
+	piglit_add_executable (ext_external_objects-vk-ping-pong
+		vk.c interop.c helpers.c vk_ping_pong.c ${VK_PING_PONG_COMP_PATH})
 	piglit_add_executable (ext_external_objects-vk-vert-buf-update-errors
 		vk.c interop.c helpers.c vk_vert_buf_update_errors.c)
 	piglit_add_executable (ext_external_objects-vk-vert-buf-reuse

@@ -2289,6 +2289,8 @@ with profile.test_list.group_manager(
     g(['ext_external_objects-vk-semaphores'], 'vk-semaphores')
     g(['ext_external_objects-vk-semaphores-2'], 'vk-semaphores-2')
     g(['ext_external_objects-vk-image-display-multiple-textures'], 'vk-image-display-muliple-textures')
+    g(['ext_external_objects-vk-ping-pong', '-multi-sem'], 'vk-ping-pong-multi-sem')
+    g(['ext_external_objects-vk-ping-pong', '-single-sem'], 'vk-ping-pong-single-sem')
 
 # Group EXT_external_objects_fd tests
 with profile.test_list.group_manager(
