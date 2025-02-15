@@ -71,28 +71,9 @@ generate_cs_prog(unsigned x, unsigned y, unsigned z, char *ext,
 	free(ext);
 	free(src);
 
-	GLuint prog = glCreateProgram();
-
-	GLuint shader =
-		piglit_compile_shader_text_nothrow(GL_COMPUTE_SHADER, source, true);
+	GLuint prog = piglit_build_compute_program(source);
 
 	free(source);
-
-	if (!shader) {
-		glDeleteProgram(prog);
-		return 0;
-	}
-
-	glAttachShader(prog, shader);
-
-	glLinkProgram(prog);
-
-	glDeleteShader(shader);
-
-	if (!piglit_link_check_status(prog)) {
-		glDeleteProgram(prog);
-		return 0;
-	}
 
 	return prog;
 }

@@ -491,6 +491,29 @@ piglit_build_simple_program_multiple_shaders(GLenum target1,
 }
 
 GLuint
+piglit_build_compute_program(const char *source)
+{
+	GLuint prog = glCreateProgram();
+
+	GLuint shader = piglit_compile_shader_text(GL_COMPUTE_SHADER, source);
+	if (!shader) {
+		glDeleteProgram(prog);
+		return 0;
+	}
+
+	glAttachShader(prog, shader);
+	glLinkProgram(prog);
+	glDeleteShader(shader);
+
+	if (!piglit_link_check_status(prog)) {
+		glDeleteProgram(prog);
+		return 0;
+	}
+
+	return prog;
+}
+
+GLuint
 piglit_assemble_spirv(GLenum target,
 		      size_t source_length,
 		      const char *source)

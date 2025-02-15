@@ -50,6 +50,7 @@ GLint piglit_build_simple_program_unlinked_multiple_shaders(GLenum target1,
 GLint piglit_build_simple_program_multiple_shaders(GLenum target1,
 						  const char *source1,
 						  ...);
+GLuint piglit_build_compute_program(const char *source);
 GLuint piglit_assemble_spirv(GLenum target,
 			     size_t source_length,
 			     const char *source);
