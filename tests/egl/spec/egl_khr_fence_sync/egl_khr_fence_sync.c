@@ -223,6 +223,8 @@ test_cleanup(EGLSyncKHR sync, enum piglit_result *inout_result)
 {
 	bool ok = false;
 
+	piglit_gl_invalidate_extensions();
+
 	if (sync) {
 		/* From the EGL_KHR_fence_sync spec:
 		 *
