@@ -42,6 +42,11 @@ from math import copysign, fabs, fmod, frexp, isinf, isnan, modf
 from mako import exceptions
 from numpy import int8, int16, uint8, uint16, uint32, float32
 
+import numpy as np
+
+if np.lib.NumpyVersion(np.__version__) >= '2.0.0b1':
+    np.set_printoptions(legacy = "1.25")
+
 from templates import template_dir
 from modules import utils
 

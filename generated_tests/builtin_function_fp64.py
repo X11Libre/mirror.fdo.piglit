@@ -54,6 +54,8 @@ import functools
 
 import numpy as np
 
+if np.lib.NumpyVersion(np.__version__) >= '2.0.0b1':
+    np.set_printoptions(legacy = "1.25")
 
 # Floating point types used by Python and numpy
 DOUBLE_TYPES = (float, np.float64, np.float32)
