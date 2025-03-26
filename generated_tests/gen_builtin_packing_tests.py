@@ -171,6 +171,9 @@ def pack_2x16(pack_1x16_func, x, y, func_opts):
     assert isinstance(ux, uint16)
     assert isinstance(uy, uint16)
 
+    ux = uint32(ux)
+    uy = uint32(uy)
+
     return uint32((uy << 16) | ux)
 
 
@@ -197,6 +200,11 @@ def pack_4x8(pack_1x8_func, x, y, z, w, func_opts):
     assert isinstance(uy, uint8)
     assert isinstance(uz, uint8)
     assert isinstance(uw, uint8)
+
+    ux = uint32(ux)
+    uy = uint32(uy)
+    uz = uint32(uz)
+    uw = uint32(uw)
 
     return uint32((uw << 24) | (uz << 16) | (uy << 8) | ux)
 
@@ -816,8 +824,11 @@ def make_inouts_for_unpack_2x16(unpack_1x16_func, uint16_inputs):
     func_opts = FuncOpts()
 
     for y in uint16_inputs:
+        assert isinstance(y, uint16)
         for x in uint16_inputs:
             assert isinstance(x, uint16)
+            x = uint32(x)
+            y = uint32(y)
             u32 = uint32((y << 16) | x)
             vec2 = unpack_2x16(unpack_1x16_func, u32, func_opts)
             assert isinstance(vec2[0], float32)
@@ -843,8 +854,11 @@ def make_inouts_for_unpack_4x8(unpack_1x8_func, uint8_inputs):
     func_opts = FuncOpts()
 
     for y in uint8_inputs:
+        assert isinstance(y, uint8)
         for x in uint8_inputs:
             assert isinstance(x, uint8)
+            x = uint32(x)
+            y = uint32(y)
             u32_0 = uint32((y << 24) | (x << 16) | (y << 8) | x)
             u32_1 = uint32((y << 24) | (y << 16) | (x << 8) | x)
 
