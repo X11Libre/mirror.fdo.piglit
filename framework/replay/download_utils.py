@@ -31,7 +31,6 @@ from email.utils import formatdate
 from os import path, remove
 from pathlib import Path
 from typing import Any, Dict, List
-from urllib.parse import urlparse
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -110,10 +109,8 @@ def get_minio_authorization_headers(url, resource):
 def get_jwt_authorization_headers(url, resource):
     date = formatdate(timeval=None, localtime=False, usegmt=True)
     jwt = OPTIONS.download['jwt']
-    host = urlparse(url).netloc
 
-    headers = {'Host': host,
-               'Date': date,
+    headers = {'Date': date,
                'Authorization': 'Bearer %s' % (jwt)}
     return headers
 
@@ -132,6 +129,32 @@ def calc_etags(inputfile: Path, partsize: int = 5 * 1024 * 1024) -> List[str]:
                 ]
 
 
+def chase_redirects(session: requests.Session, request: requests.PreparedRequest) -> requests.Response:
+    """Finds an HTTP response for a request, with custom redirect chasing
+
+    When using a passthrough cache, requests does not see that the hostname
+    in the URI has changed and does not strip the Authorization header. This
+    breaks with fd.o's s3-proxy, which returns a redirect with pre-signed
+    parameters in the request params. Without a proxy, python-requests
+    detects that we have redirected to a different host and so strips the
+    Authorization header, but with the proxy we do not strip the
+    Authorization header, which causes Hetzner's object-storage backend to
+    throw a 400.
+
+    :param session: python-requests session object
+    :param url: URL to download
+    :param headers: Headers to send with the request
+    """
+
+    response = session.send(request, allow_redirects=False)
+    if response is None or not response.is_redirect:
+        return response
+    assert response.next
+    if "Authorization" in response.next.headers:
+        del response.next.headers["Authorization"]
+    return chase_redirects(session, response.next)
+
+
 @core.timer_ms
 def download(url: str, file_path: str, headers: Dict[str, str], attempts: int = 2) -> None:
     """Downloads a URL content into a file
@@ -141,10 +164,10 @@ def download(url: str, file_path: str, headers: Dict[str, str], attempts: int = 
     :param attempts: Number of attempts
     """
     retries = Retry(
-        backoff_factor=30,
+        backoff_factor=20,
         connect=attempts,
         read=attempts,
-        redirect=attempts,
+        redirect=0,
         status_forcelist=[429, 500, 502, 503, 504],
         raise_on_redirect=False
     )
@@ -159,12 +182,10 @@ def download(url: str, file_path: str, headers: Dict[str, str], attempts: int = 
     md5 = hashlib.md5()
     local_file_checksums: List[Any] = []
     md5_digests = []
-    with session.get(url,
-                     allow_redirects=True,
-                     stream=True,
-                     headers=headers) as response:
+    request = session.prepare_request(requests.Request(method='GET', url=url, headers=headers))
+    with chase_redirects(session, request) as response:
+        response.raise_for_status()
         with open(file_path, "wb") as file:
-            response.raise_for_status()
             # chuck_size must be equal to s3cp upload chunk for md5 digest to match
             for chunk in response.iter_content(chunk_size=5 * 1024 * 1024):
                 if chunk:
