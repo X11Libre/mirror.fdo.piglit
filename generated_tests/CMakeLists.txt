@@ -260,6 +260,11 @@ piglit_make_generated_tests(
 	builtin_cl_shuffle2_tests.list
 	gen_cl_shuffle2_builtins.py)
 
+# Vulkan test generators.
+piglit_make_generated_tests(
+	vulkan_cmat_muladd_with_acc_constant.list
+	gen_vulkan_cmat_muladd_with_acc_constant.py)
+
 # Create a custom target for generating OpenGL tests
 # This is not added to the default target, instead it is added
 # as a dependency of gen-tests if OpenGL or OpenGLES{2,3} tests
@@ -318,6 +323,10 @@ add_custom_target(gen-cl-tests
 			cl_vload_tests.list
 )
 
+add_custom_target(gen-vulkan-tests
+	DEPENDS vulkan_cmat_muladd_with_acc_constant.list
+)
+
 # Add a "gen-tests" target that can be used to generate all the
 # tests without doing any other compilation.
 add_custom_target(gen-tests ALL COMMENT "meta-target for other test generators")
@@ -332,3 +341,8 @@ endif(${PIGLIT_BUILD_GL_TESTS} OR ${PIGLIT_BUILD_GLES2_TESTS} OR ${PIGLIT_BUILD_
 if(${PIGLIT_BUILD_CL_TESTS})
 	add_dependencies(gen-tests gen-cl-tests)
 endif(${PIGLIT_BUILD_CL_TESTS})
+
+if(PIGLIT_BUILD_VK_TESTS)
+	add_dependencies(gen-tests gen-vulkan-tests)
+endif(${PIGLIT_BUILD_VK_TESTS)
+

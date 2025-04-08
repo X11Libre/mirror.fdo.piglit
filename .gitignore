@@ -22,6 +22,7 @@ CMakeCache.txt
 target_api
 tests/glslparsertest/glslcompiler
 generated_tests/cl
+generated_tests/vulkan
 compile_commands.json
 
 .tox/

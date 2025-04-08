@@ -283,7 +283,7 @@ if (NOT Python_ADDITIONAL_VERSIONS)
 	set(Python_ADDITIONAL_VERSIONS 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
 endif()
 find_package(PythonInterp REQUIRED)
-find_package(PythonNumpy 1.7.0 REQUIRED)
+find_package(PythonNumpy 1.13.0 REQUIRED)
 find_package(PythonMako 1.0.2 REQUIRED)
 
 pkg_search_module(BASH_COMPLETION bash-completion)
