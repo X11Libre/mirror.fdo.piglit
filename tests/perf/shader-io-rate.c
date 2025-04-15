@@ -631,10 +631,7 @@ piglit_display(void)
 			puts("Vec4s,   Result");
 
 			for (unsigned num_comps = 1; num_comps <= MAX_COMPS; num_comps++) {
-				/* NOTE: We align the vertex size to vec4 because that's what AMD drivers
-				 * do. Perhaps we shouldn't do that for other drivers here.
-				 */
-				unsigned vertex_size = ALIGN(num_comps, 4) * 4;
+				unsigned vertex_size = num_comps * 4;
 
 				printf("%5.2f", num_comps / 4.0);
 				glUseProgram(prog_vs_out_fs[num_comps - 1]);
@@ -649,10 +646,7 @@ piglit_display(void)
 			puts("Vec4s, MaxVtx=3, MaxVtx=6, MaxVtx=9");
 
 			for (unsigned num_comps = 1; num_comps <= MAX_COMPS; num_comps++) {
-				/* NOTE: We align the vertex size to vec4 because that's what AMD drivers
-				 * do. Perhaps we shouldn't do that for other drivers here.
-				 */
-				unsigned vertex_size = ALIGN(num_comps, 4) * 4;
+				unsigned vertex_size = num_comps * 4;
 
 				printf("%5.2f", num_comps / 4.0);
 				for (unsigned amp_factor = 0; amp_factor < 3; amp_factor++) {
@@ -669,10 +663,7 @@ piglit_display(void)
 			puts("Vec4s,  Level=0,  Level=1,  Level=2");
 
 			for (unsigned num_comps = 1; num_comps <= MAX_COMPS; num_comps++) {
-				/* NOTE: We align the vertex size to vec4 because that's what AMD drivers
-				 * do. Perhaps we shouldn't do that for other drivers here.
-				 */
-				unsigned vertex_size = ALIGN(num_comps, 4) * 4;
+				unsigned vertex_size = num_comps * 4;
 
 				printf("%5.2f", num_comps / 4.0);
 				for (unsigned tf = 0; tf < 3; tf++) {
