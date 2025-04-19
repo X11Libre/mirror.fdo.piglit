@@ -344,5 +344,4 @@ endif(${PIGLIT_BUILD_CL_TESTS})
 
 if(PIGLIT_BUILD_VK_TESTS)
 	add_dependencies(gen-tests gen-vulkan-tests)
-endif(${PIGLIT_BUILD_VK_TESTS)
-
+endif(PIGLIT_BUILD_VK_TESTS)
