@@ -59,6 +59,7 @@ enum {
 	TEST_VS_OUT_FS,
 	TEST_GS_OUT,
 	TEST_TCS_OUT,
+	TEST_TCS_PATCH_OUT,
 	NUM_TEST_SETS,
 };
 
@@ -72,6 +73,7 @@ static GLint prog_vs_out_xfb[MAX_COMPS];
 static GLint prog_vs_out_fs[MAX_COMPS];
 static GLint prog_gs_out[3][MAX_COMPS]; /* max_vertices = (first_index + 1) * 3; */
 static GLint prog_tcs_out[3][MAX_COMPS]; /* gl_TessLevelOuter[0] = first_index; */
+static GLint prog_tcs_patch_out[3][MAX_COMPS]; /* gl_TessLevelOuter[0] = first_index; */
 
 /* Declare num_comps components of IO in vec4s except the last one, whose type
  * is the number of components left.
@@ -222,6 +224,8 @@ piglit_init(int argc, char **argv)
 			test_set = TEST_GS_OUT;
 		else if (!strcmp(argv[i], "tcs_out"))
 			test_set = TEST_TCS_OUT;
+		else if (!strcmp(argv[i], "tcs_patch_out"))
+			test_set = TEST_TCS_PATCH_OUT;
 		else {
 			fprintf(stderr, "Invalid parameter: %s\n", argv[i]);
 			fprintf(stderr, "Valid parameters: vs_in | vs_out_xfb | vs_out_fs | gs_out | tcs_out\n");
@@ -236,6 +240,7 @@ piglit_init(int argc, char **argv)
 		"VS outputs into FS",
 		"GS outputs",
 		"TCS outputs",
+		"TCS patch outputs",
 	};
 	printf("Testing: %s\n", test_set_names[test_set + 1]);
 
@@ -432,6 +437,63 @@ piglit_init(int argc, char **argv)
 				}
 			}
 			break;
+		case TEST_TCS_PATCH_OUT:
+			/* TCS patch output stores into TES (VS inputs have stride=0, all TES inputs are read, but all primitives are culled) */
+			for (unsigned tess_level_outer = 0; tess_level_outer < 3; tess_level_outer++) {
+				for (unsigned num_comps = 1; num_comps <= MAX_COMPS; num_comps++) {
+					char vs_code[2048], tcs_code[2048], tes_code[4096];
+					unsigned offset;
+
+					/* Generate the VS. */
+					offset = generate_passthrough_vs(vs_code, sizeof(vs_code), num_comps, false);
+					assert(offset < sizeof(vs_code));
+
+					/* Generate the TCS. */
+					offset = snprintf(tcs_code, sizeof(tcs_code),
+							  "#version 400\n"
+							  "layout(vertices=3) out;\n");
+					offset = glsl_declare_io(tcs_code, offset, sizeof(tcs_code),
+								 "in", "vs_out", num_comps, true, false);
+					offset = glsl_declare_io(tcs_code, offset, sizeof(tcs_code),
+								 "patch out", "tcs_out", num_comps, false, false);
+					offset += snprintf(tcs_code + offset, sizeof(tcs_code) - offset,
+							   "void main() {\n");
+
+					for (unsigned i = 0; i < num_comps; i += 4) {
+						offset += snprintf(tcs_code + offset, sizeof(tcs_code) - offset,
+								   "   tcs_out%u = vs_out%u[0];\n",
+								   i / 4, i / 4);
+					}
+
+					offset += snprintf(tcs_code + offset, sizeof(tcs_code) - offset,
+							   "   gl_TessLevelOuter = float[4](%u, 1, 1, 1);\n"
+							   "   gl_TessLevelInner[0] = 1;\n"
+							   "}\n", tess_level_outer);
+					assert(offset < sizeof(tcs_code));
+
+					/* Generate the TES. */
+					offset = snprintf(tes_code, sizeof(tes_code),
+							  "#version 400\n"
+							  "layout(triangles) in;\n");
+					offset = glsl_declare_io(tes_code, offset, sizeof(tes_code),
+								 "patch in", "tcs_out", num_comps, false, false);
+					offset += snprintf(tes_code + offset, sizeof(tes_code) - offset,
+							   "void main() {\n");
+					offset = generate_add_reduce_code(tes_code, offset, sizeof(tes_code), num_comps,
+									  "tcs_out", "");
+					offset += snprintf(tes_code + offset, sizeof(tes_code) - offset,
+							   "   gl_Position = vec4(sum.x, 0, 0, -1);\n"
+							   "}\n");
+					assert(offset < sizeof(tes_code));
+
+					prog_tcs_patch_out[tess_level_outer][num_comps - 1] =
+						piglit_build_simple_program_multiple_shaders(GL_VERTEX_SHADER, vs_code,
+											     GL_TESS_CONTROL_SHADER, tcs_code,
+											     GL_TESS_EVALUATION_SHADER, tes_code,
+											     GL_FRAGMENT_SHADER, dummy_fs_code, 0);
+				}
+			}
+			break;
 		}
 	}
 
@@ -465,10 +527,12 @@ draw(unsigned iterations)
 }
 
 static void
-test_and_print_result(unsigned vertex_size)
+test_and_print_result(unsigned vertex_size, unsigned test)
 {
 	double iters_per_sec = perf_measure_gpu_rate(draw, 0.01);
 	double verts_per_sec = iters_per_sec * NUM_VERTICES_PER_ITER;
+	if (test == TEST_TCS_PATCH_OUT)
+		verts_per_sec /= 3;
 	double bytes_per_sec = verts_per_sec * vertex_size;
 	double GBps = bytes_per_sec / (1024 * 1024 * 1024);
 	printf(", %8.2f", GBps);
@@ -521,7 +585,7 @@ piglit_display(void)
 		else
 			glDisable(GL_RASTERIZER_DISCARD);
 
-		prim_mode = test == TEST_TCS_OUT ? GL_PATCHES : GL_TRIANGLES;
+		prim_mode = test == TEST_TCS_OUT || test == TEST_TCS_PATCH_OUT ? GL_PATCHES : GL_TRIANGLES;
 		max_vertices_per_draw = MAX_VERTICES_PER_DRAW;
 		uses_xfb = false;
 
@@ -583,7 +647,7 @@ piglit_display(void)
 						max_vertices_per_draw -= max_vertices_per_draw % 3;
 					}
 
-					test_and_print_result(vertex_size);
+					test_and_print_result(vertex_size, test);
 
 					if (interleaved) {
 						glDeleteBuffers(1, &buf_interleaved);
@@ -618,7 +682,7 @@ piglit_display(void)
 
 				printf("%5.2f", num_comps / 4.0);
 				glUseProgram(prog_vs_out_xfb[num_comps - 1]);
-				test_and_print_result(vertex_size);
+				test_and_print_result(vertex_size, test);
 				puts("");
 
 				glDeleteBuffers(1, &xfb_buf);
@@ -635,7 +699,7 @@ piglit_display(void)
 
 				printf("%5.2f", num_comps / 4.0);
 				glUseProgram(prog_vs_out_fs[num_comps - 1]);
-				test_and_print_result(vertex_size);
+				test_and_print_result(vertex_size, test);
 				puts("");
 			}
 			break;
@@ -651,7 +715,7 @@ piglit_display(void)
 				printf("%5.2f", num_comps / 4.0);
 				for (unsigned amp_factor = 0; amp_factor < 3; amp_factor++) {
 					glUseProgram(prog_gs_out[amp_factor][num_comps - 1]);
-					test_and_print_result(vertex_size * (amp_factor + 1));
+					test_and_print_result(vertex_size * (amp_factor + 1), test);
 				}
 				puts("");
 			}
@@ -668,7 +732,23 @@ piglit_display(void)
 				printf("%5.2f", num_comps / 4.0);
 				for (unsigned tf = 0; tf < 3; tf++) {
 					glUseProgram(prog_tcs_out[tf][num_comps - 1]);
-					test_and_print_result(vertex_size);
+					test_and_print_result(vertex_size, test);
+				}
+				puts("");
+			}
+			break;
+		case TEST_TCS_PATCH_OUT:
+			/* TCS output stores into TES (VS inputs have stride=0, all TES inputs are read, but all primitives are culled) */
+			puts("TCS PATCH OUTPUTS (gl_TessLevelOuter[0] = Level, all other levels are 1)");
+			puts("Vec4s,  Level=0,  Level=1,  Level=2");
+
+			for (unsigned num_comps = 1; num_comps <= MAX_COMPS; num_comps++) {
+				unsigned patch_size = num_comps * 4;
+
+				printf("%5.2f", num_comps / 4.0);
+				for (unsigned tf = 0; tf < 3; tf++) {
+					glUseProgram(prog_tcs_patch_out[tf][num_comps - 1]);
+					test_and_print_result(patch_size, test);
 				}
 				puts("");
 			}
