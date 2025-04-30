@@ -75,6 +75,8 @@ static GLint prog_gs_out[3][MAX_COMPS]; /* max_vertices = (first_index + 1) * 3;
 static GLint prog_tcs_out[3][MAX_COMPS]; /* gl_TessLevelOuter[0] = first_index; */
 static GLint prog_tcs_patch_out[3][MAX_COMPS]; /* gl_TessLevelOuter[0] = first_index; */
 
+static bool one_per_line;
+
 /* Declare num_comps components of IO in vec4s except the last one, whose type
  * is the number of components left.
  */
@@ -226,9 +228,11 @@ piglit_init(int argc, char **argv)
 			test_set = TEST_TCS_OUT;
 		else if (!strcmp(argv[i], "tcs_patch_out"))
 			test_set = TEST_TCS_PATCH_OUT;
+		else if (!strcmp(argv[i], "one-per-line"))
+			one_per_line = true;
 		else {
 			fprintf(stderr, "Invalid parameter: %s\n", argv[i]);
-			fprintf(stderr, "Valid parameters: vs_in | vs_out_xfb | vs_out_fs | gs_out | tcs_out\n");
+			fprintf(stderr, "Valid parameters: vs_in | vs_out_xfb | vs_out_fs | gs_out | tcs_out | one-per-line\n");
 			exit(1);
 		}
 	}
@@ -242,15 +246,17 @@ piglit_init(int argc, char **argv)
 		"TCS outputs",
 		"TCS patch outputs",
 	};
-	printf("Testing: %s\n", test_set_names[test_set + 1]);
 
+	if (!one_per_line) {
+		printf("Testing: %s\n", test_set_names[test_set + 1]);
+		puts("Compiling shaders...");
+	}
 
 	char *dummy_fs_code = "#version 400\n"
 			      "void main() {\n"
 			      "   gl_FragColor.x = 1;\n"
 			      "}\n";
 
-	puts("Compiling shaders...");
 	for (unsigned test = 0; test < NUM_TEST_SETS; test++) {
 		if (test_set >= 0 && test_set != test)
 			continue;
@@ -497,9 +503,11 @@ piglit_init(int argc, char **argv)
 		}
 	}
 
-	puts("");
-	puts("All numbers are in GB/s.");
-	puts("");
+	if (!one_per_line) {
+		puts("");
+		puts("All numbers are in GB/s.");
+		puts("");
+	}
 }
 
 #define BO_ALLOC_SIZE		(64 * 1024 * 1024)
@@ -723,6 +731,20 @@ piglit_display(void)
 
 		case TEST_TCS_OUT:
 			/* TCS output stores into TES (VS inputs have stride=0, all TES inputs are read, but all primitives are culled) */
+			if (one_per_line) {
+				for (unsigned tf = 0; tf < 3; tf++) {
+					for (unsigned num_comps = 1; num_comps <= MAX_COMPS; num_comps++) {
+						unsigned vertex_size = num_comps * 4;
+
+						printf("TCS out TL=%u vec4s=%5.2f", tf, num_comps / 4.0);
+						glUseProgram(prog_tcs_out[tf][num_comps - 1]);
+						test_and_print_result(vertex_size, test);
+						puts("");
+					}
+				}
+				break;
+			}
+
 			puts("TCS OUTPUTS (gl_TessLevelOuter[0] = Level, all other levels are 1)");
 			puts("Vec4s,  Level=0,  Level=1,  Level=2");
 
@@ -739,6 +761,20 @@ piglit_display(void)
 			break;
 		case TEST_TCS_PATCH_OUT:
 			/* TCS output stores into TES (VS inputs have stride=0, all TES inputs are read, but all primitives are culled) */
+			if (one_per_line) {
+				for (unsigned tf = 0; tf < 3; tf++) {
+					for (unsigned num_comps = 1; num_comps <= MAX_COMPS; num_comps++) {
+						unsigned patch_size = num_comps * 4;
+
+						printf("TCS patch out TL=%u vec4s=%5.2f", tf, num_comps / 4.0);
+						glUseProgram(prog_tcs_patch_out[tf][num_comps - 1]);
+						test_and_print_result(patch_size, test);
+						puts("");
+					}
+				}
+				break;
+			}
+
 			puts("TCS PATCH OUTPUTS (gl_TessLevelOuter[0] = Level, all other levels are 1)");
 			puts("Vec4s,  Level=0,  Level=1,  Level=2");
 
@@ -754,7 +790,6 @@ piglit_display(void)
 			}
 			break;
 		}
-		puts("");
 	}
 
 	exit(0);
