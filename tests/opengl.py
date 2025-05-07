@@ -673,6 +673,7 @@ with profile.test_list.group_manager(
     g(['polygon-offset'])
     g(['ppgtt_memory_alignment'])
     g(['push-pop-texture-state'])
+    g(['push-pop-color-material'])
     g(['quad-invariance'])
     g(['readpix-z'])
     g(['roundmode-getintegerv'])
