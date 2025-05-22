@@ -1985,6 +1985,9 @@ vk_copy_image_to_buffer(struct vk_ctx *ctx,
 	cmd_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	cmd_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
+	/* Make sure whatever we had going is done. */
+	vkQueueWaitIdle(ctx->queue);
+
 	memset(&submit_info, 0, sizeof submit_info);
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.commandBufferCount = 1;
