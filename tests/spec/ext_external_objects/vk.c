@@ -1836,6 +1836,9 @@ vk_clear_color(struct vk_ctx *ctx,
 	cmd_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	cmd_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
+	/* Make sure whatever we had going is done. */
+	vkQueueWaitIdle(ctx->queue);
+
 	/* VkRect2D render area */
 	memset(&rp_area, 0, sizeof rp_area);
 	rp_area.extent.width = (uint32_t)w;
