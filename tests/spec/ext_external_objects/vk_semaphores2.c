@@ -342,6 +342,8 @@ fail:
 static void
 vk_cleanup(void)
 {
+	vkQueueWaitIdle(vk_core.queue);
+
 	vk_destroy_ext_image(&vk_core, &vk_color_att.obj);
 	vk_destroy_ext_image(&vk_core, &vk_depth_att.obj);
 
