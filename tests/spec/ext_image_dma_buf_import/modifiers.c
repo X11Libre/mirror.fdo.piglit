@@ -89,6 +89,9 @@ cpp_for_fourcc(uint32_t format)
 		return 1;
 	case DRM_FORMAT_R16:
 		return 2;
+	case DRM_FORMAT_BGR888:
+	case DRM_FORMAT_RGB888:
+		return 3;
 	case DRM_FORMAT_XBGR8888:
 	case DRM_FORMAT_XRGB8888:
 	case DRM_FORMAT_ABGR8888:
@@ -708,6 +711,8 @@ skip_format(uint32_t format)
 	switch (format) {
 	case DRM_FORMAT_R8:
 	case DRM_FORMAT_R16:
+	case DRM_FORMAT_RGB888:
+	case DRM_FORMAT_BGR888:
 	case DRM_FORMAT_XRGB8888:
 	case DRM_FORMAT_XBGR8888:
 	case DRM_FORMAT_ARGB8888:

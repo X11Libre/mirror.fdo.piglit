@@ -155,6 +155,13 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		src_stride = cpp * w;
 		n_planes = 1;
 		break;
+	case DRM_FORMAT_RGB888:
+	case DRM_FORMAT_BGR888:
+		format = GBM_FORMAT_RGB888;
+		cpp = 3;
+		src_stride = cpp * w;
+		n_planes = 1;
+		break;
 	case DRM_FORMAT_XRGB8888:
 	case DRM_FORMAT_XBGR8888:
 	case DRM_FORMAT_RGBX8888:
@@ -433,6 +440,10 @@ drm_create_dma_buf_modifiers(unsigned w, unsigned h, unsigned fourcc,
 		break;
 	case DRM_FORMAT_R16:
 		cpp = 2;
+		break;
+	case DRM_FORMAT_RGB888:
+	case DRM_FORMAT_BGR888:
+		cpp = 3;
 		break;
 	case DRM_FORMAT_XBGR8888:
 	case DRM_FORMAT_XRGB8888:
