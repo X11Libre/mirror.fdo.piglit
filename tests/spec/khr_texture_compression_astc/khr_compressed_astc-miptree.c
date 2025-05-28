@@ -353,6 +353,8 @@ piglit_init(int argc, char **argv)
 		"void main()\n"
 		"{\n"
 		"    vec4 t = texture2D(tex, tex_coord);\n"
+		"    if (all(notEqual(t, t)))\n"
+		"        t = vec4(1.0, 0.0, 1.0, 1.0);\n"
 		"    gl_FragColor = vec4(t.rgb, 1.0);\n"
 		"}\n";
 
