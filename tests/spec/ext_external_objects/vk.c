@@ -1380,7 +1380,7 @@ vk_create_compute_pipeline(struct vk_ctx *ctx,
 	s_layout_info.pBindings = bindings;
 	if (vkCreateDescriptorSetLayout(ctx->dev, &s_layout_info, NULL, &cp->set_layout) != VK_SUCCESS) {
 		fprintf(stderr, "Failed to create descriptor set layout\n");
-		cp->set_layout = NULL;
+		cp->set_layout = VK_NULL_HANDLE;
 		free(bindings);
 		goto fail;
 	}
@@ -1395,7 +1395,7 @@ vk_create_compute_pipeline(struct vk_ctx *ctx,
 	p_layout_info.pSetLayouts = &cp->set_layout;
 	if (vkCreatePipelineLayout(ctx->dev, &p_layout_info, NULL, &cp->pipeline_layout) != VK_SUCCESS) {
 		fprintf(stderr, "Failed to create pipeline layout\n");
-		cp->pipeline_layout = NULL;
+		cp->pipeline_layout = VK_NULL_HANDLE;
 		goto fail;
 	}
 
