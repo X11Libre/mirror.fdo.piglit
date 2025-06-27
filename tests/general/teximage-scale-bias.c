@@ -43,9 +43,9 @@ static const GLfloat scale[4] = { 2.0, 3.0, 1.0, 0.5 };
 static const GLfloat bias[4] = { -0.25, 0.0, 0.4, 0.25 };
 
 static GLuint
-create_texture()
+create_texture(bool test_pixel_store_offsets)
 {
-        GLuint tex, size, i;
+        GLuint tex, size;
         GLfloat *image;
 
         glGenTextures(1, &tex);
@@ -65,13 +65,41 @@ create_texture()
         glPixelTransferf(GL_ALPHA_SCALE, scale[3]);
         glPixelTransferf(GL_ALPHA_BIAS, bias[3]);
 
-        size = 64;
-        image = malloc(size * size * 4 * sizeof(GLfloat));
-        for (i = 0; i < size * size; i++) {
-                image[i*4+0] = colors[0];
-                image[i*4+1] = colors[1];
-                image[i*4+2] = colors[2];
-                image[i*4+3] = colors[3];
+        if (test_pixel_store_offsets) {
+                int skip_pixels = 2;
+                int skip_rows = 3;
+                int row_length = 64;
+                glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
+                glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
+                glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+
+                int skip_pix_offset = skip_pixels * 4;
+                int skip_rows_offset = skip_rows * row_length * 4;
+                size = 64;
+
+                size_t img_size =
+                        size * size * 4 * row_length * sizeof(GLfloat) +
+                                (skip_pix_offset * sizeof(GLfloat)) + (skip_rows_offset * sizeof(GLfloat));
+                image = malloc(img_size);
+                memset(image, 0, img_size);
+
+                GLfloat *offset_image = image + skip_pix_offset;
+                offset_image += skip_rows_offset;
+                for (int i = 0; i < size * size; i++) {
+                        offset_image[i*4+0] = colors[0];
+                        offset_image[i*4+1] = colors[1];
+                        offset_image[i*4+2] = colors[2];
+                        offset_image[i*4+3] = colors[3];
+                }
+        } else {
+                size = 64;
+                image = malloc(size * size * 4 * sizeof(GLfloat));
+                for (int i = 0; i < size * size; i++) {
+                        image[i*4+0] = colors[0];
+                        image[i*4+1] = colors[1];
+                        image[i*4+2] = colors[2];
+                        image[i*4+3] = colors[3];
+                }
         }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
@@ -93,9 +121,8 @@ create_texture()
 }
 
 
-enum piglit_result
-piglit_display(void)
-{
+static bool
+test_tex_image(bool test_pixel_store_offsets) {
         GLuint tex;
         GLboolean pass;
         GLfloat expected[4];
@@ -103,7 +130,7 @@ piglit_display(void)
 
         /* Create a texture and upload color data with scale and bias options */
         glEnable(GL_TEXTURE_2D);
-        tex = create_texture();
+        tex = create_texture(test_pixel_store_offsets);
 
         /* Render with our texture */
         glClear(GL_COLOR_BUFFER_BIT);
@@ -118,12 +145,29 @@ piglit_display(void)
         for (i = 0; i < 4; i++)
                 expected[i] = colors[i] * scale[i] + bias[i];
 
-        pass = piglit_probe_pixel_rgba(piglit_width/2, piglit_height/2, expected);
+        pass = piglit_probe_rect_rgba(0, 0, piglit_width, piglit_height, expected);
 
         glDeleteTextures(1, &tex);
         glDisable(GL_TEXTURE_2D);
 
-        return pass ? PIGLIT_PASS : PIGLIT_FAIL;
+        return pass;
+}
+
+enum piglit_result
+piglit_display(void)
+{
+        GLboolean transfer_pass;
+        GLboolean offsets_pass;
+
+        transfer_pass = test_tex_image(false);
+        if (!transfer_pass)
+               printf("PixelTransfer scale bias unexpected result\n");
+
+        offsets_pass = test_tex_image(true);
+        if (!offsets_pass)
+               printf("PixelTransfer with PixelStore offsets unexpected result\n");
+
+        return transfer_pass && offsets_pass ? PIGLIT_PASS : PIGLIT_FAIL;
 }
 
 
