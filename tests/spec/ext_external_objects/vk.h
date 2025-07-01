@@ -139,6 +139,7 @@ struct vk_semaphores
 {
 	VkSemaphore vk_frame_ready;
 	VkSemaphore gl_frame_done;
+	VkSemaphore timeline;
 };
 
 struct vk_dims

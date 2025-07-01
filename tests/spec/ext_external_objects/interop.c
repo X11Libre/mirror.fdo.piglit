@@ -161,12 +161,15 @@ gl_create_semaphores_from_vk(const struct vk_ctx *ctx,
 			     struct gl_ext_semaphores *gl_smps)
 {
 	VkSemaphoreGetFdInfoKHR sem_fd_info;
+	int fd_timeline;
 	int fd_gl_ready;
 	int fd_vk_done;
 	PFN_vkGetSemaphoreFdKHR _vkGetSemaphoreFdKHR;
 
 	glGenSemaphoresEXT(1, &gl_smps->vk_frame_done);
 	glGenSemaphoresEXT(1, &gl_smps->gl_frame_ready);
+	if (vk_smps->timeline)
+		glCreateSemaphoresNV(1, &gl_smps->gl_timeline);
 
 	_vkGetSemaphoreFdKHR =
 		(PFN_vkGetSemaphoreFdKHR)vkGetDeviceProcAddr(ctx->dev,
@@ -192,6 +195,14 @@ gl_create_semaphores_from_vk(const struct vk_ctx *ctx,
 		return false;
 	}
 
+	if (vk_smps->timeline) {
+		sem_fd_info.semaphore = vk_smps->timeline;
+		if (_vkGetSemaphoreFdKHR(ctx->dev, &sem_fd_info, &fd_timeline) != VK_SUCCESS) {
+			fprintf(stderr, "Failed to get the Vulkan memory FD");
+			return false;
+		}
+	}
+
 	glImportSemaphoreFdEXT(gl_smps->vk_frame_done,
 			       GL_HANDLE_TYPE_OPAQUE_FD_EXT,
 			       fd_vk_done);
@@ -205,6 +216,17 @@ gl_create_semaphores_from_vk(const struct vk_ctx *ctx,
 
 	if (!glIsSemaphoreEXT(gl_smps->gl_frame_ready))
 		return false;
+
+	if (vk_smps->timeline) {
+		GLenum semaphoreType = GL_SEMAPHORE_TYPE_TIMELINE_NV;
+		glSemaphoreParameterivNV(gl_smps->gl_timeline, GL_SEMAPHORE_TYPE_NV, (GLint*)&semaphoreType);
+		glImportSemaphoreFdEXT(gl_smps->gl_timeline,
+				GL_HANDLE_TYPE_OPAQUE_FD_EXT,
+				fd_timeline);
+
+		if (!glIsSemaphoreEXT(gl_smps->gl_timeline))
+			return false;
+	}
 
 	return glGetError() == GL_NO_ERROR;
 }

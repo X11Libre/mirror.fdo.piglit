@@ -34,6 +34,7 @@
 struct gl_ext_semaphores {
 	GLuint vk_frame_done;
 	GLuint gl_frame_ready;
+	GLuint gl_timeline;
 };
 
 enum fragment_type {

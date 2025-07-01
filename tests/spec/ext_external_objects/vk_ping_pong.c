@@ -95,6 +95,7 @@ gl_cleanup(void);
 static void
 cleanup(void *data);
 
+static bool supports_NV_timeline = false;
 static struct vk_ctx vk_core;
 static struct vk_buf vk_bo;
 struct vk_compute_pipeline vk_pipeline;
@@ -109,6 +110,9 @@ static VkBufferUsageFlagBits vk_bo_usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 static struct gl_ext_semaphores gl_sem;
 static struct vk_semaphores vk_sem;
 
+static uint64_t vk_signal_value[] = {0, 7};
+static uint64_t vk_wait_value[] = {2, 2};
+
 void piglit_init(int argc, char **argv)
 {
 	piglit_require_extension("GL_ARB_compute_shader");
@@ -117,6 +121,7 @@ void piglit_init(int argc, char **argv)
 	piglit_require_extension("GL_EXT_memory_object_fd");
 	piglit_require_extension("GL_EXT_semaphore");
 	piglit_require_extension("GL_EXT_semaphore_fd");
+	supports_NV_timeline = piglit_is_extension_supported("GL_NV_timeline_semaphore");
 
 	piglit_set_destroy_func(cleanup, NULL);
 
@@ -190,70 +195,91 @@ run_test(bool single_sem)
 	glUseProgram(gl_prog);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, gl_bo);
 
+	/* ping pong between VK and GL:
+	 * - signal/wait on binary semaphores
+	 * - perform a wait and a signal on the timeline semaphore
+	 */
 	for (unsigned i = 0; i < NUM_HASH_ITERATIONS; i++) {
 		if ((i & 1) == 0) {
 			VkSubmitInfo submit_info;
+			VkSemaphore wait_semaphores[] = {
+				/* only wait on timeline for the first submit */
+				i ? vk_sem.gl_frame_done : vk_timeline,
+				vk_timeline
+			};
+			VkSemaphore signal_semaphores[] = {
+				single_sem ? vk_sem.gl_frame_done : vk_sem.vk_frame_ready,
+				vk_timeline
+			};
 			memset(&submit_info, 0, sizeof submit_info);
 			submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 			submit_info.commandBufferCount = 1;
 			submit_info.pCommandBuffers = &vk_core.cmd_buf;
 
-			const VkPipelineStageFlagBits stage_flags =
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-			const uint64_t wait_value = 7;
-			VkTimelineSemaphoreSubmitInfo timeline_info;
+			const VkPipelineStageFlagBits stage_flags[] =
+				{VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT};
+			VkTimelineSemaphoreSubmitInfo timeline_info = {
+				VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
+				NULL,
+				i ? 2 : 1, vk_wait_value,
+				2, vk_signal_value
+			};
 
-			if (i != 0) {
-				submit_info.pWaitDstStageMask = &stage_flags;
-				submit_info.waitSemaphoreCount = 1;
-				submit_info.pWaitSemaphores = &vk_sem.gl_frame_done;
-			} else if (vk_timeline != VK_NULL_HANDLE) {
-				/* Do a little wait-before-signal on the first
-				 * iteration to wake up the driver's submit
-				 * thread.
-				 */
-				submit_info.pWaitDstStageMask = &stage_flags;
-				submit_info.waitSemaphoreCount = 1;
-				submit_info.pWaitSemaphores = &vk_timeline;
-
-				uint64_t first_wait_value = 6;
-
-				memset(&timeline_info, 0, sizeof timeline_info);
-				timeline_info.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
-				timeline_info.waitSemaphoreValueCount = 1;
-				timeline_info.pWaitSemaphoreValues = &first_wait_value;
+			submit_info.pWaitDstStageMask = stage_flags;
+			/* last submit won't have a GL signal */
+			if (i != NUM_HASH_ITERATIONS - 1)
+				submit_info.waitSemaphoreCount = vk_timeline && i ? 2 : 1;
+			submit_info.pWaitSemaphores = wait_semaphores;
+			/* timeline signal is a no-op without NV_timeline_semaphore but do it anyway for simplicity */
+			submit_info.signalSemaphoreCount = vk_timeline ? 2 : 1;
+			submit_info.pSignalSemaphores = signal_semaphores;
+			if (vk_timeline)
 				submit_info.pNext = &timeline_info;
-			}
-
-			if (i != NUM_HASH_ITERATIONS - 1) {
-				submit_info.signalSemaphoreCount = 1;
-				submit_info.pSignalSemaphores =
-					single_sem ? &vk_sem.gl_frame_done
-						   : &vk_sem.vk_frame_ready;
-			}
 
 			if (vkQueueSubmit(vk_core.queue, 1, &submit_info,
 					  VK_NULL_HANDLE) != VK_SUCCESS) {
 				fprintf(stderr, "Submit failed");
 				return PIGLIT_FAIL;
 			}
-
-			if (i == 0 && vk_timeline != VK_NULL_HANDLE) {
-				VkSemaphoreSignalInfo signal_info;
-				memset(&signal_info, 0, sizeof signal_info);
-				signal_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO;
-				signal_info.semaphore = vk_timeline;
-				signal_info.value = wait_value;
-
-				_vkSignalSemaphoreKHR(vk_core.dev, &signal_info);
-			}
 		} else {
+			if (vk_timeline) {
+				/* always signal the timeline one way or another */
+				if (supports_NV_timeline) {
+					/* by spec, this must trigger a synchronous flush */
+					glSemaphoreParameterui64vEXT(gl_sem.gl_timeline,
+							GL_TIMELINE_SEMAPHORE_VALUE_NV, &vk_wait_value[1]);
+					glSignalSemaphoreEXT(gl_sem.gl_timeline,
+							1, &gl_bo,
+							0, NULL, NULL);
+				} else {
+					VkSemaphoreSignalInfo signal_info;
+					memset(&signal_info, 0, sizeof signal_info);
+					signal_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SIGNAL_INFO;
+					signal_info.semaphore = vk_timeline;
+					signal_info.value = vk_wait_value[1];
+
+					_vkSignalSemaphoreKHR(vk_core.dev, &signal_info);
+				}
+				vk_wait_value[1] += 5;
+			}
+
 			assert(i != 0);
 			assert(i != NUM_HASH_ITERATIONS - 1);
 			glWaitSemaphoreEXT(single_sem ? gl_sem.gl_frame_ready
 						      : gl_sem.vk_frame_done,
 					   1, &gl_bo,
 					   0, NULL, NULL);
+
+			/* GL timeline wait only applies with NV_timeline_semaphore support */
+			if (vk_timeline && supports_NV_timeline) {
+				/* by spec, this must trigger a synchronous flush */
+				glSemaphoreParameterui64vEXT(gl_sem.gl_timeline,
+						GL_TIMELINE_SEMAPHORE_VALUE_NV, &vk_signal_value[1]);
+				glWaitSemaphoreEXT(gl_sem.gl_timeline,
+						1, &gl_bo,
+						0, NULL, NULL);
+				vk_signal_value[1] += 5;
+			}
 
 			for (unsigned j = 0; j < GLOBAL_WORKGROUP_SIZE; j++) {
 				glDispatchCompute(1, 1, 1);
@@ -265,6 +291,7 @@ run_test(bool single_sem)
 					     0, NULL, NULL);
 		}
 	}
+	vk_wait_value[0] = vk_wait_value[1];
 
 	vkQueueWaitIdle(vk_core.queue);
 
@@ -310,14 +337,23 @@ vk_init()
 		sema_type_info.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
 		sema_type_info.initialValue = 0;
 
+		VkExportSemaphoreCreateInfo exp_sema_info = {
+			VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO,
+			&sema_type_info,
+			VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT_KHR
+		};
+
 		VkSemaphoreCreateInfo sema_info;
 		memset(&sema_info, 0, sizeof sema_info);
 		sema_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		sema_info.pNext = &sema_type_info;
+		sema_info.pNext = &exp_sema_info;
 		if (vkCreateSemaphore(vk_core.dev, &sema_info, 0, &vk_timeline) != VK_SUCCESS) {
 			fprintf(stderr, "Failed to create timeline semaphore.\n");
 			goto fail;
 		}
+
+		if (supports_NV_timeline)
+			vk_sem.timeline = vk_timeline;
 	}
 
 	if (!vk_create_ext_buffer(&vk_core, 1024 * 2 * sizeof(uint32_t), vk_bo_usage, &vk_bo)) {
