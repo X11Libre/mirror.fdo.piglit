@@ -1,0 +1,91 @@
+[require]
+GL ES >= 3.0
+GLSL ES >= 3.0
+
+[vertex shader passthrough]
+
+[fragment shader]
+#version 300 es
+#extension GL_EXT_YUV_target : require
+precision highp float;
+
+uniform int mode;
+uniform vec3 rgb;
+out vec4 color;
+
+void main()
+{
+    yuvCscStandardEXT csc = itu_601;
+    if (mode == 1)
+        csc = itu_601_full_range;
+    else if (mode == 2)
+        csc = itu_709;
+    color = vec4(rgb_2_yuv(rgb, csc), 1.0);
+}
+
+[test]
+
+# Test BT.601 (narrow-range)
+uniform int mode 0
+
+uniform vec3 rgb 1.0 1.0 1.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.9215686274509803, 0.5019607843137255, 0.5019607843137255)
+
+uniform vec3 rgb 0.0 0.0 0.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.06274509803921569, 0.5019607843137255, 0.5019607843137255)
+
+uniform vec3 rgb 0.5 0.5 0.5
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.492156862745098, 0.5019607843137255, 0.5019607843137255)
+
+uniform vec3 rgb 1.0 0.0 0.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.31953333333333334, 0.3537378834152171, 0.9411764705882353)
+
+uniform vec3 rgb 0.0 1.0 0.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.5668745098039215, 0.2109679989377241, 0.13417247070012034)
+
+uniform vec3 rgb 0.0 0.0 1.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.16065098039215686, 0.9411764705882353, 0.4305334116528209)
+
+uniform vec3 rgb 1.0 1.0 0.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.8236627450980392, 0.06274509803921569, 0.5733881569746301)
+
+uniform vec3 rgb 0.0 1.0 1.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.6647803921568628, 0.6501836852122338, 0.06274509803921569)
+
+uniform vec3 rgb 1.0 0.0 1.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.4174392156862745, 0.7929535696897269, 0.8697490979273306)
+
+# Test BT.601 full-range
+uniform int mode 1
+
+uniform vec3 rgb 1.0 1.0 1.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (1.0, 0.5019607843137255, 0.5019607843137255)
+
+uniform vec3 rgb 0.0 0.0 0.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.0, 0.5019607843137255, 0.5019607843137255)
+
+# Test BT.709
+uniform int mode 2
+
+uniform vec3 rgb 1.0 0.0 0.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.24533098039215687, 0.4013170519339445, 0.9411764705882353)
+
+uniform vec3 rgb 0.0 1.0 0.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.6769756862745098, 0.16338883041899668, 0.103018621723518)
+
+uniform vec3 rgb 0.0 0.0 1.0
+draw rect -1 -1 2 2
+relative probe rgb (0.5, 0.5) (0.12475215686274509, 0.9411764705882353, 0.4616872606294232)
