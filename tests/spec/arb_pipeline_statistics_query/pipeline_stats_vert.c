@@ -89,14 +89,11 @@ static struct query queries[] = {
 	 .min = NUM_VERTS}
 };
 
-/* Use DISPLAY for debug */
 enum piglit_result
 piglit_display(void)
 {
 	enum piglit_result ret = do_query(queries, ARRAY_SIZE(queries));
-#ifdef DISPLAY
 	piglit_present_results();
-#endif
 	return ret;
 }
 
@@ -105,9 +102,7 @@ piglit_init(int argc, char *argv[])
 {
 	GLuint vs, prog;
 
-#ifndef DISPLAY
 	glEnable(GL_RASTERIZER_DISCARD);
-#endif
 	do_query_init(queries, ARRAY_SIZE(queries));
 
 	/* Emit a very simply vertex shader just to make sure we actually go

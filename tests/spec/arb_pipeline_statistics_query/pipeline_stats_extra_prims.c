@@ -94,9 +94,7 @@ draw(void)
 
 	glDrawArrays(GL_LINES, 0, 2);
 
-#ifdef DISPLAY
 	piglit_present_results();
-#endif
 }
 
 enum piglit_result
@@ -128,9 +126,7 @@ piglit_init(int argc, char *argv[])
 			      NULL /* pointer */);
 	glEnableVertexAttribArray(0);
 
-#ifndef DISPLAY
 	glEnable(GL_RASTERIZER_DISCARD);
-#endif
 
 	do_query_init(queries, ARRAY_SIZE(queries));
 

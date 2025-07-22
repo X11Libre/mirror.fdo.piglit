@@ -90,7 +90,7 @@ do_query_func(const struct query *queries, const int count,
 					"%s value was invalid.\n  Expected: %" PRIu64 " - %" PRIu64 "\n  Observed: %" PRIu64 "\n",
 					piglit_get_gl_enum_name(q->query),
 					q->min, max, params);
-			piglit_report_result(PIGLIT_FAIL);
+			return PIGLIT_FAIL;
 		}
 	}
 

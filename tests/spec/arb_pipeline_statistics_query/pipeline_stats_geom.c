@@ -81,7 +81,6 @@ const char *gs_src =
 	"}						\n";
 
 
-#ifdef DISPLAY
 const char *fs_src =
 	"#version 150					\n"
 	"out vec4 color;				\n"
@@ -89,7 +88,6 @@ const char *fs_src =
 	"{						\n"
 	"    color = vec4(0.0, 1.0, 0.0, 1.0);		\n"
 	"}						\n";
-#endif
 
 static struct query queries[] = {
 	{
@@ -110,9 +108,7 @@ enum piglit_result
 piglit_display(void)
 {
 	enum piglit_result ret = do_query(queries, ARRAY_SIZE(queries));
-#ifdef DISPLAY
 	piglit_present_results();
-#endif
 	return ret;
 }
 
@@ -128,12 +124,8 @@ piglit_init(int argc, char *argv[])
 	vs = piglit_compile_shader_text(GL_VERTEX_SHADER, vs_src);
 	gs = piglit_compile_shader_text(GL_GEOMETRY_SHADER, gs_src);
 
-#ifndef DISPLAY
-	glEnable(GL_RASTERIZER_DISCARD);
-#else
 	glAttachShader(prog,
 			piglit_compile_shader_text(GL_FRAGMENT_SHADER, fs_src));
-#endif
 
 	glAttachShader(prog, vs);
 	glAttachShader(prog, gs);

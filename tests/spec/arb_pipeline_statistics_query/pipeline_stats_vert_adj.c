@@ -96,9 +96,7 @@ draw(void)
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STREAM_DRAW);
 	glDrawArrays(GL_LINES_ADJACENCY, 0, 4);
-#ifdef DISPLAY
 	piglit_present_results();
-#endif
 }
 
 enum piglit_result
@@ -127,9 +125,7 @@ piglit_init(int argc, char *argv[])
 			      NULL /* pointer */);
 	glEnableVertexAttribArray(0);
 
-#ifndef DISPLAY
 	glEnable(GL_RASTERIZER_DISCARD);
-#endif
 
 	do_query_init(queries, ARRAY_SIZE(queries));
 

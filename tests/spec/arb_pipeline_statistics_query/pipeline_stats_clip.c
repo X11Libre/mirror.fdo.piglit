@@ -92,9 +92,7 @@ enum piglit_result
 piglit_display(void)
 {
 	enum piglit_result ret = do_query(queries, ARRAY_SIZE(queries));
-#ifdef DISPLAY
 	piglit_present_results();
-#endif
 	return ret;
 }
 
