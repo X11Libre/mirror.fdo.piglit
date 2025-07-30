@@ -158,6 +158,10 @@ draw(Display *dpy)
 	glXSwapBuffers(dpy, win);
 
 	glXMakeCurrent(dpy, None, None);
+	if (piglit_automatic) {
+		glXDestroyContext(dpy, ctx0);
+		glXDestroyContext(dpy, ctx1);
+	}
 
 	return pass ? PIGLIT_PASS : PIGLIT_FAIL;
 }
@@ -185,6 +189,7 @@ main(int argc, char **argv)
 
 	ctx0 = piglit_get_glx_context(dpy, visinfo);
 	ctx1 = piglit_get_glx_context(dpy, visinfo);
+	XFree(visinfo);
 
 	glXMakeCurrent(dpy, win, ctx0);
 	piglit_dispatch_default_init(PIGLIT_DISPATCH_GL);
@@ -195,7 +200,6 @@ main(int argc, char **argv)
 
 	piglit_glx_event_loop(dpy, draw);
 
-	XFree(visinfo);
 	glXDestroyContext(dpy, ctx0);
 	glXDestroyContext(dpy, ctx1);
 

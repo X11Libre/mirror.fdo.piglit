@@ -59,6 +59,7 @@ thread_func(void *arg)
 	piglit_draw_rect(*x, 10, 10, 10);
 
 	glFinish();
+	glXMakeCurrent(dpy, None, None);
 	glXDestroyContext(dpy, ctx);
 
 	pthread_mutex_unlock(&mutex);

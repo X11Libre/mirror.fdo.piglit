@@ -125,6 +125,10 @@ load_func(void *arg)
 
 	glFinish();
 	free(tex_data);
+	if (piglit_automatic) {
+		glXMakeCurrent(dpy, None, None);
+		glXDestroyContext(dpy, load_ctx);
+	}
 
 	if (count <= num_test) {
 		quit = true;
@@ -175,6 +179,10 @@ draw_func(void *arg)
 	}
 
 	glXSwapBuffers(dpy, draw_win);
+	if (piglit_automatic) {
+		glXMakeCurrent(dpy, None, None);
+		glXDestroyContext(dpy, draw_ctx);
+	}
 
 	if (count < num_test) {
 		quit = true;
@@ -229,9 +237,12 @@ draw(Display *dpy)
 
 	pthread_mutex_destroy(&mutex);
 
-	glXDestroyContext(dpy, load_ctx);
-	glXDestroyContext(dpy, draw_ctx);
-	glXDestroyContext(dpy, my_ctx);
+	glFinish();
+	if (piglit_automatic) {
+		glXMakeCurrent(dpy, None, None);
+		glXDestroyContext(dpy, my_ctx);
+		glXDestroyPixmap(dpy, load_win);
+	}
 
 	return draw_ret && load_ret ? PIGLIT_PASS : PIGLIT_FAIL;
 }

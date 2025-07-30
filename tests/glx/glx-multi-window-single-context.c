@@ -81,6 +81,14 @@ draw(Display *dpy)
 		}
 	}
 
+	if (piglit_automatic && pass) {
+		glXMakeCurrent(dpy, None, None);
+		for (i = 0; i < num_windows; i++) {
+			glXDestroyWindow(dpy, win[i]);
+		}
+		glXDestroyContext(dpy, ctx);
+	}
+
 	return pass ? PIGLIT_PASS : PIGLIT_FAIL;
 }
 
@@ -111,13 +119,13 @@ main(int argc, char **argv)
 	}
 
 	ctx = piglit_get_glx_context(dpy, visinfo);
+	XFree(visinfo);
 
 	glXMakeCurrent(dpy, win[0], ctx);
 	piglit_dispatch_default_init(PIGLIT_DISPATCH_GL);
 
 	piglit_glx_event_loop(dpy, draw);
 
-	XFree(visinfo);
 	glXDestroyContext(dpy, ctx);
 	for (i = 0; i < num_windows; i++) {
 		glXDestroyWindow(dpy, win[i]);
