@@ -30,7 +30,6 @@ import os
 from contextlib import contextmanager
 from contextlib import nullcontext as does_not_raise
 from dataclasses import dataclass
-from hashlib import md5
 from os import path
 from pathlib import Path
 from typing import Any
@@ -58,23 +57,29 @@ ASSUME_ROLE_RESPONSE = '''<?xml version="1.0" encoding="UTF-8"?>
     </AssumeRoleWithWebIdentityResponse>
 '''
 
+
 class MockedResponseData:
-    binary_data: bytes = b"haxter"
+    # mock > 1MB file
+    binary_data: bytes = b"haxter" * 1024 * 1024
 
 
 @dataclass(frozen=True)
 class MockedResponse:
     @staticmethod
     def header_scenarios():
-        binary_data_md5: str = md5(MockedResponseData.binary_data).hexdigest()
-        etag: dict[str, str] = {"etag": binary_data_md5}
         length: dict[str, Any] = {
             "Content-Length": str(len(MockedResponseData.binary_data))
         }
+        dummy_path = Path("dummy_file")
+        with MockedResponse.create_local_file(dummy_path, MockedResponseData.binary_data):
+            etag, full_etags = download_utils.calc_etags(dummy_path, 5 * 1024 * 1024)
+
         return {
             "With Content-Length": length,
-            "With etag": etag,
-            "With Content-Length and etag": {**length, **etag},
+            "With etag": {"etag": etag},
+            "With full etags": {"etag": full_etags},
+            "With Content-Length and etag": {**length, "etag": etag},
+            "With Content-Length and full etags": {**length, "etag": full_etags},
             "Without integrity headers": {},
         }
 
@@ -86,6 +91,7 @@ class MockedResponse:
             "already has wrong file": b"obsolete/corrupted data",
         }
 
+    @staticmethod
     @contextmanager
     def create_local_file(trace_file, data):
         data = data or MockedResponseData.binary_data
@@ -94,6 +100,8 @@ class MockedResponse:
         yield
         if trace_path.exists():
             trace_path.unlink()
+
+
 class TestDownloadUtils(object):
     """Tests for download_utils methods."""
 
@@ -216,7 +224,6 @@ class TestDownloadUtils(object):
             with expectation:
                 download_utils.ensure_file(self.trace_path)
 
-
     @pytest.mark.raises(exception=exceptions.PiglitFatalError)
     def test_download_with_invalid_content_length(self,
                                                   mocker,
@@ -302,3 +309,37 @@ class TestDownloadUtils(object):
         get_request = requests_mock.request_history[0]
         assert(get_request.method == 'GET')
         assert(requests_mock.request_history[0].headers['Authorization'].startswith('Bearer'))
+
+
+class TestGetChunkSize(object):
+    """Tests for get_chunk_size function."""
+
+    @pytest.mark.parametrize("filesize,number_of_chunks,expected_chunk_size", [
+        # Single chunk cases
+        (1024 * 1024, 1, 1024 * 1024),  # 1MB file, 1 chunk -> 1MB
+        (1024 * 1024, 0, 1024 * 1024),  # 1MB file, 0 chunks -> 1MB
+        # Exact division cases
+        (10 * 1024 * 1024, 2, 5 * 1024 * 1024),  # 10MB file, 2 chunks -> 5MB each
+        (100 * 1024 * 1024, 10, 10 * 1024 * 1024),  # 100MB file, 10 chunks -> 10MB each
+        # Specific test cases from requirements
+        (144323574, 14, 10 * 1024 * 1024),  # 144323574 bytes, 14 chunks -> 10MB
+        (144323574, 28, 5 * 1024 * 1024),   # 144323574 bytes, 28 chunks -> 5MB
+        # Round up to MB cases
+        (3 * 1024 * 1024 + 1, 2, 2 * 1024 * 1024),  # 3MB+1 byte, 2 chunks -> 2MB each
+        (15 * 1024 * 1024, 3, 5 * 1024 * 1024),  # ~7.5MB, 3 chunks -> 5MB each
+        (15 * 1024 * 1024, 4, 4 * 1024 * 1024),  # ~7.5MB, 4 chunks -> 4MB each
+    ], ids=[
+        "single_chunk_1mb",
+        "zero_chunks_1mb",
+        "exact_division_10mb_2chunks",
+        "exact_division_100mb_10chunks",
+        "filesize_144323574_14chunks_10mb",
+        "filesize_144323574_28chunks_5mb",
+        "round_up_3mb_plus_1byte_2chunks",
+        "round_up_7_5mb_3chunks",
+        "round_up_7_4mb_4chunks",
+    ])
+    def test_get_chunk_size(self, filesize, number_of_chunks, expected_chunk_size):
+        """get_chunk_size: Test various filesize and chunk combinations"""
+        result = download_utils.get_chunk_size(filesize, number_of_chunks)
+        assert result == expected_chunk_size, f"Expected {expected_chunk_size / 1024 / 1024} MB but got {result / 1024 / 1024} MB"
