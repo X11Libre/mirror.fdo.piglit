@@ -26,7 +26,7 @@ import subprocess
 from framework import core, grouptools, exceptions
 from framework import options
 from framework.profile import TestProfile
-from framework.test.base import Test, is_crash_returncode, TestRunError
+from framework.test.base import Test, is_crash_returncode, TestRunError, TestPlaceholder
 
 __all__ = [
     'DEQPBaseTest',
@@ -56,7 +56,7 @@ def make_profile(test_list, test_class):
     for testname in test_list:
         # deqp uses '.' as the testgroup separator.
         piglit_name = testname.replace('.', grouptools.SEPARATOR)
-        profile.test_list[piglit_name] = test_class(testname)
+        profile.test_list[piglit_name] = TestPlaceholder(test_class, testname)
 
     return profile
 

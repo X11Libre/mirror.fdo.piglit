@@ -45,7 +45,7 @@ from framework import grouptools, exceptions, status
 from framework.dmesg import get_dmesg
 from framework.log import LogManager
 from framework.monitoring import Monitoring
-from framework.test.base import Test, DummyTest
+from framework.test.base import Test, DummyTest, TestPlaceholder
 from framework.test.piglit_test import (
     PiglitCLTest, PiglitGLTest, ASMParserTest, BuiltInConstantsTest,
     CLProgramTester, VkRunnerTest, ROOT_DIR,
@@ -135,9 +135,9 @@ class TestDict(collections.abc.MutableMapping):
                 "TestDict keys must be strings, but was {}".format(type(key)))
 
         # Values should either be more Tests
-        if not isinstance(value, Test):
+        if not (isinstance(value, Test) or isinstance(value, TestPlaceholder)):
             raise exceptions.PiglitFatalError(
-                "TestDict values must be a Test, but was a {}".format(
+                "TestDict values must be a Test or TestPlaceholder, but was a {}".format(
                     type(value)))
 
         # This must be lowered before the following test, or the test can pass
@@ -164,8 +164,21 @@ class TestDict(collections.abc.MutableMapping):
         self.__container[key] = value
 
     def __getitem__(self, key):
-        """Lower the value before returning."""
-        return self.__container[key.lower()]
+        """Lower the value before returning. Remove placeholders as needed."""
+        item = self.__container[key.lower()]
+        if isinstance(item, TestPlaceholder):
+            try:
+                real_item = item.test_class(item.test_name)
+            except TypeError:
+                raise exceptions.PiglitFatalError(
+                    "Unable to expand the TestPlaceholder for the class: {}\n"
+                    "This was associated with the following key: {}".format(
+                        type(item), key
+                    )
+                )
+            self.__container[key.lower()] = real_item
+            return real_item
+        return item
 
     def __delitem__(self, key):
         """Lower the value before returning."""

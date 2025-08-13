@@ -24,6 +24,7 @@
 """ Module provides a base class for Tests """
 
 import abc
+import collections
 import copy
 import errno
 import itertools
@@ -96,6 +97,8 @@ def is_crash_returncode(returncode):
     else:
         return returncode < 0
 
+
+TestPlaceholder = collections.namedtuple('TestPlaceholder', ['test_class', 'test_name'])
 
 class Test(metaclass=abc.ABCMeta):
     """ Abstract base class for Test classes
