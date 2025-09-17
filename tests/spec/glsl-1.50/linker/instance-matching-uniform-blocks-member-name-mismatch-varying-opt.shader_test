@@ -1,0 +1,45 @@
+# Tests that no link error occurs for interfaces blocks with matching
+# instances names but mismatching member's name and block names.
+#
+# This test is also designed to make sure mesas varying optimisation pass
+# correctly handles this mismatch by triggering the bug described in
+# https://gitlab.freedesktop.org/mesa/mesa/-/issues/13254
+
+[require]
+GLSL >= 1.50
+
+[vertex shader]
+#version 150
+
+uniform blockA {
+	mat4 b;
+	vec3 c;
+	vec4 a;
+} inst;
+
+out vec3 cv;
+
+void main()
+{
+	cv = inst.c;
+	gl_Position = inst.a;
+}
+
+[fragment shader]
+#version 150
+
+uniform blockB {
+	vec4 b;
+} inst;
+
+in vec3 cv;
+
+out vec4 color;
+
+void main()
+{
+	color.xyz = cv;
+}
+
+[test]
+link success
