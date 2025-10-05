@@ -73,6 +73,7 @@ create_wayland_display(void)
 	d->display = wl_display_connect(NULL);
 	if (d->display == NULL) {
 		fprintf(stderr, "Can't connect to display\n");
+		free(d);
 		return 0;
 	}
 
