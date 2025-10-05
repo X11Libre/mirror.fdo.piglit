@@ -365,9 +365,6 @@ piglit_half_from_float(float val)
 
 			e = 0;
 			switch (exp_val) {
-			case 0:
-				/* m = 0; - already set */
-				break;
 			case 1: m = 512 + (flt_m >> 14); break;
 			case 2: m = 256 + (flt_m >> 15); break;
 			case 3: m = 128 + (flt_m >> 16); break;
