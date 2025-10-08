@@ -69,6 +69,10 @@ struct display *
 create_wayland_display(void)
 {
 	struct display *d = calloc(1, sizeof(struct display));
+	if (!d) {
+		fprintf(stderr, "Failed to allocate display structure\n");
+		return NULL;
+	}
 
 	d->display = wl_display_connect(NULL);
 	if (d->display == NULL) {
