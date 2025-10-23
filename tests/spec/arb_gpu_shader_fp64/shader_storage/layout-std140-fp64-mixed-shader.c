@@ -219,8 +219,10 @@ piglit_init(int argc, char **argv)
 	piglit_require_extension("GL_ARB_gpu_shader_fp64");
 
 	glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &num_vertex_ssbo);
-	if (num_vertex_ssbo < 1)
+	if (num_vertex_ssbo < 1) {
+		fprintf(stderr, "This test requires MAX_VERTEX_SHADER_STORAGE_BLOCKS > 0\n");
 		piglit_report_result(PIGLIT_SKIP);
+	}
 
 	prog = piglit_build_simple_program_multiple_shaders(
 		GL_VERTEX_SHADER, vs_code,
