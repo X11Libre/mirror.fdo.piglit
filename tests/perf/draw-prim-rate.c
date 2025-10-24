@@ -508,11 +508,16 @@ enum cull_method {
 enum test_stage {
 	INIT,
 	RUN,
+	RELEASE,
+};
+
+struct buffer_data {
+	GLuint vb, ib;
+	unsigned num_vertices, num_indices;
 };
 
 struct test_data {
-	GLuint vb, ib;
-	unsigned num_vertices, num_indices;
+	struct buffer_data *buffers;
 };
 
 struct test_data tests[1200];
@@ -555,6 +560,8 @@ union buffer_set_index {
 	uint16_t index;
 };
 
+static struct buffer_data buffers[8 * 1024];
+
 static union buffer_set_index
 get_buffer_set_index(enum draw_method draw_method, enum cull_method cull_method,
 		     unsigned num_quads_per_dim_index, unsigned quad_size_in_pixels_index,
@@ -593,6 +600,13 @@ init_buffers(enum draw_method draw_method, enum cull_method cull_method,
 		get_buffer_set_index(draw_method, cull_method, num_quads_per_dim_index,
 				     quad_size_in_pixels_index, cull_percentage);
 
+	assert(set.index < ARRAY_SIZE(buffers));
+	test->buffers = &buffers[set.index];
+
+	/* If we have already initialized this buffer set, nothing to do. */
+	if (test->buffers->vb)
+		return;
+
 	assert(set.num_quads_per_dim_index < ARRAY_SIZE(num_quads_per_dim_array));
 	unsigned num_quads_per_dim = num_quads_per_dim_array[set.num_quads_per_dim_index];
 
@@ -618,8 +632,8 @@ init_buffers(enum draw_method draw_method, enum cull_method cull_method,
 					set.cull_type == CULL_TYPE_BACK_FACE,
 					set.cull_type == CULL_TYPE_VIEW,
 					set.cull_type == CULL_TYPE_DEGENERATE,
-					max_vertices, &test->num_vertices, vertices,
-					max_indices, &test->num_indices, indices);
+					max_vertices, &test->buffers->num_vertices, vertices,
+					max_indices, &test->buffers->num_indices, indices);
 	} else {
 		gen_triangle_tile(num_quads_per_dim, quad_size_in_pixels,
 				  set.cull_percentage_div25 * 25,
@@ -627,23 +641,23 @@ init_buffers(enum draw_method draw_method, enum cull_method cull_method,
 				  set.cull_type == CULL_TYPE_BACK_FACE,
 				  set.cull_type == CULL_TYPE_VIEW,
 				  set.cull_type == CULL_TYPE_DEGENERATE,
-				  max_vertices, &test->num_vertices, vertices,
-				  max_indices, &test->num_indices, indices);
+				  max_vertices, &test->buffers->num_vertices, vertices,
+				  max_indices, &test->buffers->num_indices, indices);
 	}
 
-	vb_size = test->num_vertices * 12;
-	ib_size = test->num_indices * 4;
+	vb_size = test->buffers->num_vertices * 12;
+	ib_size = test->buffers->num_indices * 4;
 
 	/* Create buffers. */
-	glGenBuffers(1, &test->vb);
-	glBindBuffer(GL_ARRAY_BUFFER, test->vb);
+	glGenBuffers(1, &test->buffers->vb);
+	glBindBuffer(GL_ARRAY_BUFFER, test->buffers->vb);
 	glBufferData(GL_ARRAY_BUFFER, vb_size, vertices, GL_STATIC_DRAW);
 	mem_usage += vb_size;
 	free(vertices);
 
 	if (indices) {
-		glGenBuffers(1, &test->ib);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test->ib);
+		glGenBuffers(1, &test->buffers->ib);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test->buffers->ib);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ib_size, indices, GL_STATIC_DRAW);
 		mem_usage += ib_size;
 		free(indices);
@@ -660,14 +674,14 @@ run_test(unsigned debug_num_iterations, enum draw_method draw_method,
 	if (draw_method == INDEXED_TRIANGLE_STRIP_PRIM_RESTART)
 		glEnable(GL_PRIMITIVE_RESTART);
 
-	glBindBuffer(GL_ARRAY_BUFFER, test->vb);
+	glBindBuffer(GL_ARRAY_BUFFER, test->buffers->vb);
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
 
-	if (test->ib)
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test->ib);
+	if (test->buffers->ib)
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test->buffers->ib);
 
 	global_draw_method = draw_method;
-	count = test->ib ? test->num_indices : test->num_vertices;
+	count = test->buffers->ib ? test->buffers->num_indices : test->buffers->num_vertices;
 
 	double rate = 0;
 
@@ -681,10 +695,6 @@ run_test(unsigned debug_num_iterations, enum draw_method draw_method,
 	if (draw_method == INDEXED_TRIANGLE_STRIP_PRIM_RESTART)
 		glDisable(GL_PRIMITIVE_RESTART);
 
-	/* Cleanup. */
-	glDeleteBuffers(1, &test->vb);
-	if (test->ib)
-		glDeleteBuffers(1, &test->ib);
 	return rate;
 }
 
@@ -701,6 +711,13 @@ execute_test(unsigned debug_num_iterations, enum draw_method draw_method,
 
 	if (test_stage == RUN)
 		return run_test(debug_num_iterations, draw_method, cull_method, test);
+
+	if (test_stage == RELEASE && test->buffers->vb) {
+		glDeleteBuffers(1, &test->buffers->vb);
+		if (test->buffers->ib)
+			glDeleteBuffers(1, &test->buffers->ib);
+		test->buffers->vb = 0;
+	}
 
 	return 0;
 }
@@ -857,6 +874,7 @@ piglit_display(void)
 	printf("\n");
 
 	iterate_tests(RUN);
+	iterate_tests(RELEASE);
 
 	exit(0);
 	return PIGLIT_SKIP;
