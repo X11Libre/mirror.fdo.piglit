@@ -527,6 +527,8 @@ static const unsigned num_quads_per_dim_array[] = {
 	ceil(sqrt(0.5 * 512000)),
 };
 
+static double quad_sizes_in_pixels[] = {2, 1.0 / 7, 0.25, 0.5};
+
 static unsigned
 get_num_prims(unsigned num_quads_index)
 {
@@ -547,19 +549,21 @@ union buffer_set_index {
 		uint16_t cull_type:2;
 		uint16_t cull_percentage_div25:3;
 		uint16_t num_quads_per_dim_index:3;
-		uint16_t pad:5;
+		uint16_t quad_size_in_pixels_index:2;
+		uint16_t pad:3;
 	};
 	uint16_t index;
 };
 
 static union buffer_set_index
 get_buffer_set_index(enum draw_method draw_method, enum cull_method cull_method,
-		     unsigned num_quads_per_dim_index, double quad_size_in_pixels,
+		     unsigned num_quads_per_dim_index, unsigned quad_size_in_pixels_index,
 		     unsigned cull_percentage)
 {
 	assert(cull_percentage == 0 || cull_percentage == 25 || cull_percentage == 50 ||
 	       cull_percentage == 75 || cull_percentage == 100);
 	assert(num_quads_per_dim_index < 5);
+	assert(quad_size_in_pixels_index < 4);
 
 	union buffer_set_index set;
 
@@ -573,21 +577,27 @@ get_buffer_set_index(enum draw_method draw_method, enum cull_method cull_method,
 			cull_method == DEGENERATE_PRIMS ? CULL_TYPE_DEGENERATE : CULL_TYPE_NONE;
 	set.cull_percentage_div25 = cull_percentage / 25;
 	set.num_quads_per_dim_index = num_quads_per_dim_index;
+	set.quad_size_in_pixels_index = quad_size_in_pixels_index;
 	set.pad = 0;
 	return set;
 }
 
 static void
 init_buffers(enum draw_method draw_method, enum cull_method cull_method,
-	     unsigned num_quads_per_dim_index, double quad_size_in_pixels,
+	     unsigned num_quads_per_dim_index, unsigned quad_size_in_pixels_index,
 	     unsigned cull_percentage, struct test_data *test)
 {
 	const unsigned max_indices = 8100000 * 3;
 	const unsigned max_vertices = max_indices;
 	union buffer_set_index set =
 		get_buffer_set_index(draw_method, cull_method, num_quads_per_dim_index,
-				     quad_size_in_pixels, cull_percentage);
+				     quad_size_in_pixels_index, cull_percentage);
+
+	assert(set.num_quads_per_dim_index < ARRAY_SIZE(num_quads_per_dim_array));
 	unsigned num_quads_per_dim = num_quads_per_dim_array[set.num_quads_per_dim_index];
+
+	assert(set.quad_size_in_pixels_index < ARRAY_SIZE(quad_sizes_in_pixels));
+	double quad_size_in_pixels = quad_sizes_in_pixels[set.quad_size_in_pixels_index];
 
 	while (num_quads_per_dim * quad_size_in_pixels >= WINDOW_SIZE)
 		quad_size_in_pixels *= 0.5;
@@ -681,12 +691,12 @@ run_test(unsigned debug_num_iterations, enum draw_method draw_method,
 static double
 execute_test(unsigned debug_num_iterations, enum draw_method draw_method,
 	     enum cull_method cull_method, unsigned num_quads_per_dim_index,
-	     double quad_size_in_pixels, unsigned cull_percentage,
+	     unsigned quad_size_in_pixels_index, unsigned cull_percentage,
 	     enum test_stage test_stage, struct test_data *test)
 {
 	if (test_stage == INIT) {
 		init_buffers(draw_method, cull_method, num_quads_per_dim_index,
-			     quad_size_in_pixels, cull_percentage, test);
+			     quad_size_in_pixels_index, cull_percentage, test);
 	}
 
 	if (test_stage == RUN)
@@ -700,28 +710,27 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
     unsigned *test_index)
 {
 	static unsigned cull_percentages[] = {100, 75, 50};
-	static double quad_sizes_in_pixels[] = {1.0 / 7, 0.25, 0.5};
 	unsigned num_subtests;
 
 	if (cull_method == BACK_FACE_CULLING ||
 	    cull_method == VIEW_CULLING) {
 		num_subtests = ARRAY_SIZE(cull_percentages);
 	} else if (cull_method == SUBPIXEL_PRIMS) {
-		num_subtests = ARRAY_SIZE(quad_sizes_in_pixels);
+		num_subtests = 3;
 	} else {
 		num_subtests = 1;
 	}
 
 	for (unsigned subtest = 0; subtest < num_subtests; subtest++) {
 		/* 2 is the maximum prim size when everything fits into the window */
-		double quad_size_in_pixels;
+		unsigned quad_size_in_pixels_index;
 		unsigned cull_percentage;
 
 		if (cull_method == SUBPIXEL_PRIMS) {
-			quad_size_in_pixels = quad_sizes_in_pixels[subtest];
+			quad_size_in_pixels_index = 1 + subtest;
 			cull_percentage = 0;
 		} else {
-			quad_size_in_pixels = 2;
+			quad_size_in_pixels_index = 0;
 			cull_percentage = cull_percentages[subtest];
 		}
 
@@ -739,6 +748,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 				printf("%-21s",
 				       cull_method == NONE ? "none" : "rasterizer discard");
 			} else if (cull_method == SUBPIXEL_PRIMS) {
+				double quad_size_in_pixels = quad_sizes_in_pixels[quad_size_in_pixels_index];
 				printf("%2u small prims/pixel ",
 				       (unsigned)((1.0 / quad_size_in_pixels) *
 						  (1.0 / quad_size_in_pixels) * 2));
@@ -767,7 +777,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 				(*test_index)++;
 
 				double rate = execute_test(0, draw_method, cull_method, i,
-							   quad_size_in_pixels, cull_percentage,
+							   quad_size_in_pixels_index, cull_percentage,
 							   test_stage, test);
 
 				if (test_stage == RUN) {
@@ -818,7 +828,7 @@ piglit_display(void)
 		struct test_data test = {0};
 
 		glUseProgram(progs[2]);
-		init_buffers(INDEXED_TRIANGLES_2VTX, BACK_FACE_CULLING, 4, 2, 50, &test);
+		init_buffers(INDEXED_TRIANGLES_2VTX, BACK_FACE_CULLING, 4, 0, 50, &test);
 		run_test(1, INDEXED_TRIANGLES_2VTX, BACK_FACE_CULLING, &test);
 		piglit_swap_buffers();
 		return PIGLIT_PASS;
