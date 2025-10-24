@@ -697,28 +697,6 @@ run_test(unsigned debug_num_iterations, enum draw_method draw_method,
 }
 
 static void
-execute_test(unsigned debug_num_iterations, enum draw_method draw_method,
-	     enum cull_method cull_method, unsigned num_quads_per_dim_index,
-	     unsigned quad_size_in_pixels_index, unsigned cull_percentage,
-	     enum test_stage test_stage, struct test_data *test)
-{
-	if (test_stage == INIT) {
-		init_buffers(draw_method, cull_method, num_quads_per_dim_index,
-			     quad_size_in_pixels_index, cull_percentage, test);
-	}
-
-	if (test_stage == RUN)
-		run_test(debug_num_iterations, draw_method, cull_method, test);
-
-	if (test_stage == REPORT && test->buffers->vb) {
-		glDeleteBuffers(1, &test->buffers->vb);
-		if (test->buffers->ib)
-			glDeleteBuffers(1, &test->buffers->ib);
-		test->buffers->vb = 0;
-	}
-}
-
-static void
 run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage test_stage,
     unsigned *test_index)
 {
@@ -747,68 +725,94 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 			cull_percentage = cull_percentages[subtest];
 		}
 
-		if (test_stage == REPORT) {
-			printf("  %-14s, ",
-			       draw_method == INDEXED_TRIANGLES ? "DrawElems1Vtx" :
-			       draw_method == INDEXED_TRIANGLES_2VTX ? "DrawElems2Vtx" :
-			       draw_method == TRIANGLES ? "DrawArraysT" :
-			       draw_method == TRIANGLE_STRIP ? "DrawArraysTS" :
-			       draw_method == INDEXED_TRIANGLE_STRIP ? "DrawElemsTS" :
-			       "DrawTS_PrimR");
-
-			if (cull_method == NONE ||
-			    cull_method == RASTERIZER_DISCARD) {
-				printf("%-21s",
-				       cull_method == NONE ? "none" : "rasterizer discard");
-			} else if (cull_method == SUBPIXEL_PRIMS) {
-				double quad_size_in_pixels = quad_sizes_in_pixels[quad_size_in_pixels_index];
-				printf("%2u small prims/pixel ",
-				       (unsigned)((1.0 / quad_size_in_pixels) *
-						  (1.0 / quad_size_in_pixels) * 2));
-			} else {
-				printf("%3u%% %-16s", cull_percentage,
-				       cull_method == BACK_FACE_CULLING ? "back faces" :
-					cull_method == VIEW_CULLING ?	  "culled by view" :
-					cull_method == DEGENERATE_PRIMS ? "degenerate prims" :
-									  "(error)");
-			}
-			fflush(stdout);
-		}
-
-		for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
-			if (!progs[prog])
-				continue;
-
-			glUseProgram(progs[prog]);
-
-			if (test_stage == REPORT && prog)
-				printf("   ");
-
-			for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
+		switch (test_stage) {
+		case INIT:
+		    for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
+			if (progs[prog]) {
+			    for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
 				assert(*test_index < ARRAY_SIZE(tests));
-				struct test_data *test = &tests[*test_index];
-				(*test_index)++;
+				struct test_data *test = &tests[(*test_index)++];
 
-				execute_test(0, draw_method, cull_method, i,
-					     quad_size_in_pixels_index, cull_percentage,
-					     test_stage, test);
-
-				if (test_stage == REPORT) {
-					double rate = perf_get_throughput_from_query(test->query, NUM_ITER);
-					rate *= get_num_prims(i);
-
-					if (gpu_freq_mhz) {
-						rate /= gpu_freq_mhz * 1000000.0;
-						printf(",%6.3f", rate);
-					} else {
-						printf(",%6.3f", rate / 1000000000);
-					}
-					fflush(stdout);
-				}
+				init_buffers(draw_method, cull_method, i,
+					     quad_size_in_pixels_index, cull_percentage, test);
+			    }
 			}
+		    }
+		    break;
+
+		case RUN:
+		    for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
+			    if (progs[prog]) {
+				glUseProgram(progs[prog]);
+
+				for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
+				    assert(*test_index < ARRAY_SIZE(tests));
+				    struct test_data *test = &tests[(*test_index)++];
+
+				    run_test(0, draw_method, cull_method, test);
+				}
+			    }
+		    }
+		    break;
+
+		case REPORT:
+		    printf("  %-14s, ",
+			   draw_method == INDEXED_TRIANGLES ? "DrawElems1Vtx" :
+			   draw_method == INDEXED_TRIANGLES_2VTX ? "DrawElems2Vtx" :
+			   draw_method == TRIANGLES ? "DrawArraysT" :
+			   draw_method == TRIANGLE_STRIP ? "DrawArraysTS" :
+			   draw_method == INDEXED_TRIANGLE_STRIP ? "DrawElemsTS" :
+			   "DrawTS_PrimR");
+
+		    if (cull_method == NONE ||
+			cull_method == RASTERIZER_DISCARD) {
+			    printf("%-21s",
+				   cull_method == NONE ? "none" : "rasterizer discard");
+		    } else if (cull_method == SUBPIXEL_PRIMS) {
+			    double quad_size_in_pixels = quad_sizes_in_pixels[quad_size_in_pixels_index];
+			    printf("%2u small prims/pixel ",
+				   (unsigned)((1.0 / quad_size_in_pixels) *
+					      (1.0 / quad_size_in_pixels) * 2));
+		    } else {
+			    printf("%3u%% %-16s", cull_percentage,
+				   cull_method == BACK_FACE_CULLING ? "back faces" :
+				    cull_method == VIEW_CULLING ?	  "culled by view" :
+				    cull_method == DEGENERATE_PRIMS ? "degenerate prims" :
+								      "(error)");
+		    }
+
+		    for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
+			    if (progs[prog]) {
+				if (prog > 0)
+				    printf("   ");
+
+				for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
+				    assert(*test_index < ARRAY_SIZE(tests));
+				    struct test_data *test = &tests[(*test_index)++];
+
+				    if (test->buffers->vb) {
+					glDeleteBuffers(1, &test->buffers->vb);
+					if (test->buffers->ib)
+					    glDeleteBuffers(1, &test->buffers->ib);
+					test->buffers->vb = 0;
+				    }
+
+				    double rate = perf_get_throughput_from_query(test->query, NUM_ITER);
+				    rate *= get_num_prims(i);
+
+				    if (gpu_freq_mhz) {
+					rate /= gpu_freq_mhz * 1000000.0;
+					printf(",%6.3f", rate);
+				    } else {
+					printf(",%6.3f", rate / 1000000000);
+				    }
+				}
+			    }
+		    }
+
+		    printf("\n");
+		    break;
 		}
-		if (test_stage == REPORT)
-			printf("\n");
 	}
 }
 
@@ -849,7 +853,7 @@ piglit_display(void)
 	}
 
 	iterate_tests(INIT);
-	printf("GPU memory allocated: %lu MB\n\n", mem_usage >> 20);
+	printf("GPU memory allocated: %u MB\n\n", (unsigned)(mem_usage >> 20));
 
 	printf("  Measuring %-27s,    ", gpu_freq_mhz ? "Prims/clock," : "GPrims/second,");
 
