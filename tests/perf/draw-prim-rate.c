@@ -508,7 +508,7 @@ enum cull_method {
 enum test_stage {
 	INIT,
 	RUN,
-	RELEASE,
+	REPORT,
 };
 
 struct buffer_data {
@@ -518,6 +518,7 @@ struct buffer_data {
 
 struct test_data {
 	struct buffer_data *buffers;
+	GLuint query;
 };
 
 struct test_data tests[1200];
@@ -664,7 +665,9 @@ init_buffers(enum draw_method draw_method, enum cull_method cull_method,
 	}
 }
 
-static double
+#define NUM_ITER 500
+
+static void
 run_test(unsigned debug_num_iterations, enum draw_method draw_method,
 	 enum cull_method cull_method, struct test_data *test)
 {
@@ -683,22 +686,18 @@ run_test(unsigned debug_num_iterations, enum draw_method draw_method,
 	global_draw_method = draw_method;
 	count = test->buffers->ib ? test->buffers->num_indices : test->buffers->num_vertices;
 
-	double rate = 0;
-
 	if (debug_num_iterations)
 		run_draw(debug_num_iterations);
 	else
-		rate = perf_measure_gpu_rate(run_draw, 0.01);
+		test->query = perf_measure_gpu_time_get_query(run_draw, NUM_ITER);
 
 	if (cull_method == RASTERIZER_DISCARD)
 		glDisable(GL_RASTERIZER_DISCARD);
 	if (draw_method == INDEXED_TRIANGLE_STRIP_PRIM_RESTART)
 		glDisable(GL_PRIMITIVE_RESTART);
-
-	return rate;
 }
 
-static double
+static void
 execute_test(unsigned debug_num_iterations, enum draw_method draw_method,
 	     enum cull_method cull_method, unsigned num_quads_per_dim_index,
 	     unsigned quad_size_in_pixels_index, unsigned cull_percentage,
@@ -710,16 +709,14 @@ execute_test(unsigned debug_num_iterations, enum draw_method draw_method,
 	}
 
 	if (test_stage == RUN)
-		return run_test(debug_num_iterations, draw_method, cull_method, test);
+		run_test(debug_num_iterations, draw_method, cull_method, test);
 
-	if (test_stage == RELEASE && test->buffers->vb) {
+	if (test_stage == REPORT && test->buffers->vb) {
 		glDeleteBuffers(1, &test->buffers->vb);
 		if (test->buffers->ib)
 			glDeleteBuffers(1, &test->buffers->ib);
 		test->buffers->vb = 0;
 	}
-
-	return 0;
 }
 
 static void
@@ -751,7 +748,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 			cull_percentage = cull_percentages[subtest];
 		}
 
-		if (test_stage == RUN) {
+		if (test_stage == REPORT) {
 			printf("  %-14s, ",
 			       draw_method == INDEXED_TRIANGLES ? "DrawElems1Vtx" :
 			       draw_method == INDEXED_TRIANGLES_2VTX ? "DrawElems2Vtx" :
@@ -785,7 +782,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 
 			glUseProgram(progs[prog]);
 
-			if (test_stage == RUN && prog)
+			if (test_stage == REPORT && prog)
 				printf("   ");
 
 			for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
@@ -793,11 +790,12 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 				struct test_data *test = &tests[*test_index];
 				(*test_index)++;
 
-				double rate = execute_test(0, draw_method, cull_method, i,
-							   quad_size_in_pixels_index, cull_percentage,
-							   test_stage, test);
+				execute_test(0, draw_method, cull_method, i,
+					     quad_size_in_pixels_index, cull_percentage,
+					     test_stage, test);
 
-				if (test_stage == RUN) {
+				if (test_stage == REPORT) {
+					double rate = perf_get_throughput_from_query(test->query, NUM_ITER);
 					rate *= get_num_prims(i);
 
 					if (gpu_freq_mhz) {
@@ -810,7 +808,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 				}
 			}
 		}
-		if (test_stage == RUN)
+		if (test_stage == REPORT)
 			printf("\n");
 	}
 }
@@ -874,7 +872,7 @@ piglit_display(void)
 	printf("\n");
 
 	iterate_tests(RUN);
-	iterate_tests(RELEASE);
+	iterate_tests(REPORT);
 
 	exit(0);
 	return PIGLIT_SKIP;
