@@ -852,8 +852,11 @@ piglit_display(void)
 		return PIGLIT_PASS;
 	}
 
+	puts("(AMD: use 'umr --gui' and set Power to profile_peak)\n");
 	iterate_tests(INIT);
+
 	printf("GPU memory allocated: %u MB\n\n", (unsigned)(mem_usage >> 20));
+	puts("Measuring performance. This may take a while...\n");
 
 	printf("  Measuring %-27s,    ", gpu_freq_mhz ? "Prims/clock," : "GPrims/second,");
 
