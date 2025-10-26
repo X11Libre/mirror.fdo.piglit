@@ -479,18 +479,20 @@ static unsigned count;
 static void
 run_draw(unsigned iterations)
 {
-	for (unsigned i = 0; i < iterations; i++) {
-		if (global_draw_method == INDEXED_TRIANGLES ||
-		    global_draw_method == INDEXED_TRIANGLES_2VTX) {
+	if (global_draw_method == INDEXED_TRIANGLES ||
+	    global_draw_method == INDEXED_TRIANGLES_2VTX) {
+		for (unsigned i = 0; i < iterations; i++)
 			glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, NULL);
-		} else if (global_draw_method == TRIANGLES) {
+	} else if (global_draw_method == TRIANGLES) {
+		for (unsigned i = 0; i < iterations; i++)
 			glDrawArrays(GL_TRIANGLES, 0, count);
-		} else if (global_draw_method == TRIANGLE_STRIP) {
+	} else if (global_draw_method == TRIANGLE_STRIP) {
+		for (unsigned i = 0; i < iterations; i++)
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, count);
-		} else if (global_draw_method == INDEXED_TRIANGLE_STRIP ||
-			   global_draw_method == INDEXED_TRIANGLE_STRIP_PRIM_RESTART) {
+	} else if (global_draw_method == INDEXED_TRIANGLE_STRIP ||
+		   global_draw_method == INDEXED_TRIANGLE_STRIP_PRIM_RESTART) {
+		for (unsigned i = 0; i < iterations; i++)
 			glDrawElements(GL_TRIANGLE_STRIP, count, GL_UNSIGNED_INT, NULL);
-		}
 	}
 }
 
