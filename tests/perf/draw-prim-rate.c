@@ -579,23 +579,23 @@ struct test_data {
 struct test_data tests[1200 * 2];
 uint64_t mem_usage;
 
-static const unsigned num_quads_per_dim_array[] = {
-	/* The second number is the approx. number of primitives. */
-	ceil(sqrt(0.5 * 2000)),
-	ceil(sqrt(0.5 * 8000)),
-	ceil(sqrt(0.5 * 32000)),
-	ceil(sqrt(0.5 * 128000)),
-	ceil(sqrt(0.5 * 512000)),
+static const unsigned prim_counts[] = {
+	2000,
+	8000,
+	32000,
+	128000,
+	512000,
 };
 
-static double quad_sizes_in_pixels[] = {2, 1.0 / 7, 0.25, 0.5};
-
 static unsigned
-get_num_prims(unsigned num_quads_index)
+get_num_quads_per_dim(unsigned index)
 {
-	return num_quads_per_dim_array[num_quads_index] *
-	       num_quads_per_dim_array[num_quads_index] * 2;
+	assert(index < ARRAY_SIZE(prim_counts));
+
+	return sqrt(0.5 * prim_counts[index]);
 }
+
+static double quad_sizes_in_pixels[] = {2, 1.0 / 7, 0.25, 0.5};
 
 enum cull_type {
 	CULL_TYPE_NONE,
@@ -609,7 +609,7 @@ union buffer_set_index {
 		uint16_t draw_method_reduced:3;
 		uint16_t cull_type:2;
 		uint16_t cull_percentage_div25:3;
-		uint16_t num_quads_per_dim_index:3;
+		uint16_t prim_count_index:3;
 		uint16_t quad_size_in_pixels_index:2;
 		uint16_t pad:3;
 	};
@@ -620,13 +620,13 @@ static struct buffer_data buffers[8 * 1024];
 
 static union buffer_set_index
 get_buffer_set_index(enum draw_method draw_method, enum cull_method cull_method,
-		     unsigned num_quads_per_dim_index, unsigned quad_size_in_pixels_index,
+		     unsigned prim_count_index, unsigned quad_size_in_pixels_index,
 		     unsigned cull_percentage)
 {
 	assert(cull_percentage == 0 || cull_percentage == 25 || cull_percentage == 50 ||
 	       cull_percentage == 75 || cull_percentage == 100);
-	assert(num_quads_per_dim_index < 5);
-	assert(quad_size_in_pixels_index < 4);
+	assert(prim_count_index < ARRAY_SIZE(prim_counts));
+	assert(quad_size_in_pixels_index < ARRAY_SIZE(quad_sizes_in_pixels));
 
 	union buffer_set_index set;
 
@@ -639,7 +639,7 @@ get_buffer_set_index(enum draw_method draw_method, enum cull_method cull_method,
 			cull_method == VIEW_CULLING ? CULL_TYPE_VIEW :
 			cull_method == DEGENERATE_PRIMS ? CULL_TYPE_DEGENERATE : CULL_TYPE_NONE;
 	set.cull_percentage_div25 = cull_percentage / 25;
-	set.num_quads_per_dim_index = num_quads_per_dim_index;
+	set.prim_count_index = prim_count_index;
 	set.quad_size_in_pixels_index = quad_size_in_pixels_index;
 	set.pad = 0;
 	return set;
@@ -647,7 +647,7 @@ get_buffer_set_index(enum draw_method draw_method, enum cull_method cull_method,
 
 static void
 init_buffers(enum draw_method draw_method, enum cull_method cull_method,
-	     unsigned num_quads_per_dim_index, unsigned quad_size_in_pixels_index,
+	     unsigned prim_count_index, unsigned quad_size_in_pixels_index,
 	     unsigned cull_percentage, struct test_data *test)
 {
 	const unsigned max_indices = 8100000 * 3;
@@ -655,7 +655,7 @@ init_buffers(enum draw_method draw_method, enum cull_method cull_method,
 	const unsigned max_groups = MAX_MESH_GROUPS;
 
 	union buffer_set_index set =
-		get_buffer_set_index(draw_method, cull_method, num_quads_per_dim_index,
+		get_buffer_set_index(draw_method, cull_method, prim_count_index,
 				     quad_size_in_pixels_index, cull_percentage);
 
 	assert(set.index < ARRAY_SIZE(buffers));
@@ -665,8 +665,7 @@ init_buffers(enum draw_method draw_method, enum cull_method cull_method,
 	if (test->buffers->vb)
 		return;
 
-	assert(set.num_quads_per_dim_index < ARRAY_SIZE(num_quads_per_dim_array));
-	unsigned num_quads_per_dim = num_quads_per_dim_array[set.num_quads_per_dim_index];
+	unsigned num_quads_per_dim = get_num_quads_per_dim(set.prim_count_index);
 
 	assert(set.quad_size_in_pixels_index < ARRAY_SIZE(quad_sizes_in_pixels));
 	double quad_size_in_pixels = quad_sizes_in_pixels[set.quad_size_in_pixels_index];
@@ -882,7 +881,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 		case INIT:
 		    for (unsigned prog = 0; prog < ARRAY_SIZE(progs); prog++) {
 			if (shader_progs[prog]) {
-			    for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
+			    for (int i = 0; i < ARRAY_SIZE(prim_counts); i++) {
 				assert(*test_index < ARRAY_SIZE(tests));
 				struct test_data *test = &tests[(*test_index)++];
 
@@ -898,7 +897,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 			    if (shader_progs[prog]) {
 				glUseProgram(shader_progs[prog]);
 
-				for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
+				for (int i = 0; i < ARRAY_SIZE(prim_counts); i++) {
 				    assert(*test_index < ARRAY_SIZE(tests));
 				    struct test_data *test = &tests[(*test_index)++];
 
@@ -940,7 +939,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 				if (prog > 0)
 				    printf("   ");
 
-				for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++) {
+				for (int i = 0; i < ARRAY_SIZE(prim_counts); i++) {
 				    assert(*test_index < ARRAY_SIZE(tests));
 				    struct test_data *test = &tests[(*test_index)++];
 
@@ -952,7 +951,7 @@ run(enum draw_method draw_method, enum cull_method cull_method, enum test_stage 
 				    }
 
 				    double rate = perf_get_throughput_from_query(test->query, NUM_ITER);
-				    rate *= get_num_prims(i);
+				    rate *= prim_counts[i];
 
 				    if (gpu_freq_mhz) {
 					rate /= gpu_freq_mhz * 1000000.0;
@@ -1036,8 +1035,8 @@ piglit_display(void)
 			continue;
 		if (prog)
 			printf("   ");
-		for (int i = 0; i < ARRAY_SIZE(num_quads_per_dim_array); i++)
-			printf(",  %3uK", get_num_prims(i) / 1000);
+		for (int i = 0; i < ARRAY_SIZE(prim_counts); i++)
+			printf(",  %3uK", prim_counts[i] / 1000);
 	}
 	printf("\n");
 
