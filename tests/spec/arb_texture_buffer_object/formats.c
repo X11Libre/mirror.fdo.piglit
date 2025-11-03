@@ -734,9 +734,10 @@ void
 piglit_init(int argc, char **argv)
 {
 
-	if (test_gpu_shader4)
+	if (test_gpu_shader4) {
 		piglit_require_extension("GL_EXT_gpu_shader4");
-	else
+		piglit_require_extension("GL_EXT_texture_buffer_object");
+	} else
 		piglit_require_GLSL_version(140);
 
 	piglit_require_extension("GL_EXT_texture_integer");
