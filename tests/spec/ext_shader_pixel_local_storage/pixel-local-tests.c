@@ -1473,7 +1473,7 @@ static const struct piglit_subtest subtests[] = {
 		}),
 	},
 	{
-		"inconsistent formats",
+		"inconsistent formats 2",
 		"inconsistent_formats_2",
 		run_test,
 		&((struct test_data){
@@ -1489,7 +1489,7 @@ static const struct piglit_subtest subtests[] = {
 		}),
 	},
 	{
-		"inconsistent formats",
+		"inconsistent formats 3",
 		"inconsistent_formats_3",
 		run_test,
 		&((struct test_data){
