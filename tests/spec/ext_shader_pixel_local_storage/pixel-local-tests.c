@@ -675,7 +675,7 @@ make_draw_main_str(char *dst, struct pls_format_data format_data,
 	if (format_data.num_components > 1)
 		snprintf(dst, MAIN_SIZE, "%s%s(", lhs, format_data.data_type);
 	else
-		snprintf(dst, MAIN_SIZE, lhs);
+		snprintf(dst, MAIN_SIZE, "%s", lhs);
 
 	for (int i = 0; i < format_data.num_components; i++) {
 		switch(format_data.internal_format) {
