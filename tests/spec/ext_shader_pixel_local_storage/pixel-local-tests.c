@@ -83,8 +83,6 @@ struct test_data {
 
 struct pls_format_data {
 	GLint internal_format;
-	GLenum format;
-	GLenum type;
 	const char *layout;
 	const char *data_type;
 	const char *precision;
@@ -850,9 +848,9 @@ run_check_format(struct pls_format_data format_data, const char *structname)
 
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, format_data.internal_format,
-		     piglit_width, piglit_height, 0, format_data.format,
-		     format_data.type, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+		     piglit_width, piglit_height, 0, GL_RGBA,
+		     GL_UNSIGNED_BYTE, NULL);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER,
 			       GL_COLOR_ATTACHMENT0,
@@ -900,8 +898,6 @@ run_check_data(void *_data)
 		[PLS_R11F_G11F_B10F] =
 			{
 				.internal_format = GL_R11F_G11F_B10F,
-				.format = GL_RGB,
-				.type = GL_FLOAT,
 				.layout = "r11f_g11f_b10f",
 				.data_type = "vec3",
 				.precision = "mediump float",
@@ -925,8 +921,6 @@ run_check_data(void *_data)
 		[PLS_R32F] =
 			{
 				.internal_format = GL_R32F,
-				.format = GL_RED,
-				.type = GL_FLOAT,
 				.layout = "r32f",
 				.data_type = "float",
 				.precision = "highp float",
@@ -942,8 +936,6 @@ run_check_data(void *_data)
 		[PLS_RG16F] =
 			{
 				.internal_format = GL_RG16F,
-				.format = GL_RG,
-				.type = GL_FLOAT,
 				.layout = "rg16f",
 				.data_type = "vec2",
 				.precision = "mediump float",
@@ -963,8 +955,6 @@ run_check_data(void *_data)
 		[PLS_RGB10_A2] =
 			{
 				.internal_format = GL_RGB10_A2,
-				.format = GL_RGBA,
-				.type = GL_UNSIGNED_INT_2_10_10_10_REV,
 				.layout = "rgb10_a2",
 				.data_type = "vec4",
 				.precision = "mediump float",
@@ -992,8 +982,6 @@ run_check_data(void *_data)
 		[PLS_RGBA8] =
 			{
 				.internal_format = GL_RGBA8,
-				.format = GL_RGBA,
-				.type = GL_UNSIGNED_BYTE,
 				.layout = "rgba8",
 				.data_type = "vec4",
 				.precision = "mediump float",
@@ -1021,8 +1009,6 @@ run_check_data(void *_data)
 		[PLS_RGBA8I] =
 			{
 				.internal_format = GL_RGBA8I,
-				.format = GL_RGBA_INTEGER,
-				.type = GL_BYTE,
 				.layout = "rgba8i",
 				.data_type = "ivec4",
 				.precision = "mediump int",
@@ -1032,8 +1018,6 @@ run_check_data(void *_data)
 		[PLS_RG16I] =
 			{
 				.internal_format = GL_RG16I,
-				.format = GL_RG_INTEGER,
-				.type = GL_SHORT,
 				.layout = "rg16i",
 				.data_type = "ivec2",
 				.precision = "mediump int",
@@ -1043,8 +1027,6 @@ run_check_data(void *_data)
 		[PLS_RGB10_A2UI] =
 			{
 				.internal_format = GL_RGB10_A2UI,
-				.format = GL_RGBA_INTEGER,
-				.type = GL_UNSIGNED_INT_2_10_10_10_REV,
 				.layout = "rgb10_a2ui",
 				.data_type = "uvec4",
 				.precision = "mediump int",
@@ -1054,8 +1036,6 @@ run_check_data(void *_data)
 		[PLS_RGBA8UI] =
 			{
 				.internal_format = GL_RGBA8UI,
-				.format = GL_RGBA_INTEGER,
-				.type = GL_UNSIGNED_BYTE,
 				.layout = "rgba8ui",
 				.data_type = "uvec4",
 				.precision = "mediump int",
@@ -1065,8 +1045,6 @@ run_check_data(void *_data)
 		[PLS_RG16UI] =
 			{
 				.internal_format = GL_RG16UI,
-				.format = GL_RG_INTEGER,
-				.type = GL_UNSIGNED_SHORT,
 				.layout = "rg16ui",
 				.data_type = "uvec2",
 				.precision = "mediump int",
@@ -1076,8 +1054,6 @@ run_check_data(void *_data)
 		[PLS_R32UI] =
 			{
 				.internal_format = GL_R32UI,
-				.format = GL_RED_INTEGER,
-				.type = GL_UNSIGNED_INT,
 				.layout = "r32ui",
 				.data_type = "uint",
 				.precision = "highp int",
