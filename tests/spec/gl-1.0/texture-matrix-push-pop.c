@@ -100,6 +100,8 @@ piglit_display(void)
     /* --- Draw #2 (right half) --- */
     draw_quad(0.0f, 1.0f);
 
+    piglit_present_results();
+
     if (!piglit_probe_rect_halves_equal_rgba(0, 0, 200, 100))
        return PIGLIT_FAIL;
 
@@ -116,8 +118,11 @@ void piglit_init(int argc, char **argv)
         {  0, 255,   0, 255}, /* Green */
         {  0,   0, 255, 255}  /* Blue */
     };
+    GLuint tex;
 
-    glBindTexture(GL_TEXTURE_2D, 1);
+    glGenTextures(1, &tex);
+
+    glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
