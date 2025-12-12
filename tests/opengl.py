@@ -2606,6 +2606,7 @@ with profile.test_list.group_manager(
       'sampling-2d-array-as-2d-layer')
     g(['arb_texture_view-fbo-blit'],
       'fbo-blit')
+    g(['arb_texture_view-blit-from-tex-view'], 'tex-view')
 
 with profile.test_list.group_manager(
         PiglitGLTest,
