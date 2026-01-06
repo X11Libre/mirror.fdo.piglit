@@ -57,6 +57,11 @@ import numpy as np
 if np.lib.NumpyVersion(np.__version__) >= '2.0.0b1':
     np.set_printoptions(legacy = "1.25")
 
+if np.lib.NumpyVersion(np.__version__) >= '2.1.0':
+    np_reshape_shape = 'shape'
+else:
+    np_reshape_shape = 'newshape'
+
 # Floating point types used by Python and numpy
 DOUBLE_TYPES = (float, np.float64, np.float32)
 
@@ -254,7 +259,11 @@ def column_major_values(value):
     """Given a native numpy value, return a list of the scalar values
     comprising it, in column-major order."""
     if isinstance(value, np.ndarray):
-        return list(np.reshape(value, newshape=-1, order='F'))
+        reshape_args = {
+            np_reshape_shape: -1,
+            'order': 'F',
+        }
+        return list(np.reshape(value, **reshape_args))
     else:
         return [value]
 
@@ -262,7 +271,11 @@ def column_major_values(value):
 def glsl_constant(value):
     """Given a native numpy value, return GLSL code that constructs
     it."""
-    column_major = np.reshape(np.array(value), newshape=-1, order='F')
+    reshape_args = {
+        np_reshape_shape: -1,
+        'order': 'F',
+    }
+    column_major = np.reshape(np.array(value), **reshape_args)
     if column_major.dtype == bool:
         values = ['true' if x else 'false' for x in column_major]
     else:
