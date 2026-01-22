@@ -76,7 +76,6 @@ struct test_data {
 	bool expected_pass;
 	const char *vars;
 	const char *main;
-	/* This will be ignored if num_formats == PLS_FORMAT_COUNT. */
 	enum pls_format_index format_indices[PLS_FORMAT_COUNT];
 	int num_formats;
 };
@@ -1065,10 +1064,7 @@ run_check_data(void *_data)
 	assert(test->num_formats <= PLS_FORMAT_COUNT);
 
 	for (int i = 0; i < test->num_formats; i++) {
-		int format_index = (test->num_formats == PLS_FORMAT_COUNT) ?
-			i : test->format_indices[i];
-
-		res = run_check_format(format_data[format_index],
+		res = run_check_format(format_data[test->format_indices[i]],
 				       (i&1) ? "outp" : "");
 		if (res != PIGLIT_PASS)
 			return res;
@@ -1752,7 +1748,19 @@ static const struct piglit_subtest subtests[] = {
 			true,
 			"",
 			"",
-			{},
+			{
+				PLS_R11F_G11F_B10F,
+				PLS_R32F,
+				PLS_RG16F,
+				PLS_RGB10_A2,
+				PLS_RGBA8,
+				PLS_RGBA8I,
+				PLS_RG16I,
+				PLS_RGB10_A2UI,
+				PLS_RGBA8UI,
+				PLS_RG16UI,
+				PLS_R32UI,
+			},
 			PLS_FORMAT_COUNT,
 		}),
 	},
