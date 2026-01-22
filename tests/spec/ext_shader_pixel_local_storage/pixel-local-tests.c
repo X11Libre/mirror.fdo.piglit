@@ -117,31 +117,68 @@ make_fragment_shader_str(char *fs, const char *precision, const char *vars,
 		 precision, vars, main);
 }
 
-/* Create a string containing a pixel_local_storage block and an optional
+/**
+ * Create a string containing a pixel_local_storage block and an optional
  * out variable.
+ *
+ * \param dst             output string
+ * \param block_layout    specifies the layout for the PLS block
+ * \param layouts         specifies the layouts of individual PLS variables;
+ *                        Note that if block_layout and layouts are both
+ *                        non-NULL both are used.
+ * \param block_data_type specifies the same data type for all PLS variables in
+ *                        the block
+ * \param data_types      specifies the data types of individual PLS variables;
+ *                        Note that at least one of block_data_type or
+ *                        data_types must be non-NULL, and if both are non-NULL
+ *                        only block_data_type is used.
+ * \param pls_name        the name that will appear after the closing } of the
+ *                        PLS block; can be an empty string or NULL for unnamed
+ * \param out_var         name of an out variable, or NULL for no out variable
+ * \param out_data_type   data type of the optional out variable
+ * \param mode            which type of storage qualifier to use for PLS block
+ * \param n_pls_members   how many PLS variables will be in the block
  */
 static void
-make_vars_str(char *dst, const char *layout, const char *data_type,
+make_vars_str(char *dst, const char *block_layout, char **layouts,
+	      const char *block_data_type, char **data_types,
 	      const char *pls_name, const char *out_var,
 	      const char *out_data_type, enum pls_mode mode,
 	      int n_pls_members)
 {
 	char tmp[VARS_SIZE];
 
+	assert(block_data_type || data_types);
 	assert(mode <= PIXEL_LOCAL_INOUT);
-	snprintf(dst, VARS_SIZE, "layout(%s)__pixel_local%sEXT mydata {\n",
-		 layout,
-		 (mode == PIXEL_LOCAL_IN) ? "_in" :
-		  ((mode == PIXEL_LOCAL_OUT) ? "_out" : ""));
+	const char *mode_str = (mode == PIXEL_LOCAL_IN) ? "_in" :
+			       ((mode == PIXEL_LOCAL_OUT) ? "_out" : "");
+	if (block_layout)
+		snprintf(dst, VARS_SIZE,
+			 "layout(%s)__pixel_local%sEXT mydata {\n",
+			 block_layout, mode_str);
+	else
+		snprintf(dst, VARS_SIZE, "__pixel_local%sEXT mydata {\n",
+			 mode_str);
+
 	for (int i = 0; i < n_pls_members; i++) {
-		snprintf(tmp, VARS_SIZE, "	%s pls_color%d;\n",
-			 data_type, i);
+		if (layouts && layouts[i])
+			snprintf(tmp, VARS_SIZE,
+				 "	layout(%s) %s pls_color%d;\n",
+				 layouts[i], block_data_type ?: data_types[i],
+				 i);
+		else
+			snprintf(tmp, VARS_SIZE, "      %s pls_color%d;\n",
+				 block_data_type ?: data_types[i], i);
 		strncat(dst, tmp, VARS_SIZE - strlen(dst));
 	}
-	snprintf(tmp, VARS_SIZE, "} %s;\n", pls_name);
+	if (pls_name && pls_name[0])
+		snprintf(tmp, VARS_SIZE, "} %s;\n", pls_name);
+	else
+		snprintf(tmp, VARS_SIZE, "};\n");
 	strncat(dst, tmp, VARS_SIZE - strlen(dst));
 
 	if (out_var) {
+		assert(out_data_type);
 		char *out_type;
 		if (!strncmp(out_data_type, "ivec", 4) ||
 		    !strncmp(out_data_type, "int", 3) ||
@@ -811,8 +848,8 @@ run_check_format(struct pls_format_data format_data, const char *structname)
 {
 	enum piglit_result res = PIGLIT_PASS;
 	char vars[VARS_SIZE];
-	make_vars_str(vars, format_data.layout, format_data.data_type,
-		      structname, NULL, NULL, PIXEL_LOCAL_INOUT, 1);
+	make_vars_str(vars, format_data.layout, NULL, format_data.data_type,
+		      NULL, structname, NULL, NULL, PIXEL_LOCAL_INOUT, 1);
 	char draw_fs[FS_SIZE];
 	char main[MAIN_SIZE];
 	res = make_draw_main_str(main, format_data, structname);
@@ -822,8 +859,9 @@ run_check_format(struct pls_format_data format_data, const char *structname)
 	make_fragment_shader_str(draw_fs, format_data.precision, vars, main,
 				 true);
 
-	make_vars_str(vars, format_data.layout, format_data.data_type,
-		      structname, "outColor", "vec4", PIXEL_LOCAL_INOUT, 1);
+	make_vars_str(vars, format_data.layout, NULL, format_data.data_type,
+		      NULL, structname, "outColor", "vec4", PIXEL_LOCAL_INOUT,
+		      1);
 	char test_fs[FS_SIZE];
 	res = make_test_main_str(main, format_data, structname);
 	if (res != PIGLIT_PASS)
@@ -1782,11 +1820,13 @@ piglit_init(int argc, char **argv)
 	glGetIntegerv(GL_MAX_SHADER_PIXEL_LOCAL_STORAGE_SIZE_EXT,
 		      &max_pls_size);
 
-	make_vars_str(eq_pls_size, "rgba8", "vec4", "inp", "outColor", "vec4",
-		      PIXEL_LOCAL_IN, max_pls_size / 4);
+	GLint max_pls_vars = max_pls_size / 4;
 
-	make_vars_str(gt_pls_size, "rgba8", "vec4", "inp", "outColor", "vec4",
-		      PIXEL_LOCAL_IN, (max_pls_size / 4) + 1);
+	make_vars_str(eq_pls_size, "rgba8", NULL, "vec4", NULL, "inp",
+		      "outColor", "vec4", PIXEL_LOCAL_IN, max_pls_vars);
+
+	make_vars_str(gt_pls_size, "rgba8", NULL, "vec4", NULL, "inp",
+		      "outColor", "vec4", PIXEL_LOCAL_IN, max_pls_vars + 1);
 
 	enum piglit_result result;
 
