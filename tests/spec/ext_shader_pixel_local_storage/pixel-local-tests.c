@@ -44,10 +44,14 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 
 PIGLIT_GL_TEST_CONFIG_END
 
-#define MAX_TEXTURES 3
-#define FS_SIZE      2048
-#define VARS_SIZE    1024
-#define MAIN_SIZE    1024
+#define MAX_TEXTURES         3
+#define FORMAT_TYPES         3
+#define MAX_FORMATS_PER_TYPE 5
+
+#define FS_SIZE        4096
+#define VARS_SIZE      2048
+#define MAIN_SIZE      2048
+#define PRECISION_SIZE 16
 
 enum pls_mode {
 	PIXEL_LOCAL_IN,
@@ -701,142 +705,173 @@ run_blend_dither_test(void *_data)
  * pixel_local_storage variable.
  */
 static enum piglit_result
-make_draw_main_str(char *dst, struct pls_format_data format_data,
-		   const char *structname)
+make_draw_main_str(char *dst, struct pls_format_data *format_data,
+		   const char *structname, int n_pls_members)
 {
-	char tmp[MAIN_SIZE];
+	char tmp_outer[MAIN_SIZE];
 	char lhs[MAIN_SIZE/2];
 	const char *dot = structname[0] ? "." : "";
-	snprintf(lhs, MAIN_SIZE/2, "	%s%spls_color0 = ", structname, dot);
-	if (format_data.num_components > 1)
-		snprintf(dst, MAIN_SIZE, "%s%s(", lhs, format_data.data_type);
-	else
-		snprintf(dst, MAIN_SIZE, "%s", lhs);
 
-	for (int i = 0; i < format_data.num_components; i++) {
-		switch(format_data.internal_format) {
-		case GL_R11F_G11F_B10F:
-		case GL_R32F:
-		case GL_RG16F:
-		case GL_RGB10_A2:
-		case GL_RGBA8:
-			snprintf(tmp, MAIN_SIZE, "%.12e", format_data.f[i].value);
-			break;
-		case GL_RGBA8I:
-		case GL_RG16I:
-			snprintf(tmp, MAIN_SIZE, "%i", format_data.i[i]);
-			break;
-		case GL_RGB10_A2UI:
-		case GL_RGBA8UI:
-		case GL_RG16UI:
-		case GL_R32UI:
-			snprintf(tmp, MAIN_SIZE, "%uu", format_data.u[i]);
-			break;
-		default:
-			piglit_loge("invalid format");
-			return PIGLIT_FAIL;
-		};
-		if (i < (format_data.num_components - 1)) {
-			strncat(tmp, ",", MAIN_SIZE - strlen(tmp));
+	snprintf(dst, MAIN_SIZE, "\n");
+	for (int member = 0; member < n_pls_members; member++) {
+		snprintf(lhs, MAIN_SIZE/2, "	%s%spls_color%d = ",
+			 structname, dot, member);
+		if (format_data[member].num_components > 1)
+			snprintf(tmp_outer, MAIN_SIZE, "%s%s(", lhs,
+				 format_data[member].data_type);
+		else
+			snprintf(tmp_outer, MAIN_SIZE, "%s", lhs);
+
+		for (int comp = 0; comp < format_data[member].num_components;
+		     comp++) {
+			char tmp_inner[MAIN_SIZE];
+			switch(format_data[member].internal_format) {
+			case GL_R11F_G11F_B10F:
+			case GL_R32F:
+			case GL_RG16F:
+			case GL_RGB10_A2:
+			case GL_RGBA8:
+				snprintf(tmp_inner, MAIN_SIZE, "%.12e",
+					 format_data[member].f[comp].value);
+				break;
+			case GL_RGBA8I:
+			case GL_RG16I:
+				snprintf(tmp_inner, MAIN_SIZE, "%i",
+					 format_data[member].i[comp]);
+				break;
+			case GL_RGB10_A2UI:
+			case GL_RGBA8UI:
+			case GL_RG16UI:
+			case GL_R32UI:
+				snprintf(tmp_inner, MAIN_SIZE, "%uu",
+					 format_data[member].u[comp]);
+				break;
+			default:
+				piglit_loge("invalid format");
+				return PIGLIT_FAIL;
+			};
+			if (comp < (format_data[member].num_components - 1)) {
+				strncat(tmp_inner, ",",
+					MAIN_SIZE - strlen(tmp_inner));
+			}
+			strncat(tmp_outer, tmp_inner,
+				MAIN_SIZE - strlen(tmp_outer));
 		}
-		strncat(dst, tmp, MAIN_SIZE - strlen(dst));
+		if (format_data[member].num_components > 1) {
+			strncat(tmp_outer, ")", MAIN_SIZE - strlen(tmp_outer));
+		}
+		strncat(tmp_outer, ";\n", MAIN_SIZE - strlen(tmp_outer));
+		strncat(dst, tmp_outer, VARS_SIZE - strlen(dst));
 	}
-	if (format_data.num_components > 1) {
-		strncat(dst, ")", MAIN_SIZE - strlen(dst));
-	}
-	strncat(dst, ";\n", MAIN_SIZE - strlen(dst));
 	return PIGLIT_PASS;
 }
 
 static enum piglit_result
-make_test_main_str(char *dst, struct pls_format_data format_data,
-		   const char *structname)
+make_test_main_str(char *dst, struct pls_format_data *format_data,
+		   const char *structname, int n_pls_members)
 {
-	const char *index = (format_data.num_components > 1) ? "[i]" : "";
 	const char *dot = structname[0] ? "." : "";
 	static const char *float_template =
-		"	vec4 tolerance = vec4(%.12e, %.12e, %.12e, %.12e);\n"
-		"	vec4 expected = vec4(%.12e, %.12e, %.12e, %.12e);\n"
-		"	outColor = vec4(0.0, 1.0, 0.0, 0.0);\n"
+		"	vec4 tolerance%d = vec4(%.12e, %.12e, %.12e, %.12e);\n"
+		"	vec4 expected%d = vec4(%.12e, %.12e, %.12e, %.12e);\n"
 		"	for (int i = 0; i < %d; i++) {\n"
-		"		if (abs(%s%spls_color0%s - expected[i]) > tolerance[i])\n"
+		"		if (abs(%s%spls_color%d%s - expected%d[i]) > tolerance%d[i])\n"
 		"			outColor = vec4(1.0, 0.0, 0.0, 0.0);\n"
 		"	}\n";
 
 	static const char *int_template =
-		"	ivec4 expected = ivec4(%i, %i, %i, %i);\n"
-		"	outColor = vec4(0.0, 1.0, 0.0, 0.0);\n"
+		"	ivec4 expected%d = ivec4(%i, %i, %i, %i);\n"
 		"	for (int i = 0; i < %d; i++) {\n"
-		"		if (%s%spls_color0%s != expected[i])\n"
+		"		if (%s%spls_color%d%s != expected%d[i])\n"
 		"			outColor = vec4(1.0, 0.0, 0.0, 0.0);\n"
 		"	}\n";
 
 	static const char *uint_template =
-		"	uvec4 expected = uvec4(%uu, %uu, %uu, %uu);\n"
-		"	outColor = vec4(0.0, 1.0, 0.0, 0.0);\n"
+		"	uvec4 expected%d = uvec4(%uu, %uu, %uu, %uu);\n"
 		"	for (int i = 0; i < %d; i++) {\n"
-		"		if (%s%spls_color0%s != expected[i])\n"
+		"		if (%s%spls_color%d%s != expected%d[i])\n"
 		"			outColor = vec4(1.0, 0.0, 0.0, 0.0);\n"
 		"	}\n";
 
-	switch(format_data.internal_format) {
-	case GL_R11F_G11F_B10F:
-	case GL_R32F:
-	case GL_RG16F:
-	case GL_RGB10_A2:
-	case GL_RGBA8: {
-		float tolerance[4];
-		float expected[4];
-		for (int i = 0; i < 4; i++) {
-			if (i < format_data.num_components) {
-				tolerance[i] = format_data.f[i].tolerance;
-				expected[i] = format_data.f[i].value;
-			} else {
-				tolerance[i] = 0.0;
-				expected[i] = 0.0;
-			}
-		}
-		snprintf(dst, MAIN_SIZE, float_template,
-			 tolerance[0], tolerance[1], tolerance[2], tolerance[3],
-			 expected[0], expected[1], expected[2], expected[3],
-			 format_data.num_components, structname, dot, index);
-		break;
-	}
-	case GL_RGBA8I:
-	case GL_RG16I: {
-		int expected[4];
-		for (int i = 0; i < 4; i++) {
-			if (i < format_data.num_components)
-				expected[i] = format_data.i[i];
-			else
-				expected[i] = 0;
-		}
-		snprintf(dst, MAIN_SIZE, int_template,
-			 expected[0], expected[1], expected[2], expected[3],
-			 format_data.num_components, structname, dot, index);
-		break;
-	}
-	case GL_RGB10_A2UI:
-	case GL_RGBA8UI:
-	case GL_RG16UI:
-	case GL_R32UI: {
-		uint expected[4];
-		for (int i = 0; i < 4; i++) {
-			if (i < format_data.num_components)
-				expected[i] = format_data.u[i];
-			else
-				expected[i] = 0u;
-		}
-		snprintf(dst, MAIN_SIZE, uint_template,
-			 expected[0], expected[1], expected[2], expected[3],
-			 format_data.num_components, structname, dot, index);
-		break;
-	}
-	default:
-		piglit_loge("invalid format");
-		return PIGLIT_FAIL;
-	};
+	char tmp[MAIN_SIZE];
+	snprintf(dst, MAIN_SIZE, "	outColor = vec4(0.0, 1.0, 0.0, 0.0);\n");
 
+	for (int member = 0; member < n_pls_members; member++) {
+		const char *index = (format_data[member].num_components > 1) ?
+				    "[i]" : "";
+
+		switch(format_data[member].internal_format) {
+		case GL_R11F_G11F_B10F:
+		case GL_R32F:
+		case GL_RG16F:
+		case GL_RGB10_A2:
+		case GL_RGBA8: {
+			float tolerance[4];
+			float expected[4];
+			for (int comp = 0; comp < 4; comp++) {
+				if (comp < format_data[member].num_components) {
+					tolerance[comp] =
+						format_data[member].f[comp].tolerance;
+					expected[comp] =
+						format_data[member].f[comp].value;
+				} else {
+					tolerance[comp] = 0.0;
+					expected[comp] = 0.0;
+				}
+			}
+			snprintf(tmp, MAIN_SIZE, float_template,
+				 member,
+				 tolerance[0], tolerance[1], tolerance[2],
+				 tolerance[3],
+				 member,
+				 expected[0], expected[1], expected[2],
+				 expected[3],
+				 format_data[member].num_components, structname,
+				 dot, member, index, member, member);
+			break;
+		}
+		case GL_RGBA8I:
+		case GL_RG16I: {
+			int expected[4];
+			for (int comp = 0; comp < 4; comp++) {
+				if (comp < format_data[member].num_components)
+					expected[comp] = format_data[member].i[comp];
+				else
+					expected[comp] = 0;
+			}
+			snprintf(tmp, MAIN_SIZE, int_template,
+				 member,
+				 expected[0], expected[1], expected[2],
+				 expected[3],
+				 format_data[member].num_components, structname,
+				 dot, member, index, member);
+			break;
+		}
+		case GL_RGB10_A2UI:
+		case GL_RGBA8UI:
+		case GL_RG16UI:
+		case GL_R32UI: {
+			uint expected[4];
+			for (int comp = 0; comp < 4; comp++) {
+				if (comp < format_data[member].num_components)
+					expected[comp] = format_data[member].u[comp];
+				else
+					expected[comp] = 0u;
+			}
+			snprintf(tmp, MAIN_SIZE, uint_template,
+				 member,
+				 expected[0], expected[1], expected[2],
+				 expected[3],
+				 format_data[member].num_components, structname,
+				 dot, member, index, member);
+			break;
+		}
+		default:
+			piglit_loge("invalid format");
+			return PIGLIT_FAIL;
+		};
+		strncat(dst, tmp, MAIN_SIZE - strlen(dst));
+	}
 	return PIGLIT_PASS;
 }
 
@@ -844,31 +879,58 @@ make_test_main_str(char *dst, struct pls_format_data format_data,
  * variable with the given format data.
  */
 static enum piglit_result
-run_check_format(struct pls_format_data format_data, const char *structname)
+run_check_format(struct pls_format_data *format_data, const char *structname,
+		 int n_pls_members)
 {
 	enum piglit_result res = PIGLIT_PASS;
 	char vars[VARS_SIZE];
-	make_vars_str(vars, format_data.layout, NULL, format_data.data_type,
-		      NULL, structname, NULL, NULL, PIXEL_LOCAL_INOUT, 1);
+	char **layouts = calloc(n_pls_members, sizeof(char *));
+	char **data_types = calloc(n_pls_members, sizeof(char *));
+	for (int i = 0; i < n_pls_members; i++) {
+		layouts[i] = strdup(format_data[i].layout);
+		data_types[i] = strdup(format_data[i].data_type);
+	}
+
+	/* set PLS precision to the highest of the given formats */
+	char precision[PRECISION_SIZE];
+	snprintf(precision, PRECISION_SIZE, "%s", format_data[0].precision);
+	if (strncmp(precision, "highp", 5)) {
+		for (int i = 1; i < n_pls_members; i++) {
+			if (!strncmp(format_data[i].precision, "highp", 5)) {
+				snprintf(precision, PRECISION_SIZE, "%s",
+					 format_data[i].precision);
+				break;
+			}
+		}
+	}
+
+	make_vars_str(vars, NULL, layouts, NULL, data_types,
+		      structname, NULL, NULL, PIXEL_LOCAL_INOUT, n_pls_members);
 	char draw_fs[FS_SIZE];
 	char main[MAIN_SIZE];
-	res = make_draw_main_str(main, format_data, structname);
+	res = make_draw_main_str(main, format_data, structname, n_pls_members);
 	if (res != PIGLIT_PASS)
 		goto end;
 
-	make_fragment_shader_str(draw_fs, format_data.precision, vars, main,
-				 true);
+	make_fragment_shader_str(draw_fs, precision, vars, main, true);
 
-	make_vars_str(vars, format_data.layout, NULL, format_data.data_type,
-		      NULL, structname, "outColor", "vec4", PIXEL_LOCAL_INOUT,
-		      1);
+	make_vars_str(vars, NULL, layouts, NULL, data_types,
+		      structname, "outColor", "vec4", PIXEL_LOCAL_INOUT,
+		      n_pls_members);
+
+	for (int i = 0; i < n_pls_members; i++) {
+		free(layouts[i]);
+		free(data_types[i]);
+	}
+	free(layouts);
+	free(data_types);
+
 	char test_fs[FS_SIZE];
-	res = make_test_main_str(main, format_data, structname);
+	res = make_test_main_str(main, format_data, structname, n_pls_members);
 	if (res != PIGLIT_PASS)
 		goto end;
 
-	make_fragment_shader_str(test_fs, format_data.precision, vars, main,
-				 true);
+	make_fragment_shader_str(test_fs, precision, vars, main, true);
 
 	GLint draw_prog = build_program_with_basic_vs(draw_fs);
 	GLint test_prog = build_program_with_basic_vs(test_fs);
@@ -921,6 +983,15 @@ run_check_format(struct pls_format_data format_data, const char *structname)
 
 end:
 	return cleanup_and_return(res, 1, &tex, 0, NULL, 1, &fbo);
+}
+
+static enum piglit_result
+_run_check_data(struct pls_format_data fd0, struct pls_format_data fd1,
+		struct pls_format_data fd2, struct pls_format_data fd3,
+		int index)
+{
+	struct pls_format_data data[] = {fd0, fd1, fd2, fd3,};
+	return run_check_format(data, (index&1) ? "outp" : "", 4);
 }
 
 /* Check that pixel_local_storage variables with the given formats produce
@@ -1101,11 +1172,59 @@ run_check_data(void *_data)
 	const struct test_data *test = (const struct test_data*) _data;
 	assert(test->num_formats <= PLS_FORMAT_COUNT);
 
+	if (test->num_formats == 1) {
+		return _run_check_data(format_data[test->format_indices[0]],
+				       format_data[test->format_indices[0]],
+				       format_data[test->format_indices[0]],
+				       format_data[test->format_indices[0]], 0);
+	}
+
+	/* Break list of format indices into 3 separate lists by format type. */
+	enum pls_format_index indices[FORMAT_TYPES][MAX_FORMATS_PER_TYPE];
+	int formats[FORMAT_TYPES] = {0, 0, 0};
+
 	for (int i = 0; i < test->num_formats; i++) {
-		res = run_check_format(format_data[test->format_indices[i]],
-				       (i&1) ? "outp" : "");
-		if (res != PIGLIT_PASS)
-			return res;
+		switch(test->format_indices[i]) {
+		case PLS_R11F_G11F_B10F:
+		case PLS_R32F:
+		case PLS_RG16F:
+		case PLS_RGB10_A2:
+		case PLS_RGBA8:
+			indices[0][formats[0]] = test->format_indices[i];
+			formats[0]++;
+			break;
+		case PLS_RGBA8I:
+		case PLS_RG16I:
+			indices[1][formats[1]] = test->format_indices[i];
+			formats[1]++;
+			break;
+		case PLS_RGB10_A2UI:
+		case PLS_RGBA8UI:
+		case PLS_RG16UI:
+		case PLS_R32UI:
+			indices[2][formats[2]] = test->format_indices[i];
+			formats[2]++;
+			break;
+		default:
+			piglit_loge("invalid format");
+
+		}
+	}
+
+	for (int format_type = 0; format_type < FORMAT_TYPES; format_type++) {
+		for (int i = 0; i < formats[format_type]; i++) {
+			int j = (i+1)%formats[format_type];
+			int k = (j+1)%formats[format_type];
+			int l = (k+1)%formats[format_type];
+			res = _run_check_data(
+				format_data[indices[format_type][i]],
+				format_data[indices[format_type][j]],
+				format_data[indices[format_type][k]],
+				format_data[indices[format_type][l]],
+				i);
+			if (res != PIGLIT_PASS)
+				return res;
+		}
 	}
 	return res;
 }
