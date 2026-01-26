@@ -176,6 +176,7 @@ class TestDEQPBaseTest(object):
                 warn=1 if stat == 'QualityWarning' else 0,
             )
 
+        @pytest.fixture(autouse=True)
         def setup(self):
             self.inst = _DEQPTestTest('a.deqp.test')
             self.inst.result.returncode = 0

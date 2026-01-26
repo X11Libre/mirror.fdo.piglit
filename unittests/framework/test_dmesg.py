@@ -63,6 +63,7 @@ class TestBaseDmesg(object):
     def setup_class(cls):
         cls.dmesg = _DmesgTester()
 
+    @pytest.fixture(autouse=True)
     def setup(self):
         self.result = results.TestResult()
         self.result.dmesg = mock.sentinel.dmesg

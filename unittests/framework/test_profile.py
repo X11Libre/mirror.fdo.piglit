@@ -113,6 +113,7 @@ class TestTestDict(object):
 
     test = None
 
+    @pytest.fixture(autouse=True)
     def setup(self):
         self.test = profile.TestDict()
 

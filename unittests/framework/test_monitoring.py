@@ -36,6 +36,7 @@ from . import skip
 class TestMonitoring(object):
     """Tests for Monitoring methods."""
 
+    @pytest.fixture(autouse=True)
     def setup(self):
         """Setup for TestMonitoring.
 

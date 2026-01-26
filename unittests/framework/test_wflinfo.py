@@ -65,6 +65,7 @@ class TestWflInfo(object):
                         {}):
                 yield
 
+        @pytest.fixture(autouse=True)
         def setup(self):
             """Setup each instance, patching necissary bits."""
             self._test = wflinfo.WflInfo()
