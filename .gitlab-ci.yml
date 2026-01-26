@@ -181,15 +181,15 @@ pages:
   stage: deploy
   image: alpine
   script:
-  - apk --no-cache add py3-pip python3
-  - pip install sphinx
-  - pip install Flask-Sphinx-Themes
-  - cd docs
-  - ./build-html.sh
-  - mv _build/html/ ../public/
+    - apk --no-cache add py3-pip python3
+    - pip install sphinx
+    - pip install Flask-Sphinx-Themes
+    - cd docs
+    - ./build-html.sh
+    - mv _build/html/ ../public/
   artifacts:
     paths:
-    - public
+      - public
   only:
     refs:
       - main
