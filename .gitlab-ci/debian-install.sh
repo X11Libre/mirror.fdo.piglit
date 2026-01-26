@@ -7,7 +7,7 @@ apt-get update
 apt-get install -y \
   ca-certificates
 
-sed -i -e 's/http:\/\/deb/https:\/\/deb/g' /etc/apt/sources.list
+sed -i -e 's/http:\/\/deb/https:\/\/deb/g' /etc/apt/sources.list.d/debian.sources
 
 apt-get update
 
@@ -15,7 +15,6 @@ apt-get update
 EPHEMERAL=(
   bzip2
   curl
-  libpciaccess-dev
   meson
   unzip
 )
@@ -61,19 +60,22 @@ apt-get install -y \
   waffle-utils \
   "${EPHEMERAL[@]}"
 
-pip3 install jsonschema==4.25.1
-pip3 install mako==1.3.10
-pip3 install mock==5.2.0
-pip3 install numpy==2.0.2
-pip3 install pillow==11.3.0
-pip3 install pytest==8.4.2
-pip3 install pytest-mock==3.15.1
-pip3 install pytest-raises==0.11
-pip3 install pytest-timeout==2.4.0
-pip3 install pyyaml==6.0.3
-pip3 install requests==2.32.5
-pip3 install requests-mock==1.12.1
-pip3 install setuptools==80.10.2
+# Find the latest version available to the python version in the docker image
+# using this command, replacing `$pkg` with the python package name:
+# $ pip index versions --python-version 3.13 --json $pkg | jq -r .latest
+pip3 install --break-system-packages jsonschema==4.26.0
+pip3 install --break-system-packages mako==1.3.10
+pip3 install --break-system-packages mock==5.2.0
+pip3 install --break-system-packages numpy==2.4.1
+pip3 install --break-system-packages pillow==12.1.0
+pip3 install --break-system-packages pytest==9.0.2
+pip3 install --break-system-packages pytest-mock==3.15.1
+pip3 install --break-system-packages pytest-raises==0.11
+pip3 install --break-system-packages pytest-timeout==2.4.0
+pip3 install --break-system-packages pyyaml==6.0.3
+pip3 install --break-system-packages requests==2.32.5
+pip3 install --break-system-packages requests-mock==1.12.1
+pip3 install --break-system-packages setuptools==80.10.2
 
 # Download Waffle artifacts.  See also
 # https://gitlab.freedesktop.org/mesa/waffle/-/merge_requests/89

@@ -9,8 +9,8 @@
 # with older commits using the same tag.
 variables:
   FDO_UPSTREAM_REPO: mesa/piglit
-  FDO_DISTRIBUTION_TAG: "2026-01-26-pip2"
-  FDO_DISTRIBUTION_VERSION: bullseye-slim
+  FDO_DISTRIBUTION_VERSION: trixie-slim
+  FDO_DISTRIBUTION_TAG: "2026-01-29-trixie"
   WINDOWS_TAG: "2022-07-27-win2022"
   WINDOWS_IMAGE: "$CI_REGISTRY_IMAGE/windows/x64_build:$WINDOWS_TAG"
   WINDOWS_UPSTREAM_IMAGE: "$CI_REGISTRY/$FDO_UPSTREAM_REPO/windows/x64_build:$WINDOWS_TAG"
