@@ -52,29 +52,28 @@ apt-get install -y \
   pkg-config \
   python3 \
   python3-dev \
-  python3-jsonschema \
-  python3-mako \
-  python3-mock \
-  python3-numpy \
   python3-packaging \
-  python3-pil \
   python3-pip \
   python3-psutil \
-  python3-pytest \
-  python3-pytest-mock \
-  python3-pytest-timeout \
-  python3-requests \
-  python3-requests-mock \
-  python3-setuptools \
   python3-wheel \
-  python3-yaml \
   pylint \
   tox \
   waffle-utils \
   $EPHEMERAL
 
-pip3 install pytest-pythonpath
-pip3 install pytest-raises
+pip3 install jsonschema==4.25.1
+pip3 install mako==1.3.10
+pip3 install mock==5.2.0
+pip3 install numpy==2.0.2
+pip3 install pillow==11.3.0
+pip3 install pytest==8.4.2
+pip3 install pytest-mock==3.15.1
+pip3 install pytest-raises==0.11
+pip3 install pytest-timeout==2.4.0
+pip3 install pyyaml==6.0.3
+pip3 install requests==2.32.5
+pip3 install requests-mock==1.12.1
+pip3 install setuptools==80.10.2
 
 # Download Waffle artifacts.  See also
 # https://gitlab.freedesktop.org/mesa/waffle/-/merge_requests/89

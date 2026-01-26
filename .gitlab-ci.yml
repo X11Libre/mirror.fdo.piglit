@@ -9,7 +9,7 @@
 # with older commits using the same tag.
 variables:
   FDO_UPSTREAM_REPO: mesa/piglit
-  FDO_DISTRIBUTION_TAG: "2024-04-16-wayland-protocols"
+  FDO_DISTRIBUTION_TAG: "2026-01-26-pip2"
   FDO_DISTRIBUTION_VERSION: bullseye-slim
   WINDOWS_TAG: "2022-07-27-win2022"
   WINDOWS_IMAGE: "$CI_REGISTRY_IMAGE/windows/x64_build:$WINDOWS_TAG"
@@ -164,7 +164,7 @@ py.test:
   extends:
     - .use-debian
   script:
-    - pytest-3 unittests/framework
+    - pytest unittests/framework
 
 tox:
   image: python:${PY_MAJVER}.${PY_MINVER}

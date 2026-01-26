@@ -52,7 +52,6 @@ For testing the python framework using `py.test unittests/framework`
   - psutil. A portable process library for python
   - jsonschema. A JSON validator library for python
   - pytest-mock. A mock plugin for pytest
-  - pytest-pythonpath. A plugin for pytest to do automagic with sys.path
   - pytest-raises. A plugin for pytest that allows decorating tests that expect
     failure
   - pytest-warnings. A plugin for pytest that handles python warnings
