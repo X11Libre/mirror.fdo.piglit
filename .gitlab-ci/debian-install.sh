@@ -12,13 +12,13 @@ sed -i -e 's/http:\/\/deb/https:\/\/deb/g' /etc/apt/sources.list
 apt-get update
 
 # Ephemeral packages (installed for this script and removed again at the end)
-EPHEMERAL="
+EPHEMERAL=(
   bzip2
   curl
   libpciaccess-dev
   meson
   unzip
-  "
+)
 
 apt-get install -y \
   bison \
@@ -59,7 +59,7 @@ apt-get install -y \
   pylint \
   tox \
   waffle-utils \
-  $EPHEMERAL
+  "${EPHEMERAL[@]}"
 
 pip3 install jsonschema==4.25.1
 pip3 install mako==1.3.10
@@ -89,5 +89,5 @@ done
 
 .gitlab-ci/build-wayland.sh
 
-apt-get purge -y $EPHEMERAL
+apt-get purge -y "${EPHEMERAL[@]}"
 apt-get autoremove -y --purge
