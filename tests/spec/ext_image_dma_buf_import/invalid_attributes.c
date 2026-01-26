@@ -219,10 +219,12 @@ piglit_display(void)
 	const unsigned h = 2;
 	const unsigned cpp = 4;
 	const unsigned fourcc = DRM_FORMAT_ARGB8888;
-	const unsigned char *pixels = alloca(w * h * cpp);
+	unsigned char *pixels = alloca(w * h * cpp);
 	struct piglit_dma_buf *buf;
 	enum piglit_result res;
 	bool pass = true;
+
+	memset(pixels, 0, w * h * cpp);
 
 	res = piglit_create_dma_buf(w, h, fourcc, pixels, &buf);
 	if (res != PIGLIT_PASS)
