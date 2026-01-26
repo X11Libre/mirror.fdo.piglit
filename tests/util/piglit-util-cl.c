@@ -630,7 +630,7 @@ piglit_cl_get_platform_ids(cl_platform_id** platform_ids)
 		*platform_ids = malloc(num_platform_ids * sizeof(cl_platform_id));
 		errNo = clGetPlatformIDs(num_platform_ids, *platform_ids, NULL);
 		if(errNo != CL_SUCCESS) {
-			free(platform_ids);
+			free(*platform_ids);
 			*platform_ids = malloc(0);
 			fprintf(stderr,
 			        "Could not get get platform list: %s\n",
@@ -685,7 +685,7 @@ piglit_cl_get_device_ids(cl_platform_id platform_id, cl_device_type device_type,
 				                       *device_ids,
 				                       NULL);
 				if(errNo != CL_SUCCESS) {
-					free(device_ids);
+					free(*device_ids);
 					*device_ids = malloc(0);
 					fprintf(stderr,
 					        "Could not get get device list: %s\n",
