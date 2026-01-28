@@ -143,10 +143,10 @@ make_vars_str(char *dst, const char *layout, const char *data_type,
 
 	if (out_var) {
 		char *out_type;
-		if (strstr(out_data_type, "ivec") ||
-		    strstr(out_data_type, "int") ||
-		    strstr(out_data_type, "uvec") ||
-		    strstr(out_data_type, "uint"))
+		if (!strncmp(out_data_type, "ivec", 4) ||
+		    !strncmp(out_data_type, "int", 3) ||
+		    !strncmp(out_data_type, "uvec", 4) ||
+		    !strncmp(out_data_type, "uint", 4))
 			out_type = "int";
 		else
 		       out_type = "float";
