@@ -103,8 +103,6 @@ piglit_cl_test(const int argc,
 				clReleaseKernel(kernels[i]);
 			}
 		}
-
-		free(kernels);
 	}
 
 	/*** Errors ***/
@@ -145,5 +143,6 @@ piglit_cl_test(const int argc,
 	     CL_INVALID_VALUE, &result,
 	     "Trigger CL_INVALID_VALUE when kernels is not NULL and num_kernels is less than number of kernels in program.");
 
+	free(kernels);
 	return result;
 }
