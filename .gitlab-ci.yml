@@ -161,13 +161,6 @@ build-windows:
       -GNinja &&
       ninja -j4"
 
-py.test:
-  stage: build
-  extends:
-    - .use-debian
-  script:
-    - pytest unittests/framework
-
 tox:
   image: python:${PY_MAJVER}.${PY_MINVER}
   stage: build
