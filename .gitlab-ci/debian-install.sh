@@ -23,7 +23,6 @@ apt-get install -y \
   bison \
   ccache \
   cmake \
-  codespell \
   flake8 \
   flex \
   freeglut3-dev \

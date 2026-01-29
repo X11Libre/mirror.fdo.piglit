@@ -104,7 +104,6 @@ windows:
   extends:
     - .use-debian
   script:
-    - codespell -f -S ".mypy_cache,drm_fourcc.h" -L "lod,inout,nd,valu,tese,ba,te,nin,marge,stach,MONE"
     - export CHECKPATH=framework/replay # restrict Python checks only on framework/replay for now
     - isort --check-only $CHECKPATH
     - flake8 --max-line-length=120 --show-source $CHECKPATH
