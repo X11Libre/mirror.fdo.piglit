@@ -99,7 +99,7 @@ windows:
   image: $WINDOWS_IMAGE
 
 # CHECK
-.linting:
+linting:
   stage: check
   extends:
     - .use-debian
