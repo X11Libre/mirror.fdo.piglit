@@ -7,7 +7,7 @@
 """ Module providing an ANGLE dump backend for replayer """
 
 from os import chdir, path, rename
-from typing import List
+from typing import List, Union
 
 from framework import core, exceptions
 
@@ -28,7 +28,8 @@ class ANGLETraceBackend(DumpBackend):
 
     _get_last_frame_call = None  # this silences the abstract-not-subclassed warning
 
-    def __init__(self, trace_path: str, output_dir: str = None, calls: List[str] = None, **kwargs: str) -> None:
+    def __init__(self, trace_path: str, output_dir: Union[str, None] = None,
+                 calls: Union[List[str], None] = None, **kwargs: str) -> None:
         super().__init__(trace_path, output_dir, calls, **kwargs)
         extension: str = path.splitext(self._trace_path)[1]
 
