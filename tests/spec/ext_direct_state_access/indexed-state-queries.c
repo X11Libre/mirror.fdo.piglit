@@ -53,17 +53,17 @@ static GLint max_units;
 static GLint max_tex_coords;
 
 struct get_float_indexed_t {
-	void (*get_float_fn) (GLenum, GLuint, GLfloat *);
+	void (APIENTRY *get_float_fn) (GLenum, GLuint, GLfloat *);
 	const char* name;
 	int min_gl_compat_version;
 };
 struct get_double_indexed_t {
-	void (*get_double_fn) (GLenum, GLuint, GLdouble *);
+	void (APIENTRY *get_double_fn) (GLenum, GLuint, GLdouble *);
 	const char* name;
 	int min_gl_compat_version;
 };
 struct get_pointer_indexed_t {
-	void (*get_pointer_fn) (GLenum, GLuint, GLvoid **);
+	void (APIENTRY *get_pointer_fn) (GLenum, GLuint, GLvoid **);
 	const char* name;
 	int min_gl_compat_version;
 };
