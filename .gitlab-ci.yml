@@ -182,8 +182,8 @@ tox:
   before_script:
     - pip install tox==4.4.6
   script:
-    - tox run -e "generator, noaccel, accel-nix, streams, functional"
-    - test "$PY_MINVER" = "8" || tox run -e "numpy2" # no numpy2 on Python 3.8
+    - test "$PY_MINVER" = "8" || numpy2="numpy2" # no numpy2 on Python 3.8
+    - tox run -e "generator, noaccel, accel-nix, streams, functional, $numpy2"
   parallel:
     matrix:
       - PY_MAJVER: 3
