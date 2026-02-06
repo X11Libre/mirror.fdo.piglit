@@ -144,6 +144,8 @@ int main(int argc, char **argv)
 			piglit_report_result(PIGLIT_FAIL);
 			return 0;
 		}
+
+		XDestroyWindow(dpy, window);
 	}
 
 	GLX_ARB_create_context_teardown();
