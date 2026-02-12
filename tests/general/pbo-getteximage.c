@@ -281,11 +281,15 @@ void
 piglit_init(int argc, char **argv)
 {
 	bool pass = true;
+	bool has_texture_array;
 	float pixels[4 * (2 * 2 * 12)];
 	unsigned int x, y, z;
 
 	piglit_require_extension("GL_ARB_pixel_buffer_object");
 	piglit_require_extension("GL_ARB_get_texture_sub_image");
+	has_texture_array =
+		piglit_get_gl_version() >= 30 ||
+		piglit_is_extension_supported("GL_EXT_texture_array");
 
 	/* Init pixels with content */
 	for (x = 0; x < 2; ++x)
@@ -301,18 +305,22 @@ piglit_init(int argc, char **argv)
 			}
 
 	pass &= test_getteximage(GL_TEXTURE_1D, 2, 0, 0, pixels);
-	pass &= test_getteximage(GL_TEXTURE_1D_ARRAY, 2, 2, 0, pixels);
 	pass &= test_getteximage(GL_TEXTURE_2D, 2, 2, 0, pixels);
-	pass &= test_getteximage(GL_TEXTURE_2D_ARRAY, 2, 2, 2, pixels);
+	if (has_texture_array) {
+		pass &= test_getteximage(GL_TEXTURE_1D_ARRAY, 2, 2, 0, pixels);
+		pass &= test_getteximage(GL_TEXTURE_2D_ARRAY, 2, 2, 2, pixels);
+	}
 	pass &= test_getteximage(GL_TEXTURE_3D, 2, 2, 2, pixels);
 	pass &= test_getteximage(GL_TEXTURE_CUBE_MAP, 2, 2, 0, pixels);
 	if (piglit_is_extension_supported("GL_ARB_texture_cube_map_array"))
 		pass &= test_getteximage(GL_TEXTURE_CUBE_MAP_ARRAY, 2, 2, 12, pixels);
 
 	pass &= test_gettexturesubimage(GL_TEXTURE_1D, 2, 0, 0, pixels);
-	pass &= test_gettexturesubimage(GL_TEXTURE_1D_ARRAY, 2, 2, 0, pixels);
 	pass &= test_gettexturesubimage(GL_TEXTURE_2D, 2, 2, 0, pixels);
-	pass &= test_gettexturesubimage(GL_TEXTURE_2D_ARRAY, 2, 2, 2, pixels);
+	if (has_texture_array) {
+		pass &= test_gettexturesubimage(GL_TEXTURE_1D_ARRAY, 2, 2, 0, pixels);
+		pass &= test_gettexturesubimage(GL_TEXTURE_2D_ARRAY, 2, 2, 2, pixels);
+	}
 	pass &= test_gettexturesubimage(GL_TEXTURE_3D, 2, 2, 2, pixels);
 	pass &= test_gettexturesubimage(GL_TEXTURE_CUBE_MAP, 2, 2, 0, pixels);
 
