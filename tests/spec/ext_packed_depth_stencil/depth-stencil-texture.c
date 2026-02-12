@@ -368,18 +368,30 @@ try_TexStorage(GLenum internalFormat)
 #if defined PIGLIT_USE_OPENGL
 	glBindTexture(GL_TEXTURE_1D, tex[0]);
 	glTexStorage1D(GL_TEXTURE_1D, 1, internalFormat, 16);
-	pass = piglit_check_gl_error(expected_error) && pass;
+	if (internalFormat == GL_DEPTH_STENCIL && !has_depth_texture) {
+		pass = check_gl_error2(expected_error, GL_INVALID_ENUM) && pass;
+	} else {
+		pass = piglit_check_gl_error(expected_error) && pass;
+	}
 #endif
 
 	glBindTexture(GL_TEXTURE_2D, tex[1]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, 16, 16);
-	pass = piglit_check_gl_error(expected_error) && pass;
+	if (internalFormat == GL_DEPTH_STENCIL && !has_depth_texture) {
+		pass = check_gl_error2(expected_error, GL_INVALID_ENUM) && pass;
+	} else {
+		pass = piglit_check_gl_error(expected_error) && pass;
+	}
 
 #if !defined PIGLIT_USE_OPENGL_ES1
 	if (has_texture_3d) {
 		glBindTexture(GL_TEXTURE_3D, tex[2]);
 		glTexStorage3D(GL_TEXTURE_3D, 1, internalFormat, 8, 8, 8);
-		pass = piglit_check_gl_error(expected_3D_error) && pass;
+		if (internalFormat == GL_DEPTH_STENCIL && !has_depth_texture) {
+			pass = check_gl_error2(expected_3D_error, GL_INVALID_ENUM) && pass;
+		} else {
+			pass = piglit_check_gl_error(expected_3D_error) && pass;
+		}
 	}
 #else
 	/* Silence "variable ‘expected_3D_error’ set but not used" warnings.
@@ -390,7 +402,11 @@ try_TexStorage(GLenum internalFormat)
 	if (has_texture_cube_map) {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, tex[3]);
 		glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, internalFormat, 16, 16);
-		pass = piglit_check_gl_error(expected_cube_error) && pass;
+		if (internalFormat == GL_DEPTH_STENCIL && !has_depth_texture_cube_map) {
+			pass = check_gl_error2(expected_cube_error, GL_INVALID_ENUM) && pass;
+		} else {
+			pass = piglit_check_gl_error(expected_cube_error) && pass;
+		}
 	}
 
 #if defined PIGLIT_USE_OPENGL
