@@ -157,4 +157,14 @@ void
 piglit_init(int argc, char **argv)
 {
 	piglit_require_extension("GL_ARB_framebuffer_object");
+
+	if (piglit_is_extension_supported("GL_ARB_internalformat_query2")) {
+		GLint blending_support;
+		glGetInternalformativ(GL_TEXTURE_2D, GL_LUMINANCE8_ALPHA8,
+				      GL_FRAMEBUFFER_BLEND, 1, &blending_support);
+		if (blending_support == GL_NONE) {
+			printf("No blending support for GL_LUMINANCE8_ALPHA8.\n");
+			piglit_report_result(PIGLIT_SKIP);
+		}
+	}
 }
