@@ -112,6 +112,10 @@ void piglit_init(int argc, char **argv)
 
 	piglit_require_extension("GL_ARB_framebuffer_object");
 	piglit_require_extension("GL_ARB_depth_texture");
+	if (piglit_get_gl_version() < 30 &&
+		!piglit_is_extension_supported("GL_EXT_gpu_shader4")) {
+		piglit_report_result(PIGLIT_SKIP);
+	}
 
 	glGenTextures(1, &tex);
 	glGenFramebuffers(1, &fb);
