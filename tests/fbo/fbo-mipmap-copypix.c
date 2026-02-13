@@ -57,6 +57,17 @@ static const GLfloat colors[10][4] = {
    { .5, 0, 1, 1 }
 };
 
+static bool
+is_framebuffer_renderable(GLenum internalformat)
+{
+   GLint renderable = GL_FULL_SUPPORT;
+   if (!piglit_is_extension_supported("GL_ARB_internalformat_query2"))
+      return true;
+   glGetInternalformativ(GL_TEXTURE_2D, internalformat,
+                         GL_FRAMEBUFFER_RENDERABLE, 1, &renderable);
+   return renderable != GL_NONE;
+}
+
 
 static GLuint
 create_texture(GLboolean fillInColors, GLenum intFormat)
@@ -114,6 +125,14 @@ test_mipmap_copypixels(GLenum srcIntFormat, GLenum dstIntFormat,
    GLuint level, size;
    GLboolean pass = GL_TRUE;
    GLenum status;
+
+   if (!is_framebuffer_renderable(srcIntFormat) ||
+       !is_framebuffer_renderable(dstIntFormat)) {
+      printf("Skipping non-renderable format pair: %s -> %s\n",
+             piglit_get_gl_enum_name(srcIntFormat),
+             piglit_get_gl_enum_name(dstIntFormat));
+      return GL_TRUE;
+   }
 
    if (doPixelTransfer) {
       glPixelTransferf(GL_ALPHA_SCALE, 0.0000001);
