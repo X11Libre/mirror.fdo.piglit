@@ -26,6 +26,7 @@ PIGLIT_GL_TEST_CONFIG_END
  * invalid modifiers.
  */
 static bool force_valid_modifier = false;
+static bool logged_invalid_modifier = false;
 
 static GLint test_formats[] = {
 	GL_RGB,
@@ -74,7 +75,10 @@ test(EGLDisplay egl_dpy, GLint format, unsigned w, unsigned h)
 	}
 
 	if (modifiers[0] == DRM_FORMAT_MOD_INVALID) {
-		fprintf(stderr, "invalid modifier\n");
+		if (!logged_invalid_modifier) {
+			fprintf(stderr, "invalid modifier\n");
+			logged_invalid_modifier = true;
+		}
 		ret = !force_valid_modifier;
 		goto out1;
 	}
