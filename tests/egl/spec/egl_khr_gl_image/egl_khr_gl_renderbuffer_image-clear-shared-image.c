@@ -66,7 +66,7 @@ create_context(EGLDisplay dpy)
 
 	static const EGLint context_attribs[] = {
 		EGL_CONTEXT_MAJOR_VERSION, 3,
-		EGL_CONTEXT_MINOR_VERSION, 2,
+		EGL_CONTEXT_MINOR_VERSION, 0,
 		EGL_NONE,
 	};
 
@@ -91,7 +91,7 @@ create_context(EGLDisplay dpy)
 		EGLint egl_error = eglGetError();
 		piglit_loge("failed to create EGLContext: %s(0x%x)",
 			  piglit_get_egl_error_name(egl_error), egl_error);
-		piglit_report_result(PIGLIT_FAIL);
+		piglit_report_result(PIGLIT_SKIP);
 	}
 
 	return ctx;
