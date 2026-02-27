@@ -653,12 +653,14 @@ ColorGradientSunburst::draw_with_scale_and_offset(const float (*proj)[4],
 {
 	switch (out_type) {
 	case GL_INT: {
-		int clear_color[4] = { offset, offset, offset, offset };
+		int ioffset = static_cast<int>(offset);
+		int clear_color[4] = { ioffset, ioffset, ioffset, ioffset };
 		glClearBufferiv(GL_COLOR, 0, clear_color);
 		break;
 	}
 	case GL_UNSIGNED_INT: {
-		unsigned clear_color[4] = { offset, offset, offset, offset };
+		unsigned uoffset = static_cast<unsigned>(offset);
+		unsigned clear_color[4] = { uoffset, uoffset, uoffset, uoffset };
 		glClearBufferuiv(GL_COLOR, 0, clear_color);
 		break;
 	}
