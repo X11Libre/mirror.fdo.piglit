@@ -353,8 +353,8 @@ draw_pattern(bool sample_alpha_to_coverage,
 		float vertices[4][2] = {
 		{ 0.0f, 0.0f + i * (pattern_height / num_rects) },
 		{ 0.0f, (i + 1.0f) * (pattern_height / num_rects) },
-		{ pattern_width, (i + 1.0f) * (pattern_height / num_rects) },
-		{ pattern_width, 0.0f + i * (pattern_height / num_rects) } };
+		{ static_cast<float>(pattern_width), (i + 1.0f) * (pattern_height / num_rects) },
+		{ static_cast<float>(pattern_width), 0.0f + i * (pattern_height / num_rects) } };
 
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
 				      sizeof(vertices[0]),
