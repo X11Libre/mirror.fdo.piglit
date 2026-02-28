@@ -1,0 +1,48 @@
+# Verify out of order alpha writes are routed to the correct render target.
+#
+# Based on a pattern in Tesseract fragment shader. Reproduces an uncovered
+# r300 regression: when RGB and alpha instructions writing different render
+# targets are merged, alpha target metadata can stay on the RGB target,
+# dropping or misrouting the RT1/RT2 alpha write.
+
+[require]
+GLSL >= 1.10
+
+[vertex shader passthrough]
+
+[fragment shader]
+#version 110
+
+uniform sampler2D glowmap;
+
+void main()
+{
+	vec3 glow = texture2D(glowmap, vec2(0.5, 0.5)).rgb;
+
+	gl_FragData[0].rgb = vec3(glow.r, 1.0 - glow.r, 0.0);
+	gl_FragData[1].rgb = glow;
+	gl_FragData[1].a = 1.0 - 0.5 * glow.r;
+	gl_FragData[0].a = 0.25;
+}
+
+[test]
+texture rgbw 0 (16, 16) GL_RGBA8
+texture rgbw 1 (16, 16) GL_RGBA8
+texture rgbw 2 (16, 16) GL_RGBA8
+
+uniform int glowmap 2
+
+fb tex 2d 2
+clear color 1.0 0.0 0.0 1.0
+clear
+
+fb tex 2d 0 1
+clear color 0.0 0.0 0.0 0.0
+clear
+
+draw rect -1 -1 2 2
+
+fb tex 2d 0
+probe all rgba 1.0 0.0 0.0 0.25
+fb tex 2d 1
+probe all rgba 1.0 0.0 0.0 0.5
