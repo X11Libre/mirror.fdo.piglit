@@ -180,8 +180,8 @@ test_format(int width, int height, GLfloat *image, GLenum requested_format)
 	bool pass = true;
 	GLuint expected_size;
 	GLint is_compressed;
-	GLint compressed_size;
-	GLint format;
+	GLint compressed_size = 0;
+	GLint format = 0;
 
 	glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
 	glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
