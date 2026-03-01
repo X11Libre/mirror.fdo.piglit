@@ -33,6 +33,7 @@
  *                          size_t *param_value_size_ret)
  */
 
+#include <inttypes.h>
 #include "piglit-framework-cl-api.h"
 
 
@@ -79,9 +80,9 @@ check_fp_config(cl_device_info kind, cl_device_fp_config value,
 	}
 
 	if (value & ~(allowed_flags)) {
-		printf(": failed, expected a combination of CL_FP_*. Got %lx", value);
+		printf(": failed, expected a combination of CL_FP_*. Got %" PRIx64, value);
 		piglit_merge_result(result, PIGLIT_FAIL);
-		printf("\n %lx", value);
+		printf("\n %" PRIx64, value);
 		return false;
 	}
 
@@ -401,10 +402,10 @@ check_info(const struct piglit_cl_api_test_env* env,
 				cl_device_fp_config value = *(cl_device_fp_config*)param_value;
 				if (device_config->type != CL_DEVICE_TYPE_CUSTOM &&
 				    !(value & (CL_FP_ROUND_TO_ZERO|CL_FP_ROUND_TO_NEAREST))) {
-					printf(": failed, expected at least CL_FP_ROUND_TO_ZERO or CL_FP_ROUND_TO_NEAREST. Got %lx", value);
+					printf(": failed, expected at least CL_FP_ROUND_TO_ZERO or CL_FP_ROUND_TO_NEAREST. Got %" PRIx64, value);
 					piglit_merge_result(result, PIGLIT_FAIL);
 				} else {
-					printf(": %lx", value);
+					printf(": %" PRIx64, value);
 				}
 			}
 			break;
@@ -417,14 +418,14 @@ check_info(const struct piglit_cl_api_test_env* env,
 					if (env->version <= 12 && !(value & (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|
 				               CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM))) {
 						printf(": failed, expected CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|" \
-						       "CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM. Got %lx", value);
+						       "CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM. Got %" PRIx64, value);
 						piglit_merge_result(result, PIGLIT_FAIL);
 					} else if /* OpenCL >= 2.0 */ (!(value & (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_INF_NAN|CL_FP_DENORM))) {
-						printf(": failed, expected CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_INF_NAN|CL_FP_DENORM. Got %lx", value);
+						printf(": failed, expected CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_INF_NAN|CL_FP_DENORM. Got %" PRIx64, value);
 						piglit_merge_result(result, PIGLIT_FAIL);
 					}
 				} else {
-					printf(": %lx", value);
+					printf(": %" PRIx64, value);
 				}
 			}
 			break;
@@ -597,11 +598,11 @@ check_info(const struct piglit_cl_api_test_env* env,
 			       CL_DEVICE_AFFINITY_DOMAIN_L2_CACHE|
 			       CL_DEVICE_AFFINITY_DOMAIN_L1_CACHE|
 			       CL_DEVICE_AFFINITY_DOMAIN_NEXT_PARTITIONABLE))) {
-				printf(": failed, expected  a cl_device_affinity_domain valid value. Got %lx",
+				printf(": failed, expected  a cl_device_affinity_domain valid value. Got %" PRIx64,
 				       *(cl_device_affinity_domain*)param_value);
 				piglit_merge_result(result, PIGLIT_FAIL);
 			} else {
-				printf(": %lx", *(cl_device_affinity_domain*)param_value);
+				printf(": %" PRIx64, *(cl_device_affinity_domain*)param_value);
 			}
 			break;
 		case CL_DEVICE_PARTITION_TYPE:
@@ -611,7 +612,7 @@ check_info(const struct piglit_cl_api_test_env* env,
 					       (unsigned long) sizeof(cl_device_affinity_domain), (unsigned long) param_value_size);
 					piglit_merge_result(result, PIGLIT_FAIL);
 				} else {
-					printf(": %lx", *(cl_device_affinity_domain*)param_value);
+					printf(": %" PRIx64, *(cl_device_affinity_domain*)param_value);
 				}
 			} else {
 				printf(": (empty)");
