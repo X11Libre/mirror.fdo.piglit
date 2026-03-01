@@ -86,7 +86,6 @@ render_tex_layers(GLuint tex)
 	int lod;
 	GLint drawing_level_loc, vertex_loc;
 	GLenum status;
-	int color_index = 0;
 	int size;
 
 	glUseProgram(fill_tex_program);
@@ -114,7 +113,6 @@ render_tex_layers(GLuint tex)
 		glViewport(0, 0, size, size);
 		glUniform1i(drawing_level_loc, lod);
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, LAYERS);
-		color_index += LAYERS;
 	}
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, 0, 0);
 	glDisableVertexAttribArray(vertex_loc);
