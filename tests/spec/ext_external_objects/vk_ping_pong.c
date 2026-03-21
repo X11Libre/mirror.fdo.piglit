@@ -227,8 +227,14 @@ run_test(bool single_sem)
 
 			submit_info.pWaitDstStageMask = stage_flags;
 			/* last submit won't have a GL timeline signal */
-			submit_info.waitSemaphoreCount =
-				vk_timeline && i && i != NUM_HASH_ITERATIONS - 1 ? 2 : 1;
+			bool use_vk_timeline_wait = vk_timeline && supports_NV_timeline;
+			uint32_t wait_count = 0;
+			if (i != 0)
+				wait_count = 1;
+			if (use_vk_timeline_wait && i != 0 && i != NUM_HASH_ITERATIONS - 1)
+				wait_count++;
+
+			submit_info.waitSemaphoreCount = wait_count;
 			submit_info.pWaitSemaphores = wait_semaphores;
 			if (i != NUM_HASH_ITERATIONS - 1)
 				submit_info.signalSemaphoreCount = vk_timeline && supports_NV_timeline ? 2 : 1;
