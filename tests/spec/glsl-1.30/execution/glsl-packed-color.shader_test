@@ -1,0 +1,52 @@
+/* Tests Mesa bug https://gitlab.freedesktop.org/mesa/mesa/-/issues/14443
+ * where a user defined varying is packed with the gl_Color built-in.
+ * Only the alpha component of gl_Color is used and the user var is a vec3.
+ */
+[require]
+GLSL >= 1.30
+
+[vertex shader]
+#version 130
+
+attribute vec4 vertex;
+attribute vec4 in_color;
+
+out vec3 worldPos;
+
+void main()
+{
+    worldPos = in_color.xyz;
+    gl_Position = gl_ModelViewProjectionMatrix * vertex;
+    gl_FrontColor = in_color;
+}
+
+[fragment shader]
+#version 130
+
+in vec3 worldPos;
+
+void main(){
+   vec4 outcolor;
+
+   if (worldPos.x == 100.0 && worldPos.y == 1000.0 && worldPos.z == 10000.0) {
+      outcolor = vec4(0.0, 1.0, 0.0, 0.0);
+   } else {
+      outcolor = vec4(1.0, 0.0, 0.0, 0.0);
+   }
+
+   outcolor.a = gl_Color.a;
+   gl_FragColor = outcolor;
+}
+
+[vertex data]
+vertex/float/2 in_color/float/4
+-1.0 -1.0      100.0 1000.0 10000.0 1.0
+ 1.0 -1.0      100.0 1000.0 10000.0 1.0
+-1.0  1.0      100.0 1000.0 10000.0 1.0
+ 1.0  1.0      100.0 1000.0 10000.0 1.0
+
+[test]
+clear color 0.0 0.0 0.0 0.0
+clear
+draw arrays GL_TRIANGLE_STRIP 0 4
+probe all rgba 0.0 1.0 0.0 1.0

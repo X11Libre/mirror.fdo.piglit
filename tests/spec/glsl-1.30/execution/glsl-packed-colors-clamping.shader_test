@@ -1,0 +1,58 @@
+/* Tests bug where gl_BackColor is packed with gl_FogFragCoord which resulted
+ * in clamping to not being performed on gl_BackColor.
+ */
+[require]
+GLSL >= 1.30
+SSO ENABLED
+
+[vertex shader]
+#version 130
+in vec4 vertex;
+in float in_fog;
+in vec4 in_color;
+in vec4 in_back_color;
+
+void main()
+{
+    gl_FogFragCoord = in_fog;
+    gl_Position = gl_ModelViewProjectionMatrix * vertex;
+    gl_FrontColor = in_color;
+    gl_BackColor.gba  = in_back_color.gba;
+}
+
+[fragment shader]
+#version 130
+
+void main(){
+   vec4 outcolor;
+
+   // gl_FrontColor or gl_BackColor based on facing
+   if (gl_FogFragCoord == 77.0 &&
+       gl_Color.g  == 1.0 && gl_Color.b == 1.0 && gl_Color.a == 1.0) {
+      outcolor = vec4(0.0, 1.0, 0.0, 1.0);   // green base
+   } else {
+      outcolor = vec4(1.0, 0.0, 0.0, 1.0);   // red base
+   }
+   gl_FragColor = outcolor;
+}
+
+[vertex data]
+vertex/float/2 in_color/float/4 in_back_color/float/4 in_fog/float/1
+-1.0 -1.0 100.0 1000.0 10000.0 99.0 100.0 1000.0 10000.0 88.0 77.0
+ 1.0 -1.0 100.0 1000.0 10000.0 99.0 100.0 1000.0 10000.0 88.0 77.0
+-1.0 1.0  100.0 1000.0 10000.0 99.0 100.0 1000.0 10000.0 88.0 77.0
+ 1.0 1.0  100.0 1000.0 10000.0 99.0 100.0 1000.0 10000.0 88.0 77.0
+
+[test]
+clear color 0.0 0.0 0.0 0.0
+clear
+
+enable GL_VERTEX_PROGRAM_TWO_SIDE
+
+frontface cw
+draw arrays GL_TRIANGLE_STRIP 0 4
+probe all rgba 0.0 1.0 0.0 1.0
+
+frontface ccw
+draw arrays GL_TRIANGLE_STRIP 0 4
+probe all rgba 0.0 1.0 0.0 1.0
