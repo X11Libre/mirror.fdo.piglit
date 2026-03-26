@@ -5943,7 +5943,10 @@ piglit_display(void)
 				fprintf(stderr, "glBlitFramebuffer error\n");
 				piglit_report_result(PIGLIT_FAIL);
 			}
-
+		} else if (parse_str(line, "frontface cw", &rest)) {
+			glFrontFace(GL_CW);
+		} else if (parse_str(line, "frontface ccw", &rest)) {
+			glFrontFace(GL_CCW);
 		} else if (parse_str(line, "frustum", &rest)) {
 			parse_floats(rest, c, 6, NULL);
 			piglit_frustum_projection(false, c[0], c[1], c[2],
