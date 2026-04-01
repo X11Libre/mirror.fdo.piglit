@@ -624,6 +624,7 @@ with profile.test_list.group_manager(
     g(['streaming-texture-leak'])
     g(['max-texture-size'])
     g(['max-texture-size-level'])
+    g(['large-tex'])
     g(['copyteximage', '1D'])
     g(['copyteximage', '2D'])
     g(['gl-1.1-color-material-array'])
