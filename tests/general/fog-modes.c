@@ -92,7 +92,7 @@ piglit_display(void)
 					GL_PROGRAM_FORMAT_ASCII_ARB,
 					strlen(fp_source),
 					(const GLubyte *) fp_source);
-
+			free(fp_source);
 		}
 
 		switch (mode) {
