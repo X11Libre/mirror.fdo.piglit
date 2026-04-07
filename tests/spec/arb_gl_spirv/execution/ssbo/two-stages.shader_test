@@ -5,6 +5,7 @@ SPIRV YES
 GL >= 3.3
 GLSL >= 4.50
 GL_ARB_gl_spirv
+INT GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS >= 1
 
 [vertex shader spirv]
 ; Automatically generated from the GLSL by shader_test_spirv.py. DO NOT EDIT
