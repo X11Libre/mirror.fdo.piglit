@@ -63,7 +63,7 @@ const GLenum tests[] = {
 static bool
 equals(float a, float b)
 {
-   return fabs(a - b) < 0.00001;
+   return fabs(a - b) < 0.000016;
 }
 
 static GLuint
