@@ -152,7 +152,7 @@ test(void *data)
 {
 	GLuint fb;
 	GLuint db, cb;
-	GLenum depth_format = (long unsigned)data;
+	GLenum depth_format = (uintptr_t)data;
 
 	GLenum status;
 
