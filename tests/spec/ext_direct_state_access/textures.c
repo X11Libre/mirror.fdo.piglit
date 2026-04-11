@@ -113,7 +113,7 @@ test_TextureImageNDEXT(void* data)
 	tex = init_texture(target, &image_size, &expected_pixels);
 
 	if (use_display_list != GL_NONE)
-		glEndList(list);
+		glEndList();
 
 	if (use_display_list == GL_COMPILE) {
 		/* Texture shouldn't have been initialized yet */
@@ -199,7 +199,7 @@ test_TextureSubImageNDEXT(void* data)
 	}
 
 	if (use_display_list != GL_NONE)
-		glEndList(list);
+		glEndList();
 
 	got_pixels = (float*) malloc(image_size);
 	glGetTextureImageEXT(tex, target, 0, GL_RGBA, GL_FLOAT, got_pixels);
@@ -264,7 +264,7 @@ test_CopyTextureImageNDEXT(void* data)
 	}
 
 	if (use_display_list != GL_NONE)
-		glEndList(list);
+		glEndList();
 
 	got_pixels = (float*) malloc(piglit_width * height * 4 * sizeof(float));
 
@@ -319,7 +319,7 @@ test_CopyTextureSubImageNDEXT(void* data)
 	}
 
 	if (use_display_list != GL_NONE)
-		glEndList(list);
+		glEndList();
 
 	got_pixels = (float*) malloc(image_size);
 
@@ -467,7 +467,7 @@ test_TextureParameterEXT(void* data)
 					&tested[j].values[k]);
 
 				if (use_display_list != GL_NONE)
-					glEndList(list);
+					glEndList();
 
 				if (use_display_list == GL_COMPILE) {
 					int v;
@@ -569,7 +569,7 @@ test_TextureParameterfEXT(void* data)
 					&tested[j].values[k]);
 
 				if (use_display_list != GL_NONE)
-					glEndList(list);
+					glEndList();
 
 				if (use_display_list == GL_COMPILE) {
 					for (l = 0; l < 2; l++) {
@@ -658,7 +658,7 @@ test_EnableDisableEXT(void* data)
 		}
 
 		if (use_display_list != GL_NONE)
-			glEndList(list);
+			glEndList();
 
 		if (use_display_list == GL_COMPILE)
 			glCallList(list);
