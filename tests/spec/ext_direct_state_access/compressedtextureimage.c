@@ -264,7 +264,7 @@ test_CompressedTextureImageNDEXT(void* data)
 	}
 
 	if (use_display_list != GL_NONE)
-		glEndList(list);
+		glEndList();
 
 	if (use_display_list == GL_COMPILE) {
 		int width;
@@ -370,7 +370,7 @@ test_CompressedTextureSubImageNDEXT(void* data)
 	}
 
 	if (use_display_list != GL_NONE)
-		glEndList(list);
+		glEndList();
 	if (use_display_list == GL_COMPILE)
 		glCallList(list);
 
