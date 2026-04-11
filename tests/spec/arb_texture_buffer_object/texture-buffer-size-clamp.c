@@ -21,6 +21,7 @@
  * IN THE SOFTWARE.
  */
 
+#include <inttypes.h>
 #include "piglit-util-gl.h"
 
 /**
@@ -206,8 +207,8 @@ test_buffer(void *param)
 		if (ret == PIGLIT_FAIL) {
 			piglit_loge("Wrong shader texel count result, "
 				    "max buffer texture size %d, "
-				    "texture buffer size: %ld",
-				    max_size, texel_count);
+				    "texture buffer size: %" PRIdPTR,
+				    max_size, (intptr_t)texel_count);
 			return ret;
 		} else if (ret == PIGLIT_SKIP) {
 			return ret;
