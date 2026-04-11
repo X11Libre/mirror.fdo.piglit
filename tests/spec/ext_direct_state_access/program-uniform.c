@@ -103,7 +103,7 @@ test_ProgramUniformfEXT(void* data)
 		}
 
 		if (use_display_list != GL_NONE)
-			glEndList(list);
+			glEndList();
 		if (use_display_list == GL_COMPILE)
 			glCallList(list);
 
@@ -193,7 +193,7 @@ test_ProgramUniformiEXT(void* data)
 		}
 
 		if (use_display_list != GL_NONE)
-			glEndList(list);
+			glEndList();
 		if (use_display_list == GL_COMPILE)
 			glCallList(list);
 
@@ -292,7 +292,7 @@ test_ProgramUniformMatrixfEXT(void* data)
 	glProgramUniformMatrix4x3fvEXT(prog, locations[8], 1, false, values);
 
 	if (use_display_list != GL_NONE)
-		glEndList(list);
+		glEndList();
 	if (use_display_list == GL_COMPILE)
 		glCallList(list);
 
