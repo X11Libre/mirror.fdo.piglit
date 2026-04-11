@@ -195,7 +195,7 @@ getTexImage(bool doPBO, GLenum target, GLubyte data[][IMAGE_SIZE],
 	for (i = 0; i < num_faces; i++) {
 		if (doPBO) {
 			glGetTexImage(target + i, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				      (GLvoid *) (long) (i * layer_size));
+				      (GLvoid *) (uintptr_t) (i * layer_size));
 		} else {
 			glGetTexImage(target + i, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 				      data2[i]);
