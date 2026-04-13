@@ -268,9 +268,22 @@ if(PIGLIT_BUILD_DMA_BUF_TESTS)
 	if(PIGLIT_HAS_GBM_BO_MAP AND LIBDRM_FOUND AND LIBDRM_VERSION VERSION_GREATER "2.4.97" AND XCB_DRI2_FOUND)
 		set(PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID true)
 	else()
-		message(FATAL_ERROR
-			"PIGLIT_BUILD_DMA_BUF_TESTS require libdrm, "
-			"gbm_bo_map(), libdrm>=2.4.98 and xcb-dri2")
+		if (NOT PIGLIT_HAS_GBM_BO_MAP)
+			message(FATAL_ERROR
+				"PIGLIT_BUILD_DMA_BUF_TESTS require gbm_bo_map()")
+		endif()
+		if (NOT LIBDRM_FOUND)
+			message(FATAL_ERROR
+				"PIGLIT_BUILD_DMA_BUF_TESTS require libdrm")
+		endif()
+		if (NOT LIBDRM_VERSION VERSION_GREATER "2.4.97")
+			message(FATAL_ERROR
+				"PIGLIT_BUILD_DMA_BUF_TESTS require libdrm>=2.4.98")
+		endif()
+		if (NOT XCB_DRI2_FOUND)
+			message(FATAL_ERROR
+				"PIGLIT_BUILD_DMA_BUF_TESTS require xcb-dri2")
+		endif()
 		set(PIGLIT_BUILD_DMA_BUF_TESTS_IS_VALID false)
 	endif()
 endif()
