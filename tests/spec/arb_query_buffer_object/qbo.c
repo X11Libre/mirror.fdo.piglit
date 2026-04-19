@@ -102,7 +102,7 @@ run_subtest(void)
 {
 	bool exact;
 	uint32_t expected;
-	uint64_t cpu_result;
+	uint64_t cpu_result = 0;
 	bool have_cpu_result = false;
 	uint32_t default_value[4] = { 0xccccccccu, 0xccccccccu, 0xccccccccu, 0xccccccccu };
 	bool is_sync =
