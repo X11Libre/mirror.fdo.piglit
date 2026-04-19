@@ -293,8 +293,10 @@ create_dma_buf(uint32_t format, EGLuint64KHR modifier,
 	/* Use 4KB worth of interesting data to initialize the dmabuf. */
 	assert(sizeof(piglit_fxt1_grayscale_blocks) == 4 * 1024);
 	const char *src_data = (const char*)piglit_fxt1_grayscale_blocks;
-	const int num_pixels = sizeof(piglit_fxt1_grayscale_blocks) /
-			       cpp_for_fourcc(format);
+	const int cpp = cpp_for_fourcc(format);
+	if (cpp == 0)
+		return false;
+	const int num_pixels = sizeof(piglit_fxt1_grayscale_blocks) / cpp;
 	const int dim = sqrt((double)num_pixels);
 
 	struct piglit_dma_buf *drm_buf = NULL;
