@@ -166,7 +166,7 @@ get_test_extent(const struct image_target_info *target, unsigned d)
 {
 	const struct image_extent ls = image_target_limits(target);
 	const unsigned high = ~0, low = 8;
-	struct image_extent ext;
+	struct image_extent ext = {0};
 	int i;
 
 	for (i = 0; i < 4; ++i)
