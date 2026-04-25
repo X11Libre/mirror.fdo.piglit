@@ -182,7 +182,7 @@ check_bytes(const GLubyte *bytes, uint64_t size, GLubyte expected)
 static bool
 verify_tex_pixels(GLuint tex, struct rect r, GLubyte expected)
 {
-	uint64_t size = r.w * r.h;
+	uint64_t size = (uint64_t)r.w * r.h;
 	GLubyte *pixels = malloc(size);
 	read_tex_pixels(tex, r, pixels);
 	bool result = check_bytes(pixels, size, expected);
@@ -513,7 +513,7 @@ test_read_pixels_pbo(void)
 			pass = false;
 		} else {
 			GLubyte *addr = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-			if (!check_bytes(addr, r.w * r.h, VAL_A)) {
+			if (!check_bytes(addr, (uint64_t)r.w * r.h, VAL_A)) {
 				pass = false;
 			}
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
