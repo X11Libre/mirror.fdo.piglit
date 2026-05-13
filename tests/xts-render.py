@@ -28,6 +28,8 @@ profile = _profile.copy()  # pylint: disable=invalid-name
 
 
 def xts_render_filter(path, test):
+    print("xts_render_filter: path=%s test=%s\n" % (path, test))
+
     # Keep any tests that aren't from xts.
     if 'xts5' not in path:
         return True
@@ -35,5 +37,7 @@ def xts_render_filter(path, test):
     # All of Xlib9 is for rendering.
     return 'xlib9' in path
 
+
+print("===> test: xts-render\n")
 
 profile.filters.append(xts_render_filter)

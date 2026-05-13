@@ -24,6 +24,7 @@
 
 """ Test integreation for the X Test Suite """
 
+import sys
 import os
 import re
 import subprocess
@@ -151,6 +152,8 @@ class XTSTest(Test):  # pylint: disable=too-few-public-methods
 
     def interpret_result(self):
         super(XTSTest, self).interpret_result()
+
+        print("=== results file: "+self.test_results_file, file=sys.stderr)
 
         try:
             with open(self.test_results_file, 'r') as rfile:

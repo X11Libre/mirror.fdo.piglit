@@ -209,6 +209,8 @@ class Test(metaclass=abc.ABCMeta):
             '{0}="{1}"'.format(k, v) for k, v in itertools.chain(
                 OPTIONS.env.items(), self.env.items()))
 
+        print("TEST command=%s\n" % self.result.command)
+
         try:
             self.is_skip()
         except TestIsSkip as e:
@@ -222,6 +224,7 @@ class Test(metaclass=abc.ABCMeta):
         try:
             self._run_command()
         except TestRunError as e:
+            print("TestRunError %s\n" % e)
             self.result.result = str(e.status)
             for each in self.result.subtests.keys():
                 self.result.subtests[each] = str(e.status)
@@ -289,7 +292,7 @@ class Test(metaclass=abc.ABCMeta):
             # configurations.  If a developer chooses to not build a test,
             # Piglit should not report that test as having failed.
             if e.errno == errno.ENOENT:
-                raise TestRunError("Test executable not found.\n", 'skip')
+                raise TestRunError("Test executable not found.\n%s" % command, 'skip')
             else:
                 raise e
         except subprocess.TimeoutExpired:

@@ -22,6 +22,7 @@
 
 """ Module implementing a JUnitBackend for piglit """
 
+import sys
 import os.path
 import re
 import shutil
@@ -351,6 +352,7 @@ class JUnitBackend(FileBackend):
         root = etree.Element('testsuites')
         piglit = etree.Element('testsuite', name='piglit')
         root.append(piglit)
+        print("Looking for tests in %s\n" % os.path.join(self._dest, 'tests'), file=sys.stderr)
         for each in os.listdir(os.path.join(self._dest, 'tests')):
             with open(os.path.join(self._dest, 'tests', each), 'r') as f:
                 # parse returns an element tree, and that's not what we want,
@@ -365,7 +367,7 @@ class JUnitBackend(FileBackend):
         num_tests = len(piglit)
         if not num_tests:
             raise exceptions.PiglitUserError(
-                'No tests were run, not writing a result file',
+                'X3 No tests were run, not writing a result file',
                 exitcode=2)
 
         # set the test count by counting the number of tests.

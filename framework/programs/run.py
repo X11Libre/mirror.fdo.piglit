@@ -305,6 +305,9 @@ def run(input_):
     and piglit run
 
     """
+
+    print("PIGLIT: run command\n")
+
     args = _run_parser(input_)
     base.Test.timeout = args.timeout
     _disable_windows_exception_messages()
@@ -391,6 +394,7 @@ def run(input_):
         if args.include_tests:
             p.filters.append(profile.RegexFilter(args.include_tests))
 
+    print("now calling profile.run()\n");
     profile.run(profiles, args.log_level, backend, args.concurrency, args.jobs)
 
     time_elapsed.end = time.time()

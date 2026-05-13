@@ -152,11 +152,15 @@ class JSONBackend(FileBackend):
                         with open(test, 'r') as f:
                             data['tests'].update(json.load(f))
                     except ValueError:
+                        print("test %s failed to open\n" % test, file=sys.stderr)
                         pass
+                    print("test %s loaded\n" % test, file=sys.stderr)
+                else:
+                    print("test %s missing\n" % test, file=sys.stderr)
 
             if not data['tests']:
                 raise exceptions.PiglitUserError(
-                    'No tests were run, not writing a result file',
+                    'X1 No tests were run, not writing a result file (test_dir=%s)' % tests_dir,
                     exitcode=2)
 
             data = results.TestrunResult.from_dict(data)
@@ -199,7 +203,7 @@ class JSONBackend(FileBackend):
 
                     if not wrote:
                         raise exceptions.PiglitUserError(
-                            'No tests were run.',
+                            'X2 No tests were run.',
                             exitcode=2)
 
         # Delete the temporary files
