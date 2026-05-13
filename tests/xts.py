@@ -186,6 +186,8 @@ class RendercheckTest(Test):
     def __init__(self, args):
         super(RendercheckTest, self).__init__(['rendercheck'] + args)
         self.testname = "rendercheck " + " ".join(args)
+        print("RendercheckTest: args=%s\n" % args)
+        print("              -> testname=%s\n" % self.testname)
 
     def interpret_result(self):
         super(RendercheckTest, self).interpret_result()

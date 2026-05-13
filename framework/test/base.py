@@ -127,6 +127,7 @@ class Test(metaclass=abc.ABCMeta):
         self.env = env or {}
         self.result = TestResult()
         self.cwd = cwd
+        print("Test class: command=%s\n" % command)
 
     def execute(self, path, log, options):
         """ Run a test
