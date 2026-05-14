@@ -29,8 +29,19 @@
 
 #include "piglit-util-gl.h"
 
-#define windowWidth 100
-#define windowHeight 503 /* yes, odd */
+/* Max tested point size */
+#define MAX_SIZE 24.0
+
+/*
+ * Number of (min, max, size) combinations drawn as columns per frame.
+ * min in {1, 11, 21}, max in {min, min+10, ...} < MAX_SIZE, size in
+ * {1, 9, 17}: that's 6 min/max pairs times 3 sizes = 18 columns.
+ */
+#define NUM_COLS 18
+#define COL_WIDTH ((int)(MAX_SIZE) + 4)
+
+#define windowWidth (NUM_COLS * COL_WIDTH)
+#define windowHeight 503
 
 PIGLIT_GL_TEST_CONFIG_BEGIN
 	config.supports_gl_compat_version = 10;
@@ -39,14 +50,15 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 	config.window_height = windowHeight;
 PIGLIT_GL_TEST_CONFIG_END
 
-/* Max tested point size */
-#define MAX_SIZE 24.0
-
 /* Clamp X to [MIN,MAX] */
 #define CLAMP( X, MIN, MAX )  ( (X)<(MIN) ? (MIN) : ((X)>(MAX) ? (MAX) : (X)) )
 
 GLfloat aliasedLimits[2];  /* min/max */
 GLfloat smoothLimits[2];   /* min/max */
+
+struct col_params {
+	float min, max, size;
+};
 
 static void
 reportFailure(GLfloat initSize, const GLfloat attenuation[3],
@@ -85,15 +97,25 @@ expectedSize(GLfloat initSize,
 }
 
 
-/* measure size of rendered point at yPos (in model coords) */
+/* Model-space X coordinate for a given column index */
+static float
+col_x(int col)
+{
+	return (col * COL_WIDTH + COL_WIDTH / 2.0f) /
+		(float)windowWidth * 20.0f - 10.0f;
+}
+
+
+/* Measure size of rendered point at yPos within a single column */
 static GLfloat
-measureSize(float *pixels, GLfloat yPos)
+measureSize(float *pixels, GLfloat yPos, int col)
 {
 	assert(yPos >= -10.0);
 	assert(yPos <= 10.0);
-	float yNdc = (yPos + 10.0) / 20.0;  /* See glOrtho above */
+	float yNdc = (yPos + 10.0) / 20.0;  /* See glOrtho below */
 	int y = (int) (yNdc * windowHeight);
-	int w = windowWidth;
+	int x_start = col * COL_WIDTH;
+	int x_end = x_start + COL_WIDTH;
 
 	/* Add up colors in 3 rows, and use the row with the greatest sum.
 	 * This helps gives us a bit of leeway in vertical point positioning.
@@ -102,8 +124,8 @@ measureSize(float *pixels, GLfloat yPos)
 	float *image = pixels + (y - 1) * windowWidth * 3;
 	float sum[3] = {0.0, 0.0, 0.0};
 	for (int j = 0; j < 3; j++) {
-		for (int i = 0; i < w; i++) {
-			int k = j * 3 * w + i * 3;
+		for (int i = x_start; i < x_end; i++) {
+			int k = j * 3 * windowWidth + i * 3;
 			sum[j] += (image[k+0] + image[k+1] + image[k+2]) / 3.0;
 		}
 	}
@@ -126,6 +148,7 @@ testPointRendering(bool smooth)
      */
 	const GLfloat epsilon = (smooth ? 1.5 : 1.0) + 0.0;
 	GLfloat atten[3];
+	struct col_params cols[NUM_COLS];
 
 	if (smooth) {
 		glEnable(GL_POINT_SMOOTH);
@@ -146,39 +169,54 @@ testPointRendering(bool smooth)
 			for (int c = -2; c < 3; c++) {
 				atten[2] = (c == -1) ? 0.0 : pow(10.0, -c);
 				glPointParameterfvARB(GL_POINT_DISTANCE_ATTENUATION_ARB, atten);
+
+				/* draw all (min, max, size) combos as columns */
+				glClear(GL_COLOR_BUFFER_BIT);
+				int col = 0;
 				for (float min = 1.0; min < MAX_SIZE; min += 10) {
-					glPointParameterfARB(GL_POINT_SIZE_MIN_ARB, min);
 					for (float max = min; max < MAX_SIZE; max += 10) {
-						glPointParameterfARB(GL_POINT_SIZE_MAX_ARB, max);
 						for (float size = 1.0; size < MAX_SIZE; size += 8) {
+							cols[col].min = min;
+							cols[col].max = max;
+							cols[col].size = size;
+
+							glPointParameterfARB(GL_POINT_SIZE_MIN_ARB, min);
+							glPointParameterfARB(GL_POINT_SIZE_MAX_ARB, max);
 							glPointSize(size);
 
-							/* draw column of points */
-							glClear(GL_COLOR_BUFFER_BIT);
+							float mx = col_x(col);
 							glBegin(GL_POINTS);
-							for (float z = -6.0; z <= 6.0; z += 1.0) {
-								glVertex3f(0, z, z);
-							}
+							for (float z = -6.0; z <= 6.0; z += 1.0)
+								glVertex3f(mx, z, z);
 							glEnd();
 
-							glReadPixels(0, 0, piglit_width, piglit_height, GL_RGB, GL_FLOAT, pixels);
+							col++;
+						}
+					}
+				}
 
-							/* test the column of points */
-							for (float z = -6.0; z <= 6.0; z += 1.0) {
-								float expected
-									= expectedSize(size, atten, min, max,
-												   z, smooth);
-								float actual = measureSize(pixels, z);
-								if (fabs(expected - actual) > epsilon) {
-									reportFailure(size, atten, min, max,
-												  z, expected, actual);
-									return false;
-								}
-								else if(0){
-									printf("pass z=%f exp=%f act=%f\n",
-										   z, expected, actual);
-								}
-							}
+				glReadPixels(0, 0, piglit_width, piglit_height,
+					     GL_RGB, GL_FLOAT, pixels);
+
+				/* verify all columns */
+				for (col = 0; col < NUM_COLS; col++) {
+					for (float z = -6.0; z <= 6.0; z += 1.0) {
+						float expected
+							= expectedSize(cols[col].size,
+									atten,
+									cols[col].min,
+									cols[col].max,
+									z, smooth);
+						float actual = measureSize(pixels, z, col);
+						if (fabs(expected - actual) > epsilon) {
+							reportFailure(cols[col].size,
+								      atten,
+								      cols[col].min,
+								      cols[col].max,
+								      z, expected,
+								      actual);
+							free(pixels);
+							return false;
 						}
 					}
 				}
@@ -197,15 +235,13 @@ testPointRendering(bool smooth)
 enum piglit_result
 piglit_display(void)
 {
-	bool smooth = false;
-	bool pass = testPointRendering(smooth);
+	bool pass = testPointRendering(false);
 	piglit_report_subtest_result(pass ? PIGLIT_PASS : PIGLIT_FAIL,
-			"Antialiased combinations");
-
-	smooth = true;
-	bool pass2 = testPointRendering(smooth) && pass;
-	piglit_report_subtest_result(pass2 ? PIGLIT_PASS : PIGLIT_FAIL,
 			"Aliased combinations");
+
+	bool pass2 = testPointRendering(true);
+	piglit_report_subtest_result(pass2 ? PIGLIT_PASS : PIGLIT_FAIL,
+			"Antialiased combinations");
 
 	return pass && pass2 ? PIGLIT_PASS : PIGLIT_FAIL;
 }
