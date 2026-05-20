@@ -382,6 +382,7 @@ piglit_display(void)
 		piglit_draw_rect(x + w, y, w, h);
 		glUseProgram(0);
 		glDeleteProgram(prog);
+		free(fs);
 	}
 
 	enum piglit_result result = PIGLIT_PASS;
