@@ -95,6 +95,7 @@ piglit_display(void)
 		   0, y_spacing * 1,
 		   w * scale, h * scale, true);
 
+	piglit_destroy_dma_buf(buf);
 	glDeleteTextures(1, &tex2);
 	eglDestroyImageKHR(eglGetCurrentDisplay(), img2);
 

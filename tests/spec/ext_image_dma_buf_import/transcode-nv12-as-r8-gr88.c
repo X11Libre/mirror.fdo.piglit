@@ -66,25 +66,26 @@ static const uint8_t v_data[] = {
 	0xd8, 0xdc,
 };
 
+static EGLDisplay dpy = 0;
+
 static GLuint
 create_dma_buf_texture(uint32_t width, uint32_t height, uint32_t fourcc,
-		       const void *pixels)
+		       const void *pixels, struct piglit_dma_buf **dma_buf)
 {
-	EGLDisplay dpy = eglGetCurrentDisplay();
+	dpy = eglGetCurrentDisplay();
 
 	enum piglit_result result = PIGLIT_PASS;
 
-	struct piglit_dma_buf *dma_buf;
 	EGLImageKHR image;
 	EGLint image_attrs[13];
 	GLuint tex;
 	int i;
 
-	result = piglit_create_dma_buf(width, height, fourcc, pixels, &dma_buf);
+	result = piglit_create_dma_buf(width, height, fourcc, pixels, dma_buf);
 
 	if (result != PIGLIT_PASS) {
 		piglit_loge("failed to create dma_buf");
-		piglit_report_result(result);
+		return 0;
 	}
 
 	i = 0;
@@ -95,11 +96,11 @@ create_dma_buf_texture(uint32_t width, uint32_t height, uint32_t fourcc,
 	image_attrs[i++] = EGL_HEIGHT;
 	image_attrs[i++] = height;
 	image_attrs[i++] = EGL_DMA_BUF_PLANE0_FD_EXT;
-	image_attrs[i++] = dma_buf->fd;
+	image_attrs[i++] = (*dma_buf)->fd;
 	image_attrs[i++] = EGL_DMA_BUF_PLANE0_PITCH_EXT;
-	image_attrs[i++] = dma_buf->stride[0];
+	image_attrs[i++] = (*dma_buf)->stride[0];
 	image_attrs[i++] = EGL_DMA_BUF_PLANE0_OFFSET_EXT;
-	image_attrs[i++] = dma_buf->offset[0];
+	image_attrs[i++] = (*dma_buf)->offset[0];
 	image_attrs[i++] = EGL_NONE;
 
 
@@ -107,7 +108,7 @@ create_dma_buf_texture(uint32_t width, uint32_t height, uint32_t fourcc,
 				  (EGLClientBuffer) NULL, image_attrs);
 	if (image == EGL_NO_IMAGE_KHR) {
 		piglit_loge("failed to create EGLImage from dma_buf");
-		piglit_report_result(PIGLIT_FAIL);
+		return 0;
 	}
 
 	glGenTextures(1, &tex);
@@ -116,8 +117,9 @@ create_dma_buf_texture(uint32_t width, uint32_t height, uint32_t fourcc,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	if (!piglit_check_gl_error(GL_NO_ERROR))
-		piglit_report_result(PIGLIT_FAIL);
+	if (!piglit_check_gl_error(GL_NO_ERROR)) {
+		return 0;
+	}
 
 	return tex;
 }
@@ -132,31 +134,32 @@ piglit_init(int argc, char **argv)
 	piglit_require_extension("GL_OES_EGL_image");
 }
 
-static void
-create_textures(GLuint *r8_tex, GLuint *gr88_tex, float **ref_rgba_image)
+static bool
+create_textures(GLuint *r8_tex, GLuint *gr88_tex,
+		uint8_t **r8_pixels, uint8_t **gr88_pixels,
+		struct piglit_dma_buf **r8_dmabuf,
+		struct piglit_dma_buf **gr88_dmabuf,
+		float **ref_rgba_image)
 {
 	const int width = WINDOW_WIDTH;
 	const int height = WINDOW_HEIGHT;
 
-	uint8_t *r8_pixels;
-	uint8_t *gr88_pixels;
-
 	int i, x, y;
 
-	r8_pixels = malloc(width * height);
-	gr88_pixels = malloc(2 * (width / 2) * (height / 2));
+	*r8_pixels = malloc(width * height);
+	*gr88_pixels = malloc(2 * (width / 2) * (height / 2));
 	*ref_rgba_image = malloc(4 * sizeof(float) * width * height);
 
-	if (!r8_pixels || !gr88_pixels || !*ref_rgba_image)
+	if (!*r8_pixels || !*gr88_pixels || !*ref_rgba_image)
 		abort();
 
 	for (i = 0; i < width * height ; ++i) {
-		r8_pixels[i] = y_data[i];
+		(*r8_pixels)[i] = y_data[i];
 	}
 
 	for (i = 0; i < (width / 2) * (height / 2); ++i) {
-		gr88_pixels[2*i + 0] = u_data[i];
-		gr88_pixels[2*i + 1] = v_data[i];
+		(*gr88_pixels)[2*i + 0] = u_data[i];
+		(*gr88_pixels)[2*i + 1] = v_data[i];
 	}
 
 	for (y = 0; y < height; ++y) {
@@ -175,18 +178,30 @@ create_textures(GLuint *r8_tex, GLuint *gr88_tex, float **ref_rgba_image)
 
 	glActiveTexture(GL_TEXTURE0);
 	*r8_tex = create_dma_buf_texture(width, height,
-					 DRM_FORMAT_R8, r8_pixels);
+					 DRM_FORMAT_R8, *r8_pixels, r8_dmabuf);
+	if (!r8_tex)
+		return false;
 
 	glActiveTexture(GL_TEXTURE1);
 	*gr88_tex = create_dma_buf_texture(width / 2, height / 2,
-					   DRM_FORMAT_GR88, gr88_pixels);
+					   DRM_FORMAT_GR88, *gr88_pixels, gr88_dmabuf);
+
+	if (!gr88_tex)
+		return false;
+
+	return true;
 }
 
 enum piglit_result
 piglit_display(void)
 {
 	GLuint r8_tex, gr88_tex;
-	float *ref_rgba_image;
+	uint8_t *r8_pixels = NULL;
+	uint8_t *gr88_pixels = NULL;
+	struct piglit_dma_buf *r8_dmabuf = NULL;
+	struct piglit_dma_buf *gr88_dmabuf = NULL;
+	float *ref_rgba_image = NULL;
+	enum piglit_result result = PIGLIT_PASS;
 
 	GLuint va; /* vertex array */
 	GLuint vb; /* vertex buffer */
@@ -206,7 +221,13 @@ piglit_display(void)
 		return PIGLIT_FAIL;
 	}
 
-	create_textures(&r8_tex, &gr88_tex, &ref_rgba_image);
+	if (!create_textures(&r8_tex, &gr88_tex,
+	                     &r8_pixels, &gr88_pixels,
+	                     &r8_dmabuf, &gr88_dmabuf,
+	                     &ref_rgba_image)) {
+		result = PIGLIT_FAIL;
+		goto end;
+	}
 
 	prog = piglit_build_simple_program(
 		"#version 300 es\n"
@@ -246,8 +267,8 @@ piglit_display(void)
 	glUniform1i(glGetUniformLocation(prog, "u_gr88_tex"), 1);
 
 	if (!piglit_check_gl_error(GL_NO_ERROR)) {
-		free(ref_rgba_image);
-		piglit_report_result(PIGLIT_FAIL);
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	glGenBuffers(1, &vb);
@@ -267,8 +288,8 @@ piglit_display(void)
 	glDrawArrays(GL_TRIANGLE_FAN, /*first*/ 0, /*count*/ 4);
 
 	if (!piglit_check_gl_error(GL_NO_ERROR)) {
-		free(ref_rgba_image);
-		piglit_report_result(PIGLIT_FAIL);
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	/* Increase the tolerance because the conversion path
@@ -280,10 +301,22 @@ piglit_display(void)
 	piglit_tolerance[2] = 0.05;
 	if (!piglit_probe_image_rgba(0, 0, piglit_width, piglit_height,
 				     ref_rgba_image)) {
-		free(ref_rgba_image);
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
-	free(ref_rgba_image);
-	return PIGLIT_PASS;
+end:
+	if (r8_dmabuf)
+		piglit_destroy_dma_buf(r8_dmabuf);
+	if (gr88_dmabuf)
+		piglit_destroy_dma_buf(gr88_dmabuf);
+	if (r8_pixels)
+		free(r8_pixels);
+	if (gr88_pixels)
+		free(gr88_pixels);
+	if (ref_rgba_image)
+		free(ref_rgba_image);
+	eglTerminate(dpy);
+
+	return result;
 }
