@@ -779,6 +779,8 @@ piglit_display(void)
 					   "GL_ARB_texture_rg")) {
 						   if (!piglit_automatic)
 							printf("GL_RG skipped\n");
+						free(pixels);
+						pixels = NULL;
 						continue;
 					}
 
