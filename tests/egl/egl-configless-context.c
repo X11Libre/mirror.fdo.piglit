@@ -230,23 +230,24 @@ create_window(struct state *state,
 	return window;
 }
 
-static void
+static enum piglit_result
 bind_window(struct state *state,
 	    struct window *window)
 {
 	EGLBoolean status;
 
 	status = eglMakeCurrent(state->egl_dpy,
-				window->surface,
-				window->surface,
-				state->ctx);
+				window ? window->surface : EGL_NO_SURFACE,
+				window ? window->surface : EGL_NO_SURFACE,
+				window ? state->ctx : EGL_NO_CONTEXT);
 	if (!status) {
 		fprintf(stderr, "eglMakeCurrent failed");
-		piglit_report_result(PIGLIT_FAIL);
+		return PIGLIT_FAIL;
 	}
+	return PIGLIT_PASS;
 }
 
-static void
+static enum piglit_result
 run_tests(struct state *state)
 {
 	struct window *shallow =
@@ -262,8 +263,11 @@ run_tests(struct state *state)
 	GLboolean success = GL_TRUE;
 	GLboolean status;
 	GLint value;
+	enum piglit_result result = PIGLIT_PASS;
 
-	bind_window(state, shallow);
+	result = bind_window(state, shallow);
+	if (result != PIGLIT_PASS)
+		goto end;
 
 	piglit_dispatch_default_init(PIGLIT_DISPATCH_GL);
 
@@ -279,23 +283,34 @@ run_tests(struct state *state)
 	success &= piglit_probe_pixel_rgb(0, 0, red);
 
 	/* And the 32-bit buffer */
-	bind_window(state, deep);
+	result = bind_window(state, deep);
+	if (result != PIGLIT_PASS)
+		goto end;
+
 	glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
 	piglit_draw_rect(-1.0f, -1.0f, 2.0f, 2.0f);
 	success &= piglit_probe_pixel_rgb(0, 0, green);
 
 	/* And the one with a depth buffer */
-	bind_window(state, with_depth);
+	result = bind_window(state, with_depth);
+	if (result != PIGLIT_PASS)
+		goto end;
+
 	glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
 	piglit_draw_rect(-1.0f, -1.0f, 2.0f, 2.0f);
 	success &= piglit_probe_pixel_rgb(0, 0, blue);
 
 	/* Make sure the 16-bit buffer is still intact */
-	bind_window(state, shallow);
-	success &= piglit_probe_pixel_rgb(0, 0, red);
+	result = bind_window(state, shallow);
+	if (result != PIGLIT_PASS)
+		goto end;
 
-	if (!success)
-		piglit_report_result(PIGLIT_FAIL);
+	success &=piglit_probe_pixel_rgb(0, 0, red);
+
+	if (!success) {
+		result = PIGLIT_FAIL;
+		goto end;
+	}
 
 	/* Try to find a pair of windows that have different configs
 	 * so we can try to bind them together */
@@ -323,19 +338,29 @@ run_tests(struct state *state)
 			fprintf(stderr,
 				"Binding incompatible surfaces together "
 				"unexpectedly succeeded\n");
-			piglit_report_result(PIGLIT_WARN);
+			result = PIGLIT_WARN;
 		} else if (!status && khr) {
 			fprintf(stderr,
 				"Binding incompatible surfaces together "
 				"unexpectedly failed\n");
-			piglit_report_result(PIGLIT_FAIL);
+			result = PIGLIT_FAIL;
 		}
 	}
+end:
+	bind_window(state, NULL);
+
+	free(shallow);
+	free(deep);
+	free(with_depth);
+
+	return result;
 }
 
 int
 main(int argc, char **argv)
 {
+	enum piglit_result result = PIGLIT_PASS;
+
 	static const EGLint config_attribs[] = {
 		EGL_NONE
 	};
@@ -365,7 +390,8 @@ main(int argc, char **argv)
 		fprintf(stderr,
 			"The EGL_MESA_configless_context extension "
 			"is not supported\n");
-		piglit_report_result(PIGLIT_SKIP);
+		result = PIGLIT_SKIP;
+		goto end;
 	}
 
 	state.ctx = eglCreateContext(state.egl_dpy,
@@ -374,12 +400,17 @@ main(int argc, char **argv)
 				     config_attribs);
 	if (state.ctx == EGL_NO_CONTEXT) {
 		fprintf(stderr, "eglCreateContext() failed\n");
+		eglTerminate(state.egl_dpy);
 		piglit_report_result(PIGLIT_FAIL);
 	}
 
-	run_tests(&state);
+	result = run_tests(&state);
 
-	piglit_report_result(PIGLIT_PASS);
+end:
+        eglDestroyContext(state.egl_dpy, state.ctx);
+	eglTerminate(state.egl_dpy);
+
+	piglit_report_result(result);
 
 	return 0;
 }
