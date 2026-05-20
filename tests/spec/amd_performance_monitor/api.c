@@ -464,6 +464,8 @@ test_group_string_normal_buffer(unsigned valid_group)
 	/* The last character must be the null terminator. */
 	pass = name[length] == '\0' && pass;
 
+	free(name);
+
 	report(pass);
 }
 
@@ -607,6 +609,8 @@ test_counter_string_normal_buffer(unsigned group, unsigned counter)
 
 	/* The last character must be the null terminator. */
 	pass = name[length] == '\0' && pass;
+
+	free(name);
 
 	report(pass);
 }
