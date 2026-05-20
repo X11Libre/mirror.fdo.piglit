@@ -2020,6 +2020,7 @@ piglit_display(void)
 										failed++;
 										if (failed > 100) {
 											printf("Stopping after 100 failures\n");
+											free(pix);
 											goto end;
 										}
 									}
