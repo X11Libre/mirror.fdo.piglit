@@ -47,7 +47,6 @@ static bool try_flag(int flag)
 
 			gl_version = piglit_get_gl_version();
 		}
-		eglDestroyContext(egl_dpy, ctx);
 	} else if (!piglit_check_egl_error(EGL_BAD_MATCH)) {
 		/* The EGL_KHR_create_context spec says:
 		 *
@@ -57,7 +56,7 @@ static bool try_flag(int flag)
 		 *        where these attributes are supported), then an EGL_BAD_MATCH
 		 *        error is generated.
 		 */
-		piglit_report_result(PIGLIT_FAIL);
+		return false;
 	}
 
 	return true;
@@ -81,6 +80,7 @@ int main(int argc, char **argv)
 	if (gl_version >= 30) {
 		pass = pass && try_flag(EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR);
 	} else {
+		EGL_KHR_create_context_teardown();
 		piglit_report_result(PIGLIT_SKIP);
 	}
 

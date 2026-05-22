@@ -142,6 +142,7 @@ try_debug_flag(EGLenum context_api, EGLenum context_bit)
 			fprintf(stderr, "In OpenGL, either OpenGL 3.1 or "
 				"GL_KHR_debug is required to query "
 				"GL_CONTEXT_FLAGS\n");
+			EGL_KHR_create_context_teardown();
 			piglit_report_result(PIGLIT_SKIP);
 		}
 		break;
@@ -151,6 +152,7 @@ try_debug_flag(EGLenum context_api, EGLenum context_bit)
 		if (!piglit_is_extension_supported("GL_KHR_debug")) {
 			fprintf(stderr, "In OpenGL ES, GL_KHR_debug is "
 				"required to query GL_CONTEXT_FLAGS\n");
+			EGL_KHR_create_context_teardown();
 			piglit_report_result(PIGLIT_SKIP);
 		}
 		break;
@@ -183,6 +185,7 @@ try_debug_flag(EGLenum context_api, EGLenum context_bit)
 			fprintf(stderr,
 				"glGetIntegerv(GL_CONTEXT_FLAGS) should not "
 				"be possible in this context\n");
+			EGL_KHR_create_context_teardown();
 			piglit_report_result(PIGLIT_FAIL);
 		}
 	} else {
@@ -191,6 +194,7 @@ try_debug_flag(EGLenum context_api, EGLenum context_bit)
 		if (!piglit_check_gl_error(GL_NO_ERROR)) {
 			fprintf(stderr,
 				"glGetIntegerv(GL_CONTEXT_FLAGS) failed\n");
+			EGL_KHR_create_context_teardown();
 			piglit_report_result(PIGLIT_FAIL);
 		}
 
@@ -200,6 +204,7 @@ try_debug_flag(EGLenum context_api, EGLenum context_bit)
 				"GL_CONTEXT_FLAGS=0x%x does not contain "
 				"GL_CONTEXT_FLAG_DEBUG_BIT=0x%x\n",
 				actual_flags, GL_CONTEXT_FLAG_DEBUG_BIT);
+			EGL_KHR_create_context_teardown();
 			piglit_report_result(PIGLIT_FAIL);
 		}
 	}
@@ -211,16 +216,17 @@ try_debug_flag(EGLenum context_api, EGLenum context_bit)
 
 	if (!piglit_check_gl_error(GL_NO_ERROR)) {
 		fprintf(stderr, "glIsEnabled(GL_DEBUG_OUTPUT) failed\n");
+		EGL_KHR_create_context_teardown();
 		piglit_report_result(PIGLIT_FAIL);
 	}
 
 	if (!debug_output) {
 		fprintf(stderr, "GL_DEBUG_OUTPUT should be enabled by "
 			"default, but it was not.\n");
+		EGL_KHR_create_context_teardown();
 		piglit_report_result(PIGLIT_FAIL);
 	}
 
-	eglDestroyContext(egl_dpy, ctx);
 	EGL_KHR_create_context_teardown();
 
 	piglit_report_result(PIGLIT_PASS);

@@ -35,8 +35,17 @@ check_extension(EGLint mask)
 	if (!EGL_KHR_create_context_setup(mask))
 		piglit_report_result(PIGLIT_SKIP);
 
-	piglit_require_egl_extension(egl_dpy, "EGL_KHR_create_context_no_error");
-	piglit_require_egl_extension(egl_dpy, "EGL_KHR_surfaceless_context");
+	if (!piglit_is_egl_extension_supported(egl_dpy, "EGL_KHR_create_context_no_error")) {
+		printf("Test requires EGL_KHR_create_context_no_error\n");
+		EGL_KHR_create_context_teardown();
+		piglit_report_result(PIGLIT_SKIP);
+	}
+
+	if (!piglit_is_egl_extension_supported(egl_dpy, "EGL_KHR_surfaceless_context")) {
+		printf("TestRequires EGL_KHR_surfaceless_context\n");
+		EGL_KHR_create_context_teardown();
+		piglit_report_result(PIGLIT_SKIP);
+	}
 
 	EGL_KHR_create_context_teardown();
 }

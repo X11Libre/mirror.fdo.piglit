@@ -72,8 +72,17 @@ parse_version_string(const char *string, int *major, int *minor)
 static void
 check_extensions(void)
 {
-	piglit_require_egl_extension(egl_dpy, "EGL_KHR_create_context");
-	piglit_require_egl_extension(egl_dpy, "EGL_KHR_surfaceless_context");
+	if (!piglit_is_egl_extension_supported(egl_dpy, "EGL_KHR_create_context")) {
+		fprintf(stderr, "Test requires EGL_KHR_create_context\n");
+		EGL_KHR_create_context_teardown();
+		piglit_report_result(PIGLIT_SKIP);
+	}
+
+	if (!piglit_is_egl_extension_supported(egl_dpy, "EGL_KHR_surfaceless_context")) {
+		fprintf(stderr, "Test requires EGL_KHR_surfaceless_context\n");
+		EGL_KHR_create_context_teardown();
+		piglit_report_result(PIGLIT_SKIP);
+	}
 }
 
 bool
@@ -99,11 +108,13 @@ EGL_KHR_create_context_setup(EGLint renderable_type_mask)
 	egl_dpy = eglGetDisplay(dpy);
 	if (egl_dpy == EGL_NO_DISPLAY) {
 		fprintf(stderr, "eglGetDisplay() failed\n");
+		XCloseDisplay(dpy);
 		piglit_report_result(PIGLIT_FAIL);
 	}
 
 	if (!eglInitialize(egl_dpy, &egl_major, &egl_minor)) {
 		fprintf(stderr, "eglInitialize() failed\n");
+		XCloseDisplay(dpy);
 		piglit_report_result(PIGLIT_FAIL);
 	}
 
@@ -115,9 +126,11 @@ EGL_KHR_create_context_setup(EGLint renderable_type_mask)
 			 */
 			fprintf(stderr, "eglChooseConfig() emitted "
 			        "EGL_BAD_ATTRIBUTE\n");
+			EGL_KHR_create_context_teardown();
 			piglit_report_result(PIGLIT_FAIL);
 		}
 
+		EGL_KHR_create_context_teardown();
 		return false;
 	}
 
@@ -128,5 +141,7 @@ EGL_KHR_create_context_setup(EGLint renderable_type_mask)
 void
 EGL_KHR_create_context_teardown(void)
 {
+	eglMakeCurrent(egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	eglTerminate(egl_dpy);
+	XCloseDisplay(dpy);
 }
