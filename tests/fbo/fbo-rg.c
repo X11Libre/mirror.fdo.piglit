@@ -335,11 +335,11 @@ render_and_check_textures(GLenum internal_format)
 	fs = piglit_compile_shader_text(GL_FRAGMENT_SHADER, frag_code);
 	fbo_program = piglit_link_simple_program(vs, fs);
 
-	glBindAttribLocation(fbo_program, 0, "position");
-	glBindAttribLocation(fbo_program, 1, "color");
-	glLinkProgram(fbo_program);
 	if (!piglit_link_check_status(fbo_program))
 		piglit_report_result(PIGLIT_FAIL);
+
+	glBindAttribLocation(fbo_program, 0, "position");
+	glBindAttribLocation(fbo_program, 1, "color");
 
 	scale_loc = glGetUniformLocation(fbo_program, "scale");
 	if (scale_loc < 0) {
