@@ -825,6 +825,32 @@ static void update_swizzle(GLboolean texswizzle)
 	}
 }
 
+static GLboolean format_supports_linear(GLenum target, GLenum internalformat)
+{
+	GLint supported = GL_FALSE;
+
+	switch (internalformat) {
+	case GL_R32F:
+	case GL_RG32F:
+	case GL_RGB32F:
+	case GL_RGBA32F:
+	case GL_ALPHA32F:
+	case GL_LUMINANCE32F:
+	case GL_LUMINANCE_ALPHA32F:
+	case GL_INTENSITY32F:
+		break;
+	default:
+		return true;
+	}
+
+	if (!piglit_is_extension_supported("GL_ARB_internalformat_query2"))
+		return true;
+
+	glGetInternalformativ(target, internalformat, GL_FILTER,
+			      1, &supported);
+	return (supported == GL_TRUE);
+}
+
 static GLboolean skip_test(GLenum mode, GLenum filter)
 {
 	if (mode == GL_CLAMP_TO_BORDER ||
@@ -857,7 +883,9 @@ static void draw(const struct format_desc *format,
 		 GLboolean npot, GLboolean texproj)
 {
 	unsigned i, j;
-	int num_filters = format->type == FLOAT_TYPE ? 2 : 1;
+	int num_filters = (format->type == FLOAT_TYPE &&
+			   format_supports_linear(texture_target,
+						  format->internalformat)) ? 2 : 1;
 	int bits = get_int_format_bits(format);
 	float scale[4];
 
@@ -1000,7 +1028,9 @@ static GLboolean probe_pixels(const struct format_desc *format, GLboolean npot, 
 	unsigned i, j;
 	unsigned char *pixels;
 	GLboolean pass = GL_TRUE;
-	int num_filters = format->type == FLOAT_TYPE ? 2 : 1;
+	int num_filters = (format->type == FLOAT_TYPE &&
+			   format_supports_linear(texture_target,
+						  format->internalformat)) ? 2 : 1;
 	int bits = get_int_format_bits(format);
 
 	pixels = malloc(piglit_width * piglit_height * 4);
