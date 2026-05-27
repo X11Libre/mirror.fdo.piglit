@@ -65,6 +65,10 @@ def ext_req(type_name):
         return "require_device_extensions: cl_khr_fp16"
     return ""
 
+def feat_req(type_name):
+    if type_name[:5] == "ulong" or type_name[:4] == "long":
+        return "require_device_features: int64"
+    return ""
 
 def print_config(f, type_name, utype_name):
     f.write(textwrap.dedent(("""\
@@ -72,7 +76,7 @@ def print_config(f, type_name, utype_name):
     [config]
     name: shuffle2 {type_name} {utype_name}
     dimensions: 1
-    """ + ext_req(type_name))
+    """ + ext_req(type_name) + feat_req(type_name))
     .format(type_name=type_name, utype_name=utype_name)))
 
 

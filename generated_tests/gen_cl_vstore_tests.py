@@ -44,7 +44,10 @@ def ext_req(type_name):
         return "require_device_extensions: cl_khr_fp16"
     return ""
 
-
+def feat_req(type_name):
+    if type_name[:5] == "ulong" or type_name[:4] == "long":
+        return "require_device_features: int64"
+    return ""
 def begin_test(suffix, type_name, mem_type, vec_sizes, addr_space, aligned):
     file_name = os.path.join(DIR_NAME, "vstore{}-{}-{}.cl".format(suffix, type_name, addr_space))
     print(file_name)
@@ -57,7 +60,7 @@ def begin_test(suffix, type_name, mem_type, vec_sizes, addr_space, aligned):
 
     dimensions: 1
     global_size: 1 0 0
-    """ + ext_req(type_name))
+    """ + ext_req(type_name) + feat_req(type_name))
     .format(type_name=type_name, addr_space=addr_space, suffix=suffix)))
     for s in vec_sizes:
         size = int(s) if s != '' else 1

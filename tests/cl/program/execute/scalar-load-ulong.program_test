@@ -1,5 +1,6 @@
 [config]
 name: Scalar Data Type Load (ulong)
+require_device_features: int64
 
 program_source_file: scalar-load.inc
 build_options: -D SCALAR_TYPE=ulong -D OUT_TYPE=ulong

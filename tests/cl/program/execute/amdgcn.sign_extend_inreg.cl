@@ -2,6 +2,7 @@
 [config]
 name: sign extend in register
 clc_version_min: 10
+require_device_features: int64
 
 dimensions: 1
 

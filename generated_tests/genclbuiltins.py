@@ -453,6 +453,8 @@ def gen(types, minVersions, functions, testDefs, dirName):
                 )
                 if (dataType == 'double'):
                     f.write('require_device_extensions: cl_khr_fp64\n')
+                if (dataType in ('long', 'ulong')):
+                    f.write('require_device_features: int64\n')
 
                 # Blank line  to provide separation between config header and tests
                 f.write('\n')

@@ -2,6 +2,7 @@
 [config]
 name: Long arithmetic
 clc_version_min: 10
+require_device_features: int64
 
 dimensions: 1
 global_size: 1 0 0
