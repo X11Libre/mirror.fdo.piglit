@@ -610,6 +610,54 @@ piglit_cl_require_not_device_extension(cl_device_id device, const char *name)
 	}
 }
 
+bool
+piglit_cl_is_device_feature_supported(cl_device_id device, const char *name)
+{
+#if defined(CL_VERSION_3_0)
+	char full_name[CL_NAME_VERSION_MAX_NAME_SIZE];
+	cl_int err;
+	size_t size;
+	cl_name_version *features;
+	unsigned i, num_features;
+
+	/* There are not optional features for OpenCL < 3.0 */
+	if (piglit_cl_get_device_version(device) < 30)
+		return true;
+
+	snprintf(full_name, sizeof(full_name), "__opencl_c_%s", name);
+
+	err = clGetDeviceInfo(device, CL_DEVICE_OPENCL_C_FEATURES,
+	                      0, NULL, &size);
+	if (err != CL_SUCCESS || size == 0)
+		return false;
+
+	num_features = size / sizeof(cl_name_version);
+	features = malloc(size);
+	if (!features)
+		return false;
+
+	err = clGetDeviceInfo(device, CL_DEVICE_OPENCL_C_FEATURES,
+	                      size, features, NULL);
+	if (err != CL_SUCCESS) {
+		free(features);
+		return false;
+	}
+
+	for (i = 0; i < num_features; i++) {
+		if (strcmp(features[i].name, full_name) == 0) {
+			free(features);
+			return true;
+		}
+	}
+
+	free(features);
+	return false;
+#else
+	/* There are not optional features for OpenCL < 3.0 */
+	return true;
+#endif
+}
+
 unsigned int
 piglit_cl_get_platform_ids(cl_platform_id** platform_ids)
 {

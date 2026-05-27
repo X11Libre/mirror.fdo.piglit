@@ -114,6 +114,9 @@ typedef void piglit_cl_test_clean_t(const int argc,
         char* require_device_extensions;                                     \
           /**< Space-separated list of required device extensions
                (optional) */                                                 \
+        char* require_device_features;                                       \
+          /**< Space-separated list of required device features
+               without __opencl_c_ prefix (optional) */                      \
                                                                              \
         piglit_cl_test_init_t* init_func;                                    \
           /**< Function pointer to initialize environment. (optional) */     \

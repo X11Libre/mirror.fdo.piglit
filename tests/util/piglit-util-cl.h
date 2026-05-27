@@ -320,6 +320,14 @@ bool piglit_cl_is_device_extension_supported(cl_device_id device,
                                              const char *name);
 
 /**
+ * \brief Check if device feature is supported
+ *
+ * \pre name is not null
+ */
+bool piglit_cl_is_device_feature_supported(cl_device_id device,
+                                           const char *name);
+
+/**
  * \brief Check for required OpenCL device extension and possibly
  * terminate the test.
  */

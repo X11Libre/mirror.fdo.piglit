@@ -41,6 +41,7 @@ const struct piglit_cl_test_config_header
 
 	.require_platform_extensions = NULL,
 	.require_device_extensions = NULL,
+	.require_device_features = NULL,
 
 	.init_func = NULL,
 	.clean_func = NULL,
@@ -121,6 +122,31 @@ bool check_device_extensions(cl_device_id device_id, char* extensions)
 			char* device_name = piglit_cl_get_device_info(device_id,
 			                                              CL_DEVICE_NAME);
 			printf("\n# Skipping device %s because extension %s is not supported.\n\n",
+			       device_name,
+			       pch);
+			free(device_name);
+			return false;
+		}
+		pch = strtok(NULL, " ");
+	}
+
+	return true;
+}
+
+bool check_device_features(cl_device_id device_id, char* features)
+{
+	char* pch;
+
+	if (!features)
+		return true;
+
+	pch = strtok(features, " ");
+	while(pch != NULL) {
+		if(   strlen(pch) > 0
+		   && !piglit_cl_is_device_feature_supported(device_id, pch)) {
+			char* device_name = piglit_cl_get_device_info(device_id,
+			                                              CL_DEVICE_NAME);
+			printf("\n# Skipping device %s because feature __opencl_c_%s is not supported.\n\n",
 			       device_name,
 			       pch);
 			free(device_name);
@@ -331,6 +357,11 @@ int piglit_cl_framework_run(int argc, char** argv)
 
 					/* Check device extensions */
 					if(!check_device_extensions(device_id, config->require_device_extensions)) {
+						continue;
+					}
+
+					/* Check device features */
+					if(!check_device_features(device_id, config->require_device_features)) {
 						continue;
 					}
 

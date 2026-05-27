@@ -1715,6 +1715,9 @@ parse_config(const char* config_str,
 				} else if(regex_match(key, "^require_device_extensions$")) {
 					config->require_device_extensions =
 						add_dynamic_str_copy(value);
+				} else if(regex_match(key, "^require_device_features$")) {
+					config->require_device_features =
+						add_dynamic_str_copy(value);
 				} else if(regex_match(key, "^program_source_file$")) {
 					config->program_source_file = add_dynamic_str_copy(value);
 				} else if(regex_match(key, "^program_binary_file$")) {
