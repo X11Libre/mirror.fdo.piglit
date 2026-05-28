@@ -297,8 +297,6 @@ src(int src)
 enum piglit_result
 piglit_display(void)
 {
-	bool pass = true;
-
 	piglit_ortho_projection(piglit_width, piglit_height, GL_FALSE);
 
 	glClearColor(0.5, 0.5, 0.5, 0.5);
@@ -399,7 +397,8 @@ piglit_display(void)
 
 	piglit_present_results();
 
-	pass &= piglit_check_gl_error(GL_NO_ERROR);
+	if (!piglit_check_gl_error(GL_NO_ERROR))
+		piglit_merge_result(&result, PIGLIT_FAIL);
 
 	return result;
 }
