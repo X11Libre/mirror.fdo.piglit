@@ -58,7 +58,6 @@ double start_time;
 static void
 draw_frame(Display *dpy, Window win)
 {
-    static int frames = 0;
     double t = current_time();
 
     GLfloat duration = t - start_time;
@@ -75,7 +74,6 @@ draw_frame(Display *dpy, Window win)
 		}
         }
         start_time = t;
-        frames = 0;
         swap_count= 0;
         event_count= 0;
     }
@@ -92,8 +90,7 @@ draw_frame(Display *dpy, Window win)
     swap_start[count] = current_time();
     glXSwapBuffers(dpy, win);
     swap_returned[count] = current_time();
-    
-    frames++;
+
     frames_total++;
     swap_count++;
 }
