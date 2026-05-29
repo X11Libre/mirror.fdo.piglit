@@ -546,7 +546,7 @@ piglit_display(void)
 {
 	enum piglit_result result = PIGLIT_SKIP;
 	int i;
-	GLuint vao, vbo;
+	GLuint vao = 0, vbo;
 
 	glClearColor(0.5, 0.5, 0.5, 0.5);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -560,7 +560,6 @@ piglit_display(void)
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER_ARB, vbo);
 	if (piglit_get_gl_version() >= 31) {
-		GLuint vao;
 		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
 	}
