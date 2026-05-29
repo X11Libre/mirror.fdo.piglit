@@ -105,8 +105,8 @@ piglit_cl_test(const int argc,
 	cl_float float_num = 1.1;
 	cl_int int_num = 1;
 	cl_sampler sampler = NULL;
-	cl_int3 vec3;
-	struct_arg_t s_arg;
+	cl_int3 vec3 = {{0}};
+	struct_arg_t s_arg = {0};
 
 	cl_mem invalid_buffer = NULL;
 
