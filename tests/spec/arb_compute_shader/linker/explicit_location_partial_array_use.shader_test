@@ -1,0 +1,29 @@
+# Tests for mesa bug:
+# https://gitlab.freedesktop.org/mesa/mesa/-/work_items/15593
+# Here the p1 unform will have its 4th element optimized away, this can
+# result in a crash during linking if mesa doesn't handle uniform remapping
+# correctly. The test is usually required to be run twice to reliably trigger
+# the crash when remappings are rebuilt from the cache.
+
+[require]
+GL >= 3.3
+GLSL >= 3.30
+GL_ARB_compute_shader
+
+[compute shader]
+#version 330
+#extension GL_ARB_compute_shader: enable
+#extension GL_ARB_shader_image_load_store: enable
+#extension GL_ARB_explicit_uniform_location: enable
+
+    layout(local_size_x = 1) in;
+    layout(location = 0, r32ui) uniform writeonly uimageBuffer p0;
+    layout(location = 1) uniform vec4 p1[4];
+    void main() {
+        if (p1[0][0] != 0.0) imageStore(p0, 1, uvec4(1u));
+        if (p1[1][0] != 0.0) imageStore(p0, 1, uvec4(1u));
+        if (p1[2][0] != 0.0) imageStore(p0, 1, uvec4(1u));
+    }
+
+[test]
+link success
