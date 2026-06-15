@@ -65,7 +65,7 @@ piglit_cl_test(const int argc,
 	cl_program program = NULL;
 	cl_kernel kernel = NULL;
 	char  compile_opts[100];
-
+	enum piglit_result result = PIGLIT_PASS;
 	unsigned i;
 
 	context = piglit_cl_create_context(env->platform_id, &env->device_id, 1);
@@ -85,7 +85,8 @@ piglit_cl_test(const int argc,
 	kernel = piglit_cl_create_kernel(program, "test");
 
 	if (!piglit_cl_set_kernel_arg(kernel, 0, sizeof(cl_mem), &out_buffer)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 	if (!piglit_cl_set_kernel_arg(kernel, 1, sizeof(cl_mem), &in_buffer)) {
 		return PIGLIT_FAIL;
@@ -94,7 +95,8 @@ piglit_cl_test(const int argc,
 	if (!piglit_cl_enqueue_ND_range_kernel(context->command_queues[0],
 					kernel, 3, NULL, global_size, local_size,
 					NULL)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	/* This test will check that the clEnqueueReadBuffer() call waits for
@@ -106,14 +108,23 @@ piglit_cl_test(const int argc,
 
 	if (!piglit_cl_read_whole_buffer(context->command_queues[0], out_buffer,
 					out_data)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	for (i = 0; i < BUFFER_ELTS; ++i) {
 		if (!piglit_cl_probe_integer(out_data[i], in_data[i], 0)) {
 			fprintf(stderr, "Error at out[%u]\n", i);
-			return PIGLIT_FAIL;
+			result = PIGLIT_FAIL;
+			goto end;
 		}
 	}
-	return PIGLIT_PASS;
+end:
+	clReleaseKernel(kernel);
+	clReleaseProgram(program);
+	clReleaseMemObject(in_buffer);
+	clReleaseMemObject(out_buffer);
+	piglit_cl_release_context(context);
+
+	return result;
 }

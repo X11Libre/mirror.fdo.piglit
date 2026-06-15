@@ -338,7 +338,8 @@ piglit_cl_program_test_run(const int argc,
 	free(build_options);
 
 	if(env.program == NULL) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	/* Create kernel(s) */
@@ -346,19 +347,19 @@ piglit_cl_program_test_run(const int argc,
 		env.kernel = piglit_cl_create_kernel(env.program, config->kernel_name);
 
 		if(env.kernel == NULL) {
-			return PIGLIT_FAIL;
+			result = PIGLIT_FAIL;
+			goto end;
 		}
 	}
-
-	/* Release retrieved device IDs */
-	if(config->run_per_platform) {
-		free(device_ids);
-	}
-
 
 	/* Run the actual test */
 	result = config->_program_test(argc, argv, config, &env);
 
+end:
+        /* Release retrieved device IDs */
+        if(config->run_per_platform) {
+                free(device_ids);
+        }
 
 	/* Release kernel(s) */
 	if(env.kernel != NULL) {
@@ -366,7 +367,9 @@ piglit_cl_program_test_run(const int argc,
 	}
 
 	/* Release program */
-	clReleaseProgram(env.program);
+	if (env.program != NULL) {
+		clReleaseProgram(env.program);
+	}
 
 	/* Release context */
 	piglit_cl_release_context(env.context);

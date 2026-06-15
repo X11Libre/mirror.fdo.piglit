@@ -75,6 +75,7 @@ piglit_cl_test(const int argc,
 	errNo = clEnqueueReadBuffer(env->context->command_queues[0], memobj, true,
 	                            0, 1, buffer, 0, NULL, &event);
 	if(!piglit_cl_check_error(errNo, CL_SUCCESS)) {
+		clReleaseMemObject(memobj);
 		fprintf(stderr,
 		        "Failed (error code: %s): Create event by enqueueing buffer read.\n",
 		        piglit_cl_get_error_name(errNo));
@@ -84,6 +85,7 @@ piglit_cl_test(const int argc,
 	ref_count_ptr = piglit_cl_get_event_info(event, CL_EVENT_REFERENCE_COUNT);
 	if(*ref_count_ptr < 1) {
 		free(ref_count_ptr);
+		clReleaseMemObject(memobj);
 		fprintf(stderr,
 		        "CL_EVENT_REFERENCE_COUNT should be >= 1 after creating event.\n");
 		return PIGLIT_FAIL;
@@ -95,6 +97,7 @@ piglit_cl_test(const int argc,
 	for(ref_count = 1; ref_count < max_ref_count; ref_count++) {
 		errNo = clRetainEvent(event);
 		if(!piglit_cl_check_error(errNo, CL_SUCCESS)) {
+			clReleaseMemObject(memobj);
 			fprintf(stderr,
 			        "clRetainEvent: Failed (error code: %s): Retain event.\n",
 			        piglit_cl_get_error_name(errNo));
@@ -102,6 +105,7 @@ piglit_cl_test(const int argc,
 		}
 		errNo = clReleaseEvent(event);
 		if(!piglit_cl_check_error(errNo, CL_SUCCESS)){
+			clReleaseMemObject(memobj);
 			fprintf(stderr,
 			        "clReleaseEvent: Failed (error code: %s): Release event.\n",
 			        piglit_cl_get_error_name(errNo));
@@ -109,6 +113,7 @@ piglit_cl_test(const int argc,
 		}
 		errNo = clRetainEvent(event);
 		if(!piglit_cl_check_error(errNo, CL_SUCCESS)){
+			clReleaseMemObject(memobj);
 			fprintf(stderr,
 			        "clRetainEvent: Failed (error code: %s): Retain event.\n",
 			        piglit_cl_get_error_name(errNo));
@@ -124,6 +129,7 @@ piglit_cl_test(const int argc,
 			        "Increase #%d: CL_EVENT_REFERENCE_COUNT is not changing accordingly.\n" \
 			        "Expects >=%d got %d\n", ref_count, (ref_count+1), *ref_count_ptr);
 			free(ref_count_ptr);
+			clReleaseMemObject(memobj);
 			return PIGLIT_FAIL;
 		}
 		free(ref_count_ptr);
@@ -133,6 +139,7 @@ piglit_cl_test(const int argc,
 	for(ref_count = max_ref_count; ref_count > 0; ref_count--) {
 		errNo = clReleaseEvent(event);
 		if(!piglit_cl_check_error(errNo, CL_SUCCESS)){
+			clReleaseMemObject(memobj);
 			fprintf(stderr,
 			        "clReleaseEvent: Failed (error code: %s): Release event.\n",
 			        piglit_cl_get_error_name(errNo));
@@ -149,11 +156,13 @@ piglit_cl_test(const int argc,
 				        "Decrease #%d: CL_EVENT_REFERENCE_COUNT is not changing accordingly.\n" \
 				        "Expects >=%d got %d\n", ref_count, (ref_count-1), *ref_count_ptr);
 				free(ref_count_ptr);
+				clReleaseMemObject(memobj);
 				return PIGLIT_FAIL;
 			}
 			free(ref_count_ptr);
 		}
 	}
+	clReleaseMemObject(memobj);
 
 	return PIGLIT_PASS;
 }

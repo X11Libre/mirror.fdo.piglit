@@ -1051,9 +1051,11 @@ get_test_arg_tolerance(struct test_arg* test_arg, const char* tolerance_str)
 		case TYPE_FLOAT:
 		case TYPE_DOUBLE:
 			test_arg->ulp = get_uint(value_str);
+			free(value_str);
 			return;
 		default:
 			fprintf(stderr, "ulp not value for integer types\n");
+			free(value_str);
 			exit_report_result(PIGLIT_WARN);
                 }
 	}

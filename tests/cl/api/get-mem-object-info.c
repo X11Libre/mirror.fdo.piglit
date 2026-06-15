@@ -231,6 +231,7 @@ piglit_cl_test(const int argc,
 		fprintf(stderr,
 		        "Failed (error code: %s): Create buffer 1.\n",
 		        piglit_cl_get_error_name(errNo));
+		clReleaseMemObject(memobj[0]);
 		return PIGLIT_FAIL;
 	}
 
@@ -249,6 +250,8 @@ piglit_cl_test(const int argc,
 			fprintf(stderr,
 			        "Failed (error code: %s): Create buffer 2.\n",
 			        piglit_cl_get_error_name(errNo));
+			clReleaseMemObject(memobj[0]);
+			clReleaseMemObject(memobj[1]);
 			return PIGLIT_FAIL;
 		}
 	}
@@ -263,8 +266,16 @@ piglit_cl_test(const int argc,
 	                   );
 	free(param_value);
 
-	if (result != PIGLIT_PASS)
+	if (result != PIGLIT_PASS) {
+		clReleaseMemObject(memobj[0]);
+		clReleaseMemObject(memobj[1]);
+#if defined(CL_VERSION_1_1)
+		if (env->version >= 11) {
+			clReleaseMemObject(memobj[2]);
+		}
+#endif
 		return result;
+	}
 
 	/*** Normal usage ***/
 	for(i = 0; i < num_mem_infos; i++) {

@@ -46,31 +46,39 @@ piglit_cl_test(const int argc,
 {
 	int host_src_buffer[4] = {1, 2, 3, 4};
 	int host_dst_buffer[4] = {0, 0, 0, 0};
-	cl_mem device_src_buffer, device_dst_buffer;
+	cl_mem device_src_buffer = NULL, device_dst_buffer = NULL;
 	cl_command_queue queue = env->context->command_queues[0];
 	cl_int err;
 	int i;
+	enum piglit_result result = PIGLIT_PASS;
 
 	device_src_buffer = piglit_cl_create_buffer(
 		env->context, CL_MEM_READ_WRITE, sizeof(host_src_buffer));
 	device_dst_buffer = piglit_cl_create_buffer(
 		env->context, CL_MEM_READ_WRITE, sizeof(host_dst_buffer));
+	if (!device_src_buffer || !device_dst_buffer) {
+		result = PIGLIT_FAIL;
+		goto end;
+	}
 	if (!piglit_cl_write_whole_buffer(queue,
 					device_src_buffer, host_src_buffer) ||
 	    !piglit_cl_write_whole_buffer(queue,
 					device_dst_buffer, host_dst_buffer)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	err = clEnqueueCopyBuffer(queue, device_src_buffer, device_dst_buffer,
 				0, 0, sizeof(host_src_buffer), 0, NULL, NULL);
 	if (!piglit_cl_check_error(err, CL_SUCCESS)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	if (!piglit_cl_read_whole_buffer(queue, device_dst_buffer,
 							host_dst_buffer)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	for (i = 0; i < sizeof(host_src_buffer) / sizeof(host_src_buffer[0]);
@@ -78,8 +86,18 @@ piglit_cl_test(const int argc,
 		if (!piglit_cl_probe_integer(host_dst_buffer[i],
 						host_src_buffer[i], 0)) {
 			fprintf(stderr, "Error at %d\n", i);
-			return PIGLIT_FAIL;
+			result = PIGLIT_FAIL;
+			goto end;
 		}
 	}
-	return PIGLIT_PASS;
+
+end:
+	if (device_src_buffer) {
+		clReleaseMemObject(device_src_buffer);
+	}
+	if (device_dst_buffer) {
+		clReleaseMemObject(device_dst_buffer);
+	}
+
+	return result;
 }

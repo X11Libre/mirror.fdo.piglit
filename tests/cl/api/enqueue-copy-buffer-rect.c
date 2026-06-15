@@ -46,6 +46,7 @@ piglit_cl_test(const int argc,
 	       const struct piglit_cl_api_test_config* config,
 	       const struct piglit_cl_api_test_env* env)
 {
+	enum piglit_result result = PIGLIT_PASS;
 	char *host_src_buffer = malloc(BUFFER_SIZE);
 	char *host_dst_buffer = malloc(BUFFER_SIZE);
 	cl_mem device_src_buffer, device_dst_buffer;
@@ -71,7 +72,8 @@ piglit_cl_test(const int argc,
 					device_src_buffer, host_src_buffer) ||
 	    !piglit_cl_write_whole_buffer(queue,
 					device_dst_buffer, host_dst_buffer)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	err = clEnqueueCopyBufferRect(queue, device_src_buffer, device_dst_buffer,
@@ -79,14 +81,16 @@ piglit_cl_test(const int argc,
 				src_slice_pitch, dst_row_pitch, dst_slice_pitch,
 				0, NULL, NULL);
 	if (!piglit_cl_check_error(err, CL_SUCCESS)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	clFinish(queue);
 
 	if (!piglit_cl_read_whole_buffer(queue, device_dst_buffer,
 							host_dst_buffer)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	// Check that bytes were written to the correct locations.
@@ -96,7 +100,8 @@ piglit_cl_test(const int argc,
 		char src_value = host_src_buffer[(i * src_row_pitch) + src_origin[0]];
 		if (!piglit_cl_probe_integer(dst_value, src_value, 0)){
 			printf("Error at %d\n", dst_idx);
-			return PIGLIT_FAIL;
+			result = PIGLIT_FAIL;
+			goto end;
 		}
 	}
 
@@ -107,8 +112,15 @@ piglit_cl_test(const int argc,
 		}
 		if (!piglit_cl_probe_integer(host_dst_buffer[i], (char)0xff, 0)) {
 			printf("Error at %d\n", i);
-			return PIGLIT_FAIL;
+			result = PIGLIT_FAIL;
+			goto end;
 		}
 	}
-	return PIGLIT_PASS;
+end:
+	free(host_src_buffer);
+	free(host_dst_buffer);
+	clReleaseMemObject(device_src_buffer);
+	clReleaseMemObject(device_dst_buffer);
+	return result;
+
 }

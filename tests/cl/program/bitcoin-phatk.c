@@ -537,6 +537,7 @@ piglit_cl_test(const int argc,
 			data[15]);
 		result = PIGLIT_FAIL;
 	}
+	clReleaseMemObject(buffer);
 
 	return result;
 }

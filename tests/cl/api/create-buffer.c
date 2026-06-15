@@ -232,11 +232,13 @@ piglit_cl_test(const int argc,
 							fprintf(stderr,
 							        "Buffer data was not properly initialized using 0x%X as memory flags.\n",
 							        (unsigned int)mixed_mem_flags);
+							clReleaseMemObject(buffer);
 							piglit_merge_result(&result, PIGLIT_FAIL);
 							break;
 						}
 					}
 				}
+				clReleaseMemObject(buffer);
 			}
 		} else {
 			test(env->context->cl_ctx, mixed_mem_flags, alloc_size, NULL,

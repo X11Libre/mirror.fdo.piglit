@@ -59,6 +59,7 @@ piglit_cl_test(const int argc,
 	cl_kernel kernel = NULL;
 	int data[BUFFER_SIZE / sizeof(int)];
 	unsigned i;
+	enum piglit_result result = PIGLIT_PASS;
 
 	context = piglit_cl_create_context(env->platform_id, &env->device_id, 1);
 	queue = context->command_queues[0];
@@ -77,33 +78,39 @@ piglit_cl_test(const int argc,
 	if (!piglit_cl_enqueue_ND_range_kernel(queue, kernel, 1, NULL,
 	                                       &global_size, &local_size,
 					       NULL)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	/* Use the second buffer */
 	if (!piglit_cl_set_kernel_arg(kernel, 0, sizeof(cl_mem), &buffer1)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	if (!piglit_cl_enqueue_ND_range_kernel(queue, kernel, 1, NULL,
 	                                       &global_size, &local_size,
 					       NULL)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	/* Delete the first buffer */
 	clReleaseMemObject(buffer0);
+	buffer0 = NULL;
 
 	/* Create and use the third buffer */
 	buffer2 = piglit_cl_create_buffer(context, CL_MEM_WRITE_ONLY, BUFFER_SIZE);
 	if (!piglit_cl_set_kernel_arg(kernel, 0, sizeof(cl_mem), &buffer2)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	if (!piglit_cl_enqueue_ND_range_kernel(queue, kernel, 1, NULL,
 	                                       &global_size, &local_size,
 					       NULL)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	/* Create the fourth buffer. */
@@ -126,14 +133,37 @@ piglit_cl_test(const int argc,
 	/* Check that the data wasn't also written to buffer1 */
 	memset(data, 0, sizeof(data));
 	if (!piglit_cl_read_whole_buffer(queue, buffer1, data)) {
-		return PIGLIT_FAIL;
+		result = PIGLIT_FAIL;
+		goto end;
 	}
 
 	for (i = 0; i < BUFFER_SIZE / sizeof(int); i++) {
 		if (data[i]) {
 			fprintf(stderr, "Error at data[%u], unexpected value 0x%02x\n", i, data[i]);
-			return PIGLIT_FAIL;
+			result = PIGLIT_FAIL;
+			goto end;
 		}
 	}
-	return PIGLIT_PASS;
+end:
+	if (buffer3) {
+		clReleaseMemObject(buffer3);
+	}
+	if (buffer2) {
+		clReleaseMemObject(buffer2);
+	}
+	if (buffer1) {
+		clReleaseMemObject(buffer1);
+	}
+	if (buffer0) {
+		clReleaseMemObject(buffer0);
+	}
+	if (kernel) {
+		clReleaseKernel(kernel);
+	}
+	if (program) {
+		clReleaseProgram(program);
+	}
+	piglit_cl_release_context(context);
+
+	return result;
 }

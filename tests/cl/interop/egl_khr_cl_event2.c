@@ -434,6 +434,7 @@ piglit_cl_test(const int argc,
 		fprintf(stderr,
 		        "Failed (error code: %s): Create event by enqueueing buffer read.\n",
 		        piglit_cl_get_error_name(errNo));
+		clReleaseMemObject(memobj);
 		return PIGLIT_FAIL;
 	}
 
@@ -444,8 +445,10 @@ piglit_cl_test(const int argc,
 		fprintf(stderr,
 			"clReleaseEvent: Failed (error code: %s): Release event.\n",
 			piglit_cl_get_error_name(errNo));
+		clReleaseMemObject(memobj);
 		return PIGLIT_FAIL;
 	}
+	clReleaseMemObject(memobj);
 
 	return result;
 }
