@@ -242,7 +242,15 @@ piglit_cl_test(const int argc,
 		fprintf(stderr,
 	           "Failed (error code: %s): Trigger CL_KERNEL_ARG_INFO_NOT_AVAILABLE if the argument information is not available for kernel.\n",
 	           piglit_cl_get_error_name(errNo));
-	piglit_merge_result(&result, PIGLIT_FAIL);
+	/*
+	 * Some implementations (PoCL, AMD, Intel, rusticl) always
+	 * retain kernel arg info even without -cl-kernel-arg-info.
+	 * This is spec-compliant behavior, so only warn instead of fail.
+	 */
+	if(errNo == CL_SUCCESS)
+		piglit_merge_result(&result, PIGLIT_WARN);
+	else
+		piglit_merge_result(&result, PIGLIT_FAIL);
 	}
 
 	clReleaseKernel(kern);
