@@ -9,3 +9,14 @@ link_libraries(
         )
 
 piglit_add_executable (ext_yuv_target-simple simple.c)
+
+if(PIGLIT_BUILD_DMA_BUF_TESTS)
+        include_directories(
+                ${LIBDRM_INCLUDE_DIRS}
+        )
+
+        piglit_add_executable (ext_yuv_target-nv12-sample-y2y
+                execution/nv12-sample-y2y.c)
+        piglit_add_executable (ext_yuv_target-nv12-render-yuv
+                execution/nv12-render-yuv.c)
+endif()
