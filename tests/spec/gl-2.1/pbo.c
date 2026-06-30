@@ -42,17 +42,6 @@
 #define WINSIZE 100
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-PIGLIT_GL_TEST_CONFIG_BEGIN
-
-	config.supports_gl_compat_version = 10;
-
-	config.window_visual = PIGLIT_GL_VISUAL_RGBA |
-		PIGLIT_GL_VISUAL_DOUBLE;
-
-	config.khr_no_error_support = PIGLIT_NO_ERRORS;
-
-PIGLIT_GL_TEST_CONFIG_END
-
 void
 piglit_init(int argc, char **argv)
 {
@@ -1067,23 +1056,42 @@ test_error_handling(void *null)
 	return pass ? PIGLIT_PASS : PIGLIT_FAIL;
 }
 
+static struct piglit_subtest funcs[] = {
+	{ "test_sanity", NULL, test_sanity, NULL },
+	{ "test_draw_pixels", NULL, test_draw_pixels, NULL },
+	{ "test_pixel_map", NULL, test_pixel_map, NULL },
+	{ "test_bitmap", NULL, test_bitmap, NULL },
+	{ "test_tex_image", NULL, test_tex_image, NULL },
+	{ "test_tex_sub_image", NULL, test_tex_sub_image, NULL },
+	{ "test_polygon_stip", NULL, test_polygon_stip, NULL },
+	{ "test_error_handling", NULL, test_error_handling, NULL },
+	{ NULL, NULL, NULL, NULL } /* End of list sentinel */
+};
+
+static struct piglit_gl_test_config *piglit_config;
+
+PIGLIT_GL_TEST_CONFIG_BEGIN
+	piglit_config = &config;
+
+	config.supports_gl_compat_version = 10;
+
+	config.window_visual = PIGLIT_GL_VISUAL_RGBA |
+		PIGLIT_GL_VISUAL_DOUBLE;
+
+	config.khr_no_error_support = PIGLIT_NO_ERRORS;
+
+	config.subtests = funcs;
+
+PIGLIT_GL_TEST_CONFIG_END
+
 enum piglit_result
 piglit_display(void)
 {
-	enum piglit_result result = PIGLIT_PASS;
-	static struct piglit_subtest funcs[] = {
-		{ "test_sanity", "", test_sanity, NULL },
-		{ "test_draw_pixels", "", test_draw_pixels, NULL },
-		{ "test_pixel_map", "", test_pixel_map, NULL },
-		{ "test_bitmap", "", test_bitmap, NULL },
-		{ "test_tex_image", "", test_tex_image, NULL },
-		{ "test_tex_sub_image", "", test_tex_sub_image, NULL },
-		{ "test_polygon_stip", "", test_polygon_stip, NULL },
-		{ "test_error_handling", "", test_error_handling, NULL },
-		{ NULL, NULL, NULL, NULL } /* End of list sentinel */
-	};
+	enum piglit_result result;
 
-	result = piglit_run_selected_subtests(funcs, NULL, 0, result);
+	result = piglit_run_selected_subtests(piglit_config->subtests,
+					      piglit_config->selected_subtests,
+					      piglit_config->num_selected_subtests, PIGLIT_SKIP);
 
 	return result;
 }
