@@ -94,10 +94,27 @@ class FuncOpts(object):  # pylint: disable=too-few-public-methods
         The fraction 0.5 will round in a direction chosen by the
         implementation, presumably the direction that is fastest.
 
+    In addition, when the rounding mode is not otherwise constrained, an
+    implementation is permitted to round toward zero (truncate). Unlike the
+    round-to-nearest modes above, which differ from each other only at the
+    0.5 tie, round-to-zero can differ for any input with a nonzero fraction.
+
+    Rounding toward zero also never rounds a finite value up to infinity; on
+    overflow it yields the largest representable finite value instead. GLSL ES
+    3.20 spec section 4.7.2 "Conversion between precisions" permits that:
+
+        For floating point values, the value should either clamp to +INF or
+        -INF, or to the maximum or minimum value that the implementation
+        supports. While this behavior is implementation dependent, it should be
+        consistent for a given implementation.
+
+    An infinite input still yields infinity, since no rounding is involved.
+
     The constructor parameter 'round_mode' selects the rounding behavior.
     Valid values are:
         - ROUND_TO_EVEN
         - ROUND_TO_NEAREST
+        - ROUND_TO_ZERO
 
     Subnormal flushing
     ------------------
@@ -113,14 +130,19 @@ class FuncOpts(object):  # pylint: disable=too-few-public-methods
 
     ROUND_TO_EVEN = 0
     ROUND_TO_NEAREST = 1
+    ROUND_TO_ZERO = 2
 
     def __init__(self, round_mode=ROUND_TO_EVEN, flush_subnormal=False):
+        self.round_mode = round_mode
+
         if round_mode == FuncOpts.ROUND_TO_EVEN:
             self.__round_func = round_to_even
         elif round_mode == FuncOpts.ROUND_TO_NEAREST:
             self.__round_func = round_to_nearest
+        elif round_mode == FuncOpts.ROUND_TO_ZERO:
+            self.__round_func = round_to_zero
         else:
-            raise Exception('Must round to even or nearest.\n'
+            raise Exception('Must round to even, nearest, or zero.\n'
                             'round function: {}'.format(round_mode))
 
         self.flush_subnormal = flush_subnormal
@@ -165,6 +187,12 @@ def round_to_even(x):
         return i + fmod(i, 2.0)
     else:
         return i + copysign(1.0, x)
+
+
+def round_to_zero(x):
+    # modf's integral part is already truncated toward zero.
+    (_, i) = modf(x)
+    return i
 
 
 def pack_2x16(pack_1x16_func, x, y, func_opts):
@@ -405,15 +433,23 @@ def pack_half_1x16(f32, func_opts):
         m = int(func_opts.round(2**11 * F - 2**10))
     else:
         # f32 lies in the range [max_normal16 + max_step16, inf), which is
-        # outside the range of finite float16 values. The resultant float16 is
-        # infinite.
-        e = 31
-        m = 0
+        # outside the range of finite float16 values.
+        if func_opts.round_mode == FuncOpts.ROUND_TO_ZERO:
+            # Rounding toward zero never rounds a finite value up to infinity,
+            # so the resultant float16 is max_normal16.
+            e = 30
+            m = 1023
+        else:
+            # The resultant float16 is infinite.
+            e = 31
+            m = 0
 
     if m == 1024:
         # f32 was rounded upwards into the range of the next exponent.  This
         # correctly handles the case where f32 should be rounded up to float16
-        # infinity.
+        # infinity.  Truncation never rounds upwards, so this cannot happen
+        # when rounding toward zero; that case produces max_normal16 above.
+        assert func_opts.round_mode != FuncOpts.ROUND_TO_ZERO
         e += 1
         m = 0
 
@@ -942,14 +978,22 @@ inout_table = {
     "packHalf2x16":  make_inouts_for_pack_2x16(
         pack_half_1x16, full_input_table["packHalf2x16"],
         reduced_input_table["packHalf2x16"],
-        # packHalf2x16 can produce subnormal float16 results, which the GLSL
-        # specs permit to be flushed to zero. Accept both the exact subnormal
-        # and the flushed-to-zero result.
-        func_opt_seq=(
-            FuncOpts(FuncOpts.ROUND_TO_EVEN),
-            FuncOpts(FuncOpts.ROUND_TO_NEAREST),
-            FuncOpts(FuncOpts.ROUND_TO_EVEN, flush_subnormal=True),
-            FuncOpts(FuncOpts.ROUND_TO_NEAREST, flush_subnormal=True))),
+        # packHalf2x16's rounding mode and subnormal flushing are each
+        # implementation-defined, so enumerate the full cross product of the
+        # permitted behaviors as valid outputs.  Overflow handling is not an
+        # independent axis: the only permitted alternative to overflowing to
+        # infinity is clamping to max_normal16, which is what rounding toward
+        # zero already does.  An implementation that rounds to nearest but
+        # clamps on overflow is still accepted: clamping and overflowing to
+        # infinity can only disagree for an input that overflows, and for such
+        # an input the round-to-zero result is the clamped one.  (The other
+        # component of each vec2 input comes from the reduced input table,
+        # whose values are all exactly representable as float16 and so are
+        # unaffected by the choice of rounding mode.)
+        func_opt_seq=tuple(
+            FuncOpts(round_mode, flush_subnormal=flush)
+            for round_mode in (FuncOpts.ROUND_TO_EVEN, FuncOpts.ROUND_TO_NEAREST, FuncOpts.ROUND_TO_ZERO)
+            for flush in (False, True))),
     "unpackSnorm2x16": make_inouts_for_unpack_2x16(
         unpack_snorm_1x16, full_input_table["unpackSnorm2x16"]),
     "unpackSnorm4x8": make_inouts_for_unpack_4x8(
