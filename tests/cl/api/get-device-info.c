@@ -1,5 +1,6 @@
 /*
  * Copyright © 2012 Blaž Tomažič <blaz.tomazic@gmail.com>
+ * Copyright © 2026 NXP
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -323,9 +324,11 @@ check_info(const struct piglit_cl_api_test_env* env,
 		case CL_DEVICE_MAX_MEM_ALLOC_SIZE:
 			valid = check_size(sizeof(cl_ulong), param_value_size, result);
 			if (valid && device_config->type != CL_DEVICE_TYPE_CUSTOM) {
-				valid = check_min_int(MAX2(device_config->mem_size/4, 128*1024*1024),
-					               *(cl_ulong*)param_value,
-					               result);
+				valid = check_min_int(
+					MAX2(MIN2(1024ULL*1024*1024, device_config->mem_size/4),
+					     32ULL*1024*1024),
+					*(cl_ulong*)param_value,
+					result);
 			}
 
 			if (valid) {
