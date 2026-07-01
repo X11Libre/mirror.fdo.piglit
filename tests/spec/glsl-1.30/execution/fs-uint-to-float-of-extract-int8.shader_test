@@ -32,7 +32,12 @@ void main()
 {
    float f = float(uint((a << 24) >> 24));
 
-   if (f == float(uint(0xffffffff))) {
+   // The correct result is float(uint(0xffffffff)), i.e. float(4294967295u).
+   // 4294967295 (2^32 - 1) is not exactly representable as a 32-bit float, so
+   // per the GLSL conversion precision rules it may round to the nearest
+   // representable value, 2^32 (4294967296.0), or toward zero to 2^32 - 256
+   // (4294967040.0). Accept either valid result.
+   if (f == 4294967296.0 || f == 4294967040.0) {
       gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
    } else {
      gl_FragColor = (f == 255.0 || f == -1.0)
