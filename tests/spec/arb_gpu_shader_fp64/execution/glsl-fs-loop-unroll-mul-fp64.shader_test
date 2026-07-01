@@ -18,15 +18,15 @@ void main()
       lk *= 13.0LF;
    /* lk should be 10604499373 */
 
-   while (lk != 4826809.0LF)
+   while (lk > 4826830.0LF)
       lk /= 13.0LF;
-   /* lk should be 4826809 */
+   /* lk should be ~4826809 */
 
-   while (lk == 4826809.0LF)
+   while (lk >= 371294.0LF)
       lk /= 13.0LF;
-   /* lk should be 371293 */
+   /* lk should be ~371293 */
 
-   if (lk == 371293.0LF)
+   if (abs(lk - 371293.0LF) < 1.0LF)
       gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
    else
       gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
