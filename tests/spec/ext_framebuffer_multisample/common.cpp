@@ -533,8 +533,29 @@ Test::measure_accuracy()
 					unlit_stats.record(test - ref);
 				else if (ref >= 1.0)
 					totally_lit_stats.record(test - ref);
-				else
-					partially_lit_stats.record(test - ref);
+				else {
+					float error = test - ref;
+					if (srgb && c < 3) {
+						/* ARB_framebuffer_sRGB issue 17 explicitly
+						 * states there are no interactions between
+						 * that extension and multisampling, and that
+						 * sRGB-correct MSAA resolve is
+						 * implementation-defined.  Accept both
+						 * linear-space averaging (correct) and
+						 * sRGB-space averaging (also spec-permitted).
+						 * A driver that stores raw coverage fractions
+						 * without sRGB encoding produces, in linear
+						 * space, piglit_srgb_to_linear(ref) -- i.e.
+						 * the linear reference passed through the
+						 * conversion once more.
+						 */
+						float srgb_ref = piglit_srgb_to_linear(ref);
+						float error_srgb = test - srgb_ref;
+						if (fabsf(error_srgb) < fabsf(error))
+							error = error_srgb;
+					}
+					partially_lit_stats.record(error);
+				}
 			}
 		}
 	}
@@ -595,7 +616,6 @@ Test::measure_accuracy()
 	delete[] reference_data;
 	delete[] test_data;
 
-	// TODO: deal with sRGB.
 	return pass;
 }
 
