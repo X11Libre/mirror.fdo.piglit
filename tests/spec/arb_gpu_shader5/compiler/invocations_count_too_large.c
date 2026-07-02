@@ -79,6 +79,7 @@ test_invocations_size(GLint size, bool expect_ok)
 	glShaderSource(shader, 1, (const GLchar **) &shader_text, NULL);
 	glCompileShader(shader);
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
+	free(shader_text);
 	if (!piglit_check_gl_error(GL_NO_ERROR)) {
 		/* Details of the error have already been printed. */
 		printf("GL Error occurred.\n");
