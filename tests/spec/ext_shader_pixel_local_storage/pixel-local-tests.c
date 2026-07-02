@@ -851,7 +851,7 @@ make_test_main_str(char *dst, struct pls_format_data *format_data,
 		case GL_RGBA8UI:
 		case GL_RG16UI:
 		case GL_R32UI: {
-			uint expected[4];
+			unsigned int expected[4];
 			for (int comp = 0; comp < 4; comp++) {
 				if (comp < format_data[member].num_components)
 					expected[comp] = format_data[member].u[comp];
