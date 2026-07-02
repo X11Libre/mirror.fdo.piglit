@@ -155,6 +155,8 @@ piglit_init(int argc, char **argv)
 		}
 	}
 
+	free(colorLayers);
+
 	if(!piglit_check_gl_error(GL_NO_ERROR))
 		piglit_report_result(PIGLIT_FAIL);
 }
