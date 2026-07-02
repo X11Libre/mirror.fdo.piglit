@@ -211,6 +211,7 @@ enum piglit_result piglit_display(void)
 	if (fence)
 		glDeleteSync(fence);
 	glDeleteBuffers(1, &vbo);
+	piglit_free_aligned(mem);
 	if (!piglit_check_gl_error(GL_NO_ERROR))
 		piglit_report_result(PIGLIT_FAIL);
 	piglit_present_results();
