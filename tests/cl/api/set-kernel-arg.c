@@ -1,5 +1,6 @@
 /*
  * Copyright © 2012 Blaž Tomažič <blaz.tomazic@gmail.com>
+ * Copyright © 2026 NXP
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -261,8 +262,16 @@ piglit_cl_test(const int argc,
 	test(kernel, 0, sizeof(cl_mem)+1, &buffer,
 	     CL_INVALID_ARG_SIZE, &input_check_result,
 	     "Trigger CL_INVALID_ARG_SIZE if the argument is a memory object and arg_size != sizeof(cl_mem)");
+	/*
+	 * Per OpenCL 3.1 spec, the CL_INVALID_ARG_SIZE error condition for
+	 * arg_size == 0 on __local arguments does not apply if the platform
+	 * is OpenCL 3.1 or newer.
+	 */
+	cl_int local_arg_size_zero_error =
+		piglit_cl_get_platform_version(env->platform_id) >= 31 ?
+		CL_SUCCESS : CL_INVALID_ARG_SIZE;
 	test(kernel, 2, 0, NULL,
-	     CL_INVALID_ARG_SIZE, &input_check_result,
+	     local_arg_size_zero_error, &input_check_result,
 	     "Trigger CL_INVALID_ARG_SIZE if arg_size is zero and the argument is declared with the __local qualifier");
 	test(kernel, 3, sizeof(cl_sampler)+1, &sampler,
 	     CL_INVALID_ARG_SIZE, &input_check_result,
