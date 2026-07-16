@@ -45,6 +45,32 @@ struct format_test {
 	const GLenum formats[5];
 };
 
+static bool
+check_storage(GLenum format, GLint levels, GLsizei width, GLsizei height,
+	      GLenum expected_error)
+{
+	GLuint tex;
+	GLint param;
+	bool pass;
+
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexStorage2DEXT(GL_TEXTURE_2D, levels, format, width, height);
+
+	pass = piglit_check_gl_error(expected_error);
+
+	glGetTexParameteriv(GL_TEXTURE_2D,
+			    GL_TEXTURE_IMMUTABLE_FORMAT_EXT,
+			    &param);
+	if (param != (expected_error == GL_NO_ERROR))
+		pass = false;
+
+	glDeleteTextures(1, &tex);
+
+	return pass;
+}
+
 static enum piglit_result
 check_formats(void *data_)
 {
@@ -61,30 +87,14 @@ check_formats(void *data_)
 	piglit_reset_gl_error();
 
 	for (int i = 0; i < ARRAY_SIZE(data->formats); i++) {
-		GLuint tex;
-		GLint param;
-
 		if (data->formats[i] == GL_NONE)
 			continue;
 
 		piglit_logi("checking %s",
 			    piglit_get_gl_enum_name(data->formats[i]));
 
-		glActiveTexture(GL_TEXTURE0);
-		glGenTextures(1, &tex);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexStorage2DEXT(GL_TEXTURE_2D, 1, data->formats[i], 128, 128);
-
-		if (!piglit_check_gl_error(GL_NO_ERROR))
+		if (!check_storage(data->formats[i], 1, 128, 128, GL_NO_ERROR))
 			failed = true;
-
-		glGetTexParameteriv(GL_TEXTURE_2D,
-				    GL_TEXTURE_IMMUTABLE_FORMAT_EXT,
-				    &param);
-		if (param != GL_TRUE)
-			failed = true;
-
-		glDeleteTextures(1, &tex);
 	}
 
 	return failed ? PIGLIT_FAIL : PIGLIT_PASS;
