@@ -2570,6 +2570,11 @@ with profile.test_list.group_manager(
 
 with profile.test_list.group_manager(
         PiglitGLTest,
+        grouptools.join('spec', 'EXT_texture_storage')) as g:
+    g(['ext_texture_storage-formats'], 'formats')
+
+with profile.test_list.group_manager(
+        PiglitGLTest,
         grouptools.join('spec', 'EXT_texture_storage_compression')) as g:
     g(['ext_texture_storage_compression-tex-storage'], 'tex-storage')
 
