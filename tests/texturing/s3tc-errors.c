@@ -488,7 +488,9 @@ test_non_power_of_two(void)
 {
 	bool pass = true;
 
-	if (piglit_is_extension_supported("GL_ARB_texture_non_power_of_two")) {
+	/* GLES2 supports NPOT images at level zero without OES_texture_npot. */
+	if (piglit_is_gles() ||
+	    piglit_is_extension_supported("GL_ARB_texture_non_power_of_two")) {
 		GLuint tex;
 		GLubyte buf[800];
 		int width = 11, height = 14;
