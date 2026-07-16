@@ -24,7 +24,8 @@
 /**
  * @file
  * Tests glTexStorage2DEXT interactions with formats defined in other
- * extensions, which is not covered by the CTS.
+ * extensions and GLES2 NPOT level restrictions, neither of which is
+ * covered by the CTS.
  */
 
 #include "piglit-util-gl.h"
@@ -100,6 +101,48 @@ check_formats(void *data_)
 	return failed ? PIGLIT_FAIL : PIGLIT_PASS;
 }
 
+static enum piglit_result
+check_npot_levels(void *data)
+{
+	/* GLES2 without OES_texture_npot requires a single level for NPOT
+	 * texture storage.
+	 */
+	static const struct {
+		GLint levels;
+		GLsizei width;
+		GLsizei height;
+		bool requires_full_npot;
+	} tests[] = {
+		{ 8, 128, 128, false },
+		{ 1, 127, 128, false },
+		{ 1, 128, 127, false },
+		{ 8, 127, 128, true },
+		{ 8, 128, 127, true },
+	};
+	const bool full_npot =
+		piglit_is_gles3() ||
+		piglit_is_extension_supported("GL_OES_texture_npot");
+	bool pass = true;
+
+	piglit_reset_gl_error();
+
+	for (int i = 0; i < ARRAY_SIZE(tests); i++) {
+		const GLenum expected_error =
+			tests[i].requires_full_npot && !full_npot ?
+			GL_INVALID_OPERATION : GL_NO_ERROR;
+
+		piglit_logi("checking %dx%d, %d level%s",
+			    tests[i].width, tests[i].height, tests[i].levels,
+			    tests[i].levels == 1 ? "" : "s");
+
+		pass = check_storage(GL_RGBA4, tests[i].levels,
+				     tests[i].width, tests[i].height,
+				     expected_error) && pass;
+	}
+
+	return pass ? PIGLIT_PASS : PIGLIT_FAIL;
+}
+
 static const struct format_test format_tests[] = {
 	{
 		{ },
@@ -157,7 +200,8 @@ void
 piglit_init(int argc, char **argv)
 {
 	enum piglit_result result;
-	struct piglit_subtest subtests[ARRAY_SIZE(format_tests) + 1];
+	struct piglit_subtest subtests[ARRAY_SIZE(format_tests) + 2];
+	const int npot_levels_subtest = ARRAY_SIZE(format_tests);
 
 	piglit_require_extension("GL_EXT_texture_storage");
 
@@ -205,7 +249,12 @@ piglit_init(int argc, char **argv)
 		subtests[i].data = (void *) &format_tests[i];
 	}
 
-	memset(&subtests[ARRAY_SIZE(format_tests)], 0, sizeof(*subtests));
+	subtests[npot_levels_subtest].name = strdup("Check NPOT levels");
+	subtests[npot_levels_subtest].option = strdup("npot-levels");
+	subtests[npot_levels_subtest].subtest_func = check_npot_levels;
+	subtests[npot_levels_subtest].data = NULL;
+
+	memset(&subtests[npot_levels_subtest + 1], 0, sizeof(*subtests));
 
 	result = piglit_run_selected_subtests(subtests,
 					      piglit_config->selected_subtests,
