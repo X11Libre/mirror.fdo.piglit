@@ -112,17 +112,22 @@ def gen_kernel(f, fnName, inTypes, outTypes, vecSizes, typePrefix, outLoc='priva
             + (('_' + outLoc) if len(outTypes) > 1 else '')
             + '_' + inTypes[0] + '(global ' + outTypes[0] + '* out')
     for arg in range(1, len(outTypes)):
-        f.write(', global '+outTypes[arg]+'* out'+str(arg))
+        # For the global address space the builtin writes directly through the
+        # output argument, so declare it with the correct vector type instead
+        # of assigning a scalar pointer to a vector pointer (which clang rejects
+        # as an incompatible pointer type).
+        if (outLoc == 'global'):
+            f.write(', global ' + outTypes[arg] + ('' if vecSizes[0] == 1 else str(vecSizes[0])) + '* out' + str(arg))
+        else:
+            f.write(', global '+outTypes[arg]+'* out'+str(arg))
     for arg in range(0, len(inTypes)):
         f.write(', global '+inTypes[arg]+'* in'+str(arg))
     f.write('){\n')
 
     for arg in range(1, len(outTypes)):
-        f.write('  ' + outLoc + ' ' + outTypes[arg] + ('' if vecSizes[0] == 1 else str(vecSizes[0])));
-        if (outLoc == 'global'):
-            f.write(' *tmp' + str(arg) + ' = out' + str(arg) + ';\n');
-        else:
+        if (outLoc != 'global'):
             #FIXME: This assumes WG size of 1
+            f.write('  ' + outLoc + ' ' + outTypes[arg] + ('' if vecSizes[0] == 1 else str(vecSizes[0])));
             f.write(' tmp' + str(arg) + ';\n');
 
     suffix = ';'
@@ -145,7 +150,7 @@ def gen_kernel(f, fnName, inTypes, outTypes, vecSizes, typePrefix, outLoc='priva
             f.write('vload'+str(vecSizes[arg])+'(get_global_id(0), in'+str(arg)+')')
     for arg in range(1, len(outTypes)):
         if (outLoc == 'global'):
-            f.write(', &tmp' + str(arg) + '[get_global_id(0)]')
+            f.write(', &out' + str(arg) + '[get_global_id(0)]')
         else:
             f.write(', &tmp' + str(arg))
 
