@@ -711,6 +711,7 @@ with profile.test_list.group_manager(
     g(['texsubimage-depth-formats'])
     g(['texture-al'])
     g(['triangle-guardband-viewport'])
+    g(['max-viewport-render'])
     g(['getteximage-targets', '1D'])
     g(['getteximage-targets', '2D'])
     g(['teximage-scale-bias'])
