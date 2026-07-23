@@ -350,10 +350,10 @@ piglit_glx_iterate_pixmap_fbconfigs(enum piglit_result (*draw)(Display *dpy,
 		else if (result == PIGLIT_PASS)
 			any_pass = true;
 
-		XFreePixmap(dpy, pix);
 		glXMakeCurrent(dpy, None, None);
-		glXDestroyPixmap(dpy, glx_pix);
 		glXDestroyContext(dpy, ctx);
+		glXDestroyPixmap(dpy, glx_pix);
+		XFreePixmap(dpy, pix);
 	}
 
         XFree(depths);
@@ -417,9 +417,9 @@ piglit_glx_iterate_visuals(enum piglit_result (*draw)(Display *dpy,
 		else if (result == PIGLIT_PASS)
 			any_pass = true;
 
-		XDestroyWindow(dpy, d);
 		glXMakeCurrent(dpy, None, None);
 		glXDestroyContext(dpy, ctx);
+		XDestroyWindow(dpy, d);
 	}
 
 	XFree(configs);
