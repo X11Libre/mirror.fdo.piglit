@@ -1978,6 +1978,9 @@ with profile.test_list.group_manager(
         for test_mode in ('draw', 'read'):
             g(['framebuffer-blit-levels', test_mode, format],
               'framebuffer-blit-levels {} {}'.format(test_mode, format))
+    for test_mode in ('wide', 'tall'):
+        g(['framebuffer-blit-oblong', test_mode],
+          'framebuffer-blit-oblong {}'.format(test_mode))
 
 # Group ARB_framebuffer_sRGB
 with profile.test_list.group_manager(
