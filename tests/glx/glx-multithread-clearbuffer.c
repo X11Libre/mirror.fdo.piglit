@@ -33,8 +33,7 @@
 #include "piglit-glx-util.h"
 #include "pthread.h"
 
-static pthread_mutex_t mutex;
-static bool dispatch_ready = false;
+static pthread_barrier_t barrier;
 
 static void *
 thread_func(void *arg)
@@ -53,14 +52,12 @@ thread_func(void *arg)
 	ctx = piglit_get_glx_context(dpy, visinfo);
 	glXMakeCurrent(dpy, win, ctx);
 
-	pthread_mutex_lock(&mutex);
-	if (!dispatch_ready) {
+	if (pthread_barrier_wait(&barrier) == PTHREAD_BARRIER_SERIAL_THREAD) {
 		piglit_dispatch_default_init(PIGLIT_DISPATCH_GL);
-		dispatch_ready = true;
 		piglit_require_gl_version(30);
 		piglit_require_extension("GL_ARB_clear_buffer_object");
 	}
-	pthread_mutex_unlock(&mutex);
+	pthread_barrier_wait(&barrier);
 
 	for (i = 0; i < 1000; ++i) {
 		GLuint buf;
@@ -95,7 +92,7 @@ main(int argc, char **argv)
 
 	XInitThreads();
 
-	pthread_mutex_init(&mutex, NULL);
+	pthread_barrier_init(&barrier, NULL, ARRAY_SIZE(thread));
 
 	for (int i = 0; i < ARRAY_SIZE(thread); i++)
 		pthread_create(&thread[i], NULL, thread_func, NULL);
@@ -105,7 +102,7 @@ main(int argc, char **argv)
 			pass = false;
 	}
 
-	pthread_mutex_destroy(&mutex);
+	pthread_barrier_destroy(&barrier);
 
 	piglit_report_result(pass ? PIGLIT_PASS : PIGLIT_FAIL);
 	return 0;
