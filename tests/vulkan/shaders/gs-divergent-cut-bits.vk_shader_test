@@ -1,0 +1,72 @@
+# Minimal regression test for per-lane GS cut-bit bookkeeping.
+
+[require]
+geometryShader
+
+[vertex shader]
+#version 450
+
+void main()
+{
+    gl_Position = vec4(0.0);
+}
+
+[geometry shader]
+#version 450
+layout(points) in;
+layout(triangle_strip, max_vertices = 33) out;
+
+/*
+ * C ----- D
+ * |  \    |
+ * |    \  |
+ * A ----- B
+ *
+ * A-B-C is the intended triangle.  B-C-D is emitted only if the cut
+ * between C and D is lost.
+ */
+const vec2 positions[4] = vec2[](
+    vec2(-0.8, -0.8), /* A */
+    vec2( 0.8, -0.8), /* B */
+    vec2(-0.8,  0.8), /* C */
+    vec2( 0.8,  0.8)  /* D */
+);
+
+void main()
+{
+    uint count = gl_PrimitiveIDIn == 0 ? 4u : 33u;
+
+    for (uint i = 0u; i < count; i++) {
+        if (gl_PrimitiveIDIn == 0) {
+            gl_Position = vec4(positions[i], 0.0, 1.0);
+        } else {
+            /* This invocation only triggers the batch reset.  Keep all of
+             * its output degenerate and outside the viewport.
+             */
+            gl_Position = vec4(2.0, 2.0, 0.0, 1.0);
+        }
+        EmitVertex();
+
+        if (gl_PrimitiveIDIn == 0 && i == 2u)
+            EndPrimitive();
+    }
+}
+
+[fragment shader]
+#version 450
+layout(location = 0) out vec4 color_out;
+
+void main()
+{
+    color_out = vec4(0.0, 0.0, 1.0, 1.0);
+}
+
+[test]
+clear color 0.0 0.0 0.0 1.0
+draw arrays POINT_LIST 0 2
+
+# Lower-left half of the square: intended A-B-C triangle.
+relative probe rgb (0.25, 0.25) (0.0, 0.0, 1.0)
+
+# Upper-right half: B-C-D appears only if the cut between C and D is lost.
+relative probe rgb (0.75, 0.75) (0.0, 0.0, 0.0)
