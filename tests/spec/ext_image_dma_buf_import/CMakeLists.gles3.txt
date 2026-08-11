@@ -1,0 +1,20 @@
+include_directories(
+	${OPENGL_INCLUDE_PATH}
+	)
+
+link_libraries(
+	${EGL_LDFLAGS}
+	piglitutil_gles3
+	)
+
+if(PIGLIT_BUILD_DMA_BUF_TESTS)
+	add_definitions(-DHAVE_LIBDRM)
+
+	include_directories(
+		${LIBDRM_INCLUDE_DIRS}
+	)
+
+	piglit_add_executable(ext_image_dma_buf_import-nv12-single-fd nv12-single-fd.c)
+endif()
+
+# vim: ft=cmake:
