@@ -47,6 +47,8 @@ vertex/float/2 in_color/float/4
 clear color 0.0 0.0 0.0 0.0
 clear
 
+enable GL_VERTEX_PROGRAM_TWO_SIDE
+
 frontface cw
 draw arrays GL_TRIANGLE_STRIP 0 4
 probe all rgba 0.0 1.0 0.0 1.0
