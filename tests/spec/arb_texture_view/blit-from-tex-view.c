@@ -73,13 +73,15 @@ piglit_init(int argc, char **argv)
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, TEX_SIZE, TEX_SIZE, NUM_LAYERS);
 
 	glGenTextures(NUM_LAYERS, views);
-	glCreateFramebuffers(NUM_LAYERS, framebuffers);
+	glGenFramebuffers(NUM_LAYERS, framebuffers);
 
 	/* Create a view for each layer. */
 	for (i = 0; i < NUM_LAYERS; i++) {
 		glTextureView(views[i], GL_TEXTURE_2D, tex, GL_RGBA8, 0, 1, i, 1);
-		glNamedFramebufferTexture(framebuffers[i], GL_COLOR_ATTACHMENT0, views[i], 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, views[i], 0);
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	/* Clear each layer to a different color. */
 	glClearTexImage(tex, 0, GL_RGBA, GL_UNSIGNED_BYTE, Colors[0]);
