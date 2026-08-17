@@ -92,8 +92,11 @@ piglit_init(int argc, char **argv)
 	GLint max_samples;
 	glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
 
-	if (samples > max_samples)
+	if (samples > max_samples) {
+		printf("samples = %d requested, but only %d supported.\n",
+		       samples, max_samples);
 		piglit_report_result(PIGLIT_SKIP);
+	}
 	/* Testing of integer formats other than GL_RGBA8I is not supported
 	 * by utility functions in draw-buffers-common.cpp.
 	 */

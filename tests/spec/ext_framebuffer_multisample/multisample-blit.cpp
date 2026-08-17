@@ -93,8 +93,11 @@ piglit_init(int argc, char **argv)
 	/* Skip the test if num_samples > GL_MAX_SAMPLES */
 	GLint max_samples;
 	glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
-	if (num_samples > max_samples)
+	if (num_samples > max_samples) {
+		printf("num_samples = %d requested, but only %d supported.\n",
+		       num_samples, max_samples);
 		piglit_report_result(PIGLIT_SKIP);
+	}
 
 	if (strcmp(argv[2], "color") == 0) {
 		test_pattern = new Triangles();
