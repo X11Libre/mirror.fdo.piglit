@@ -479,6 +479,9 @@ print_usage()
 static void
 parse_args(int argc, char **argv)
 {
+        GLint max_color_attachments;
+        GLint max_draw_buffers;
+
         if (argc != 6) {
                 print_usage();
                 piglit_report_result(PIGLIT_FAIL);
@@ -503,6 +506,20 @@ parse_args(int argc, char **argv)
                 fprintf(stderr, "Wrong value for num_textures: %s\n", argv[3]);
                 print_usage();
                 piglit_report_result(PIGLIT_FAIL);
+        }
+
+        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
+        if (num_textures > max_color_attachments) {
+                fprintf(stderr, "%d colour attachments not enough for %d textures\n",
+                        max_color_attachments, num_textures);
+                piglit_report_result(PIGLIT_SKIP);
+        }
+
+        glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
+        if (num_textures > max_draw_buffers) {
+                fprintf(stderr, "%d draw buffers not enough for %d textures\n",
+                        max_draw_buffers, num_textures);
+                piglit_report_result(PIGLIT_SKIP);
         }
 
         granularity = atoi(argv[4]);
