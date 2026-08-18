@@ -338,8 +338,9 @@ draw_rect_tex()
         while (first < total_indices) {
                 unsigned int count = MIN2(total_indices - first, basic_count);
 
-                glDrawRangeElements(GL_TRIANGLES, first, first + count, count,
-                                    GL_UNSIGNED_INT, BUFFER_OFFSET(first * sizeof(GLuint)));
+                glDrawRangeElements(GL_TRIANGLES, 0, granularity * granularity - 1,
+                                    count, GL_UNSIGNED_INT,
+                                    BUFFER_OFFSET(first * sizeof(GLuint)));
                 first += count;
         }
 }
