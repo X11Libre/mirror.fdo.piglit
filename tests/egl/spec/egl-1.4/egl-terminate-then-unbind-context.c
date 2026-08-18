@@ -68,6 +68,11 @@ main(int argc, char **argv)
 	EGLContext ctx;
 	bool ok;
 
+	static const EGLint config_attribs[] = {
+		EGL_SURFACE_TYPE, 0,
+		EGL_NONE,
+	};
+
 	dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY );
 	if (!dpy)
 		fail("eglGetDisplay(EGL_DEFAULT_DISPLAY) failed");
@@ -82,7 +87,7 @@ main(int argc, char **argv)
 	 */
 	piglit_require_egl_extension(dpy, "EGL_KHR_surfaceless_context");
 
-	ok = eglChooseConfig(dpy, NULL, &config, 1, &num_configs);
+	ok = eglChooseConfig(dpy, config_attribs, &config, 1, &num_configs);
 	if (!ok)
 		fail("eglChooseConfig() failed");
 	if (num_configs == 0)
