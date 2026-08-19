@@ -3803,6 +3803,7 @@ with profile.test_list.group_manager(
 with profile.test_list.group_manager(
         PiglitGLTest, grouptools.join('spec', 'ext_transform_feedback2')) as g:
     g(['arb_transform_feedback2-draw-auto'], 'draw-auto')
+    g(['arb_transform_feedback2-draw-auto', 'offset'], 'draw-auto offset')
     g(['arb_transform_feedback2-istransformfeedback'], 'istranformfeedback',
       )
     g(['arb_transform_feedback2-gen-names-only'],
