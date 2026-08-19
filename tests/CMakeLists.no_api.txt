@@ -79,7 +79,7 @@ piglit_generate_xml(quick_shader.no_isolation quick_shader gen-gl-gen-xml "--no-
 piglit_generate_xml(no_error no_error gen-gl-gen-xml "" gen-gl-tests static-shader-tests)
 
 add_custom_target(gen-vulkan-xml)
-piglit_generate_xml(vulkan vulkan gen-vulkan-xml "" static-vkrunner-tests)
+piglit_generate_xml(vulkan vulkan gen-vulkan-xml "" static-vkrunner-tests gen-vulkan-tests)
 
 add_custom_target(gen-cl-xml)
 piglit_generate_xml(cl cl gen-cl-xml "" gen-cl-tests static-program-tests)
