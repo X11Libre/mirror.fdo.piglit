@@ -3272,6 +3272,12 @@ with profile.test_list.group_manager(
     g(['ext_image_dma_buf_import-tex-modifier'])
 
 with profile.test_list.group_manager(
+        PiglitGLTest, grouptools.join('spec', 'ext_yuv_target')) as g:
+    g(['ext_yuv_target-simple'])
+    g(['ext_yuv_target-nv12-render-yuv'])
+    g(['ext_yuv_target-nv12-sample-y2y'])
+
+with profile.test_list.group_manager(
         PiglitGLTest,
         grouptools.join('spec', 'ext_packed_depth_stencil')) as g:
     g(['fbo-blit-d24s8'], run_concurrent=False)
