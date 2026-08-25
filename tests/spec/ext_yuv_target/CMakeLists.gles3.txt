@@ -19,4 +19,8 @@ if(PIGLIT_BUILD_DMA_BUF_TESTS)
                 execution/nv12-sample-y2y.c)
         piglit_add_executable (ext_yuv_target-nv12-render-yuv
                 execution/nv12-render-yuv.c)
+        piglit_add_executable (ext_yuv_target-nv12-blit-roundtrip
+                execution/nv12-blit-roundtrip.c)
+        piglit_add_executable (ext_yuv_target-nv12-blit-yuv-to-yuv
+                execution/nv12-blit-yuv-to-yuv.c)
 endif()

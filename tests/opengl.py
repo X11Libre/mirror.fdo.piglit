@@ -3274,6 +3274,8 @@ with profile.test_list.group_manager(
 with profile.test_list.group_manager(
         PiglitGLTest, grouptools.join('spec', 'ext_yuv_target')) as g:
     g(['ext_yuv_target-simple'])
+    g(['ext_yuv_target-nv12-blit-roundtrip'])
+    g(['ext_yuv_target-nv12-blit-yuv-to-yuv'])
     g(['ext_yuv_target-nv12-render-yuv'])
     g(['ext_yuv_target-nv12-sample-y2y'])
 
