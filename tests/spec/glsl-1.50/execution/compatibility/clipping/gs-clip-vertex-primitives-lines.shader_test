@@ -26,7 +26,7 @@ uniform float u_clipdist;
 
 void main()
 {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < gl_in.length(); i++) {
 		gl_Position = gl_in[i].gl_Position;
 		gl_ClipVertex = vec4(u_clipdist, 0.0, 0.0, 0.0);
 
