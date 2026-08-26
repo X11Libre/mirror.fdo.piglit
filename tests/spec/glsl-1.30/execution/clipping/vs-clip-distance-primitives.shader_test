@@ -61,7 +61,7 @@ probe rect rgba ( 0, 20, 1, 1) (1, 0, 0, 1)
 
 uniform vec2 u_offset 20.5 20.5
 draw arrays GL_LINES 0 2
-probe rect rgba (20, 20, 10, 1) (1, 0, 0, 1)
+probe rect rgba (21, 20, 7, 1) (1, 0, 0, 1)
 
 uniform vec2 u_offset 40 20
 draw arrays GL_TRIANGLE_STRIP 0 4
