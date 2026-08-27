@@ -44,6 +44,7 @@ static void
 choose_config(void)
 {
 	EGLint config_attribs[] = {
+		EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
 		EGL_NONE
 	};
 	EGLint count;
