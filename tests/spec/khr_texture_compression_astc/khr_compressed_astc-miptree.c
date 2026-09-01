@@ -59,7 +59,6 @@ enum test_type
 	TEST_TYPE_HDR,
 	TEST_TYPE_LDR,
 	TEST_TYPE_SRGB,
-	TEST_TYPE_SRGB_FP,
 	TEST_TYPE_SRGB_SD,
 };
 
@@ -69,7 +68,6 @@ test_miptrees(void* input_type);
 static enum test_type ldr_test  = TEST_TYPE_LDR;
 static enum test_type hdr_test  = TEST_TYPE_HDR;
 static enum test_type srgb_test = TEST_TYPE_SRGB;
-static enum test_type srgb_fp_test = TEST_TYPE_SRGB_FP;
 static enum test_type srgb_skip_test = TEST_TYPE_SRGB_SD;
 static const struct piglit_subtest subtests[] = {
 	{
@@ -89,12 +87,6 @@ static const struct piglit_subtest subtests[] = {
 		"srgb",
 		test_miptrees,
 		&srgb_test,
-	},
-	{
-		"sRGB decode full precision",
-		"srgb-fp",
-		test_miptrees,
-		&srgb_fp_test,
 	},
 	{
 		"sRGB skip decode",
@@ -239,11 +231,10 @@ enum piglit_result
 test_miptrees(void* input_type)
 {
 	const enum test_type subtest = *(enum test_type*) input_type;
-	const bool is_srgb_test = subtest == TEST_TYPE_SRGB;
 	const bool is_srgb_skip_decode_test = subtest == TEST_TYPE_SRGB_SD;
 	const bool is_hdr_test  = subtest == TEST_TYPE_HDR;
 
-	static const char * tests[5] = {"hdr", "ldrl", "ldrs", "ldrs", "ldrs"};
+	static const char * tests[4] = {"hdr", "ldrl", "ldrs", "ldrs"};
 	static const char * block_dim_str[14] = {
 		"4x4",
 		"5x4",
@@ -276,14 +267,7 @@ test_miptrees(void* input_type)
 	const bool check_error = is_hdr_test && !has_hdr;
 	int block_dims;
 
-	if (is_srgb_test)
-		/* Loosen up the tolerance for sRGB tests. This will allow testing
-		 * sRGB formats which have known precision issues in void extent
-		 * blocks. See khronos bug#11294 for details.
-		 */
-		piglit_set_tolerance_for_bits(7, 7, 7, 7);
-	else
-		piglit_set_tolerance_for_bits(8, 8, 8, 8);
+	piglit_set_tolerance_for_bits(8, 8, 8, 8);
 
 	for (block_dims = 0; block_dims < ARRAY_SIZE(block_dim_str); ++block_dims) {
 

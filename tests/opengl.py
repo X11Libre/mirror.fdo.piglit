@@ -4712,12 +4712,12 @@ with profile.test_list.group_manager(
     g(['khr_compressed_astc-basic_gles2'], 'basic-gles')
     g(['void-extent-dl-bug'], 'void-extent-dl-bug')
 
-    for subtest in ('hdr', 'ldr', 'srgb', "srgb-fp", "srgb-sd"):
+    for subtest in ('hdr', 'ldr', 'srgb', "srgb-sd"):
         g(['khr_compressed_astc-miptree_gl', '-subtest', subtest],
            'miptree-gl {}'.format(subtest))
         g(['khr_compressed_astc-miptree_gles2', '-subtest', subtest],
            'miptree-gles {}'.format(subtest))
-    for subtest in ('hdr', 'ldr', 'srgb', 'srgb-fp'):
+    for subtest in ('hdr', 'ldr', 'srgb'):
         g(['khr_compressed_astc-sliced-3d-miptree_gl', '-subtest', subtest],
            'sliced-3d-miptree-gl {}'.format(subtest))
         g(['khr_compressed_astc-sliced-3d-miptree_gles3', '-subtest', subtest],
