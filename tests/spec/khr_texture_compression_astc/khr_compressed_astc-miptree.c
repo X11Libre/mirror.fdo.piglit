@@ -371,6 +371,10 @@ piglit_init(int argc, char **argv)
 	GLuint vao;
 
 	piglit_require_extension("GL_KHR_texture_compression_astc_ldr");
+	if (piglit_is_gles())
+		piglit_require_extension("GL_OES_texture_npot");
+	else
+		piglit_require_extension("GL_ARB_texture_non_power_of_two");
 
 	glClearColor(0.9098, 0.8314, 0.7843, 1.0);
 	glViewport(0, 0, piglit_width, piglit_height);
