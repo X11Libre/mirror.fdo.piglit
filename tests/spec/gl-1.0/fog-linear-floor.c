@@ -178,12 +178,12 @@ test_straddling_floor_near_is_unfogged(void)
 	/* A point low in the frame is floor close to the camera: it must be
 	 * bright (unfogged).  Bug #15407 makes it black. */
 	const GLfloat white[3] = { 1.0f, 1.0f, 1.0f };
-	const GLfloat tol = 0.1f;
+	const GLfloat tol[3] = { 0.1f, 0.1f, 0.1f };
 	GLfloat px[3];
 	glReadPixels(piglit_width / 2, piglit_height / 8, 1, 1,
 	             GL_RGB, GL_FLOAT, px);
 
-	bool pass = piglit_compare_pixels_float(px, white, &tol, 3);
+	bool pass = piglit_compare_pixels_float(px, white, tol, 3);
 	if (!pass)
 		fprintf(stderr,
 		        "near floor pixel = (%.3f, %.3f, %.3f), expected white.\n"
@@ -222,12 +222,12 @@ test_distant_floor_is_fully_fogged(void)
 	draw_floor();
 
 	const GLfloat black[3] = { 0.0f, 0.0f, 0.0f };
-	const GLfloat tol = 0.1f;
+	const GLfloat tol[3] = { 0.1f, 0.1f, 0.1f };
 	GLfloat px[3];
 	glReadPixels(piglit_width / 2, piglit_height / 2, 1, 1,
 	             GL_RGB, GL_FLOAT, px);
 
-	bool pass = piglit_compare_pixels_float(px, black, &tol, 3);
+	bool pass = piglit_compare_pixels_float(px, black, tol, 3);
 	if (!pass)
 		fprintf(stderr,
 		        "distant floor pixel = (%.3f, %.3f, %.3f), expected black "
