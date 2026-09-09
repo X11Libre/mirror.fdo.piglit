@@ -372,9 +372,9 @@ main(int argc, char **argv)
 		piglit_report_result(PIGLIT_SKIP);
 	}
 
-	state.egl_dpy = eglGetDisplay(state.dpy);
+	state.egl_dpy = piglit_egl_get_display(EGL_PLATFORM_X11_EXT, state.dpy);
 	if (state.egl_dpy == EGL_NO_DISPLAY) {
-		fprintf(stderr, "eglGetDisplay() failed\n");
+		fprintf(stderr, "piglit_egl_get_display() failed\n");
 		piglit_report_result(PIGLIT_FAIL);
 	}
 
