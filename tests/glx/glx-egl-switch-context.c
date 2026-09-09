@@ -73,7 +73,7 @@ int main(int argc, char **argv)
     win = piglit_get_glx_window(dpy, visinfo);
     glxWin = glXCreateWindow(dpy, fbconfig, win, NULL);
 
-    dpy_egl = eglGetDisplay(dpy);
+    dpy_egl = piglit_egl_get_display(EGL_PLATFORM_X11_EXT, dpy);
     if (!dpy_egl)
         piglit_report_result(PIGLIT_SKIP);
     if (!eglInitialize(dpy_egl, &major_version, &minor_version))
