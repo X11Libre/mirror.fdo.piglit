@@ -105,9 +105,9 @@ EGL_KHR_create_context_setup(EGLint renderable_type_mask)
 		piglit_report_result(PIGLIT_SKIP);
 	}
 
-	egl_dpy = eglGetDisplay(dpy);
+	egl_dpy = piglit_egl_get_display(EGL_PLATFORM_X11_EXT, dpy);
 	if (egl_dpy == EGL_NO_DISPLAY) {
-		fprintf(stderr, "eglGetDisplay() failed\n");
+		fprintf(stderr, "piglit_egl_get_display() failed\n");
 		XCloseDisplay(dpy);
 		piglit_report_result(PIGLIT_FAIL);
 	}
