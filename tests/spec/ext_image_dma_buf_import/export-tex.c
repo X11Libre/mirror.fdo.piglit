@@ -39,7 +39,7 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 
 PIGLIT_GL_TEST_CONFIG_END
 
-#define CLEAR_VALUE 1.0, 1.0, 1.0, 1.0
+#define CLEAR_VALUE 1.0, 0.5, 0.0, 1.0
 
 enum piglit_result
 piglit_display(void)
@@ -55,8 +55,8 @@ tex_clear(GLuint tex, uint32_t w, uint32_t h)
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex, 0);
 
-	const float ones[] = { CLEAR_VALUE };
-	glClearBufferfv(GL_COLOR, 0, ones);
+	const float color[] = { CLEAR_VALUE };
+	glClearBufferfv(GL_COLOR, 0, color);
 
 	glDeleteFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -210,8 +210,8 @@ test(EGLDisplay egl_dpy, bool glfinish_after_dmabuf_export)
 	sample_tex(imported_tex, 0, 0, 1, piglit_height, true);
 
 	/* Verify the contents */
-	const float ones[] = { CLEAR_VALUE };
-	return piglit_probe_pixel_rgba(0, 0, ones);
+	const float color[] = { CLEAR_VALUE };
+	return piglit_probe_pixel_rgba(0, 0, color);
 }
 
 void
