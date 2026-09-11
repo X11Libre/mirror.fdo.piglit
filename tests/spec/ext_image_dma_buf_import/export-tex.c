@@ -53,7 +53,8 @@ tex_clear(GLuint tex, uint32_t w, uint32_t h)
 	GLuint fbo;
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			       GL_TEXTURE_2D, tex, 0);
 
 	const float color[] = { CLEAR_VALUE };
 	glClearBufferfv(GL_COLOR, 0, color);
