@@ -2784,6 +2784,7 @@ with profile.test_list.group_manager(
     g(['arb_texture_compression-invalid-formats', 'bptc'], 'invalid formats')
     g(['bptc-modes'])
     g(['bptc-float-modes'])
+    g(['bptc-compress-alpha'])
     g(['compressedteximage', 'GL_COMPRESSED_RGBA_BPTC_UNORM'])
     g(['compressedteximage', 'GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM'])
     g(['compressedteximage', 'GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT'])
