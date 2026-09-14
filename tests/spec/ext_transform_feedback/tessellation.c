@@ -102,18 +102,21 @@
  * subject to tessellation, the test is still useful for verifying
  * that correct transform feedback output is generated.
  *
- * Note: some OpenGL implementations do not pass the "flat_first" and
- * "flat_last" tests when rendering quads or polygons.  That is, they
- * produce a tessellation which contains the correct vertices, but not
- * in the order required to preserve flat shaded colors.  This is
- * unlikely to cause problems for client programs, since client
- * programs that use new features like transform feedback are unlikely
- * to also use deprecated features like quads and polygons.  Also, it
- * is a matter of interpretation whether these tests are expected to
- * pass at all--after all, the spec does say that "the order of
- * tessellation within a primitive is undefined".  Accordingly, these
- * failures, should they occur, are flagged as warnings rather than
- * failures.
+ * Note: whenever a primitive has to be decomposed before being
+ * recorded (that is, whenever the transform feedback primitive mode
+ * differs from the draw mode), the spec does not say in which order
+ * the vertices of each recorded primitive are written: for quads and
+ * polygons it states that "the order of tessellation within a primitive
+ * is undefined", and for strips, fans and line loops it only says that
+ * individual lines or triangles "will be extracted and recorded separately",
+ * without constraining the vertex order within them. Transform feedback
+ * is also specified to happen "before flatshading", so nothing promises
+ * that feeding the recorded vertices back in reproduces a flat shaded image.
+ *
+ * In practice most implementations rotate each recorded primitive so that
+ * the provoking vertex lands where the active convention will look for it;
+ * but again, this is not mandatory, so it could happen that some drivers don't
+ * do it. Instead of failing in this case, we just emit a warning.
  */
 
 #include "piglit-util-gl.h"
@@ -141,7 +144,6 @@ static float (*vertex_positions)[2];
 static GLboolean monochrome;
 static GLboolean use_flat_color;
 static GLboolean wireframe;
-static GLboolean is_deprecated_draw_mode;
 
 /* Other globals */
 static GLuint normal_prog;
@@ -486,7 +488,6 @@ piglit_init(int argc, char **argv)
 		print_usage_and_exit(argv[0]);
 	if (strcmp(argv[1], "points") == 0) {
 		draw_mode = GL_POINTS;
-                is_deprecated_draw_mode = GL_FALSE;
 		xfb_mode = GL_POINTS;
 		num_input_vertices = 4;
 		expected_num_output_vertices = 4;
@@ -494,7 +495,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = points_vertices;
 	} else if (strcmp(argv[1], "lines") == 0) {
 		draw_mode = GL_LINES;
-                is_deprecated_draw_mode = GL_FALSE;
 		xfb_mode = GL_LINES;
 		num_input_vertices = 4;
 		expected_num_output_vertices = 4;
@@ -502,7 +502,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = lines_vertices;
 	} else if (strcmp(argv[1], "line_loop") == 0) {
 		draw_mode = GL_LINE_LOOP;
-                is_deprecated_draw_mode = GL_FALSE;
 		xfb_mode = GL_LINES;
 		num_input_vertices = 4;
 		expected_num_output_vertices = 8;
@@ -510,7 +509,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = line_loop_vertices;
 	} else if (strcmp(argv[1], "line_strip") == 0) {
 		draw_mode = GL_LINE_STRIP;
-                is_deprecated_draw_mode = GL_FALSE;
 		xfb_mode = GL_LINES;
 		num_input_vertices = 4;
 		expected_num_output_vertices = 6;
@@ -518,7 +516,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = line_strip_vertices;
 	} else if (strcmp(argv[1], "triangles") == 0) {
 		draw_mode = GL_TRIANGLES;
-                is_deprecated_draw_mode = GL_FALSE;
 		xfb_mode = GL_TRIANGLES;
 		num_input_vertices = 6;
 		expected_num_output_vertices = 6;
@@ -526,7 +523,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = triangles_vertices;
 	} else if (strcmp(argv[1], "triangle_strip") == 0) {
 		draw_mode = GL_TRIANGLE_STRIP;
-                is_deprecated_draw_mode = GL_FALSE;
 		xfb_mode = GL_TRIANGLES;
 		num_input_vertices = 5;
 		expected_num_output_vertices = 9;
@@ -534,7 +530,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = triangle_strip_vertices;
 	} else if (strcmp(argv[1], "triangle_fan") == 0) {
 		draw_mode = GL_TRIANGLE_FAN;
-                is_deprecated_draw_mode = GL_FALSE;
 		xfb_mode = GL_TRIANGLES;
 		num_input_vertices = 5;
 		expected_num_output_vertices = 9;
@@ -542,7 +537,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = triangle_fan_vertices;
 	} else if (strcmp(argv[1], "quads") == 0) {
 		draw_mode = GL_QUADS;
-                is_deprecated_draw_mode = GL_TRUE;
 		xfb_mode = GL_TRIANGLES;
 		num_input_vertices = 8;
 		expected_num_output_vertices = 12;
@@ -550,7 +544,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = quads_vertices;
 	} else if (strcmp(argv[1], "quad_strip") == 0) {
 		draw_mode = GL_QUAD_STRIP;
-                is_deprecated_draw_mode = GL_TRUE;
 		xfb_mode = GL_TRIANGLES;
 		num_input_vertices = 6;
 		expected_num_output_vertices = 12;
@@ -558,7 +551,6 @@ piglit_init(int argc, char **argv)
 		vertex_positions = quad_strip_vertices;
 	} else if (strcmp(argv[1], "polygon") == 0) {
 		draw_mode = GL_POLYGON;
-                is_deprecated_draw_mode = GL_TRUE;
 		xfb_mode = GL_TRIANGLES;
 		num_input_vertices = 5;
 		expected_num_output_vertices = 9;
@@ -653,7 +645,12 @@ enum piglit_result piglit_display(void)
 	draw(normal_prog, false, -64.0, xfb_mode, num_output_vertices);
 
 	if (!wireframe) {
-		if (use_flat_color && is_deprecated_draw_mode)
+		/* A primitive that needs to be decomposed in order to be
+		 * recorded in the TF buffer does not have a specific
+		 * recording order, so flat shading is not guaranteed to
+		 * survive the round trip.
+		 */
+		if (use_flat_color && draw_mode != xfb_mode)
 			warn = (!match_strips(0, 2)) || warn;
 		else
 			pass = match_strips(0, 2) && pass;
