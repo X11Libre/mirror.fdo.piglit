@@ -248,9 +248,11 @@ probe_depth_stencil(int x, int y, struct test_case config,
 	switch (config.type_to_read) {
 		case GL_UNSIGNED_INT_24_8:
 		{
-			uint32_t depth_as_uint = 0;
-			memcpy((uint8_t *)(&depth_as_uint)+1, observed+1, 3);
-			float depth = depth_as_uint / (float)UINT32_MAX;
+			/* Depth in the high 24 bits, stencil in the low 8. */
+			uint32_t value;
+			memcpy(&value, observed, sizeof(value));
+			float depth = (value & ~0xffu) / (float)UINT32_MAX;
+			const uint8_t stencil = value & 0xff;
 
 			pass &= (piglit_compare_pixels(x, y,
 						       expected_depth,
@@ -259,12 +261,16 @@ probe_depth_stencil(int x, int y, struct test_case config,
 						       != 0);
 
 			pass &= probe_byte(x, y,
-					   expected_stencil, &observed[0]);
+					   expected_stencil, &stencil);
 			break;
 		}
 		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
 		{
 			float depth = *((float*)observed);
+			/* Stencil in the low 8 bits of the second word. */
+			uint32_t value;
+			memcpy(&value, observed + 4, sizeof(value));
+			const uint8_t stencil = value & 0xff;
 			pass &= (piglit_compare_pixels(x, y,
 						       expected_depth,
 						       &depth,
@@ -272,7 +278,7 @@ probe_depth_stencil(int x, int y, struct test_case config,
 						       != 0);
 
 			pass &= probe_byte(x, y,
-					   expected_stencil, &observed[4]);
+					   expected_stencil, &stencil);
 			break;
 		}
 		default:
