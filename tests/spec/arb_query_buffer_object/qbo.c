@@ -53,6 +53,7 @@ static int qbo_prog;
 static int sync_mode_loc;
 static int expect_exact_loc;
 static int is_64bit_loc;
+static int swap_words_loc;
 static int expected_loc;
 static int expected_hi_loc;
 
@@ -174,6 +175,9 @@ run_subtest(void)
 	glUniform1ui(sync_mode_loc, is_sync ? GL_TRUE : GL_FALSE);
 	glUniform1ui(expect_exact_loc, have_cpu_result || exact);
 	glUniform1ui(is_64bit_loc, result_type == GL_UNSIGNED_INT64_ARB);
+	/* 64-bit results are stored high word first on big-endian hosts. */
+	glUniform1ui(swap_words_loc, result_type == GL_UNSIGNED_INT64_ARB &&
+				     piglit_is_big_endian());
 	glUniform1ui(expected_loc, have_cpu_result ? cpu_result : expected);
 	glUniform1ui(expected_hi_loc, have_cpu_result ? (cpu_result >> 32) : 0);
 
@@ -263,18 +267,23 @@ piglit_init(int argc, char **argv)
 		"#version 150\n"
 		"#extension GL_ARB_uniform_buffer_object : require\n"
 		"uniform query {\n"
-		"	uint result;\n"
-		"	uint result_hi;\n"
-		"	uint available;\n"
-		"	uint available_hi;\n"
+		"	uint word0;\n"
+		"	uint word1;\n"
+		"	uint word2;\n"
+		"	uint word3;\n"
 		"};\n"
 		"uniform bool sync_mode;\n"
 		"uniform bool expect_exact;\n"
 		"uniform bool is_64bit;\n"
+		"uniform bool swap_words;\n"
 		"uniform uint expected;\n"
 		"uniform uint expected_hi;\n"
 		"out vec4 color;\n"
 		"void main() {\n"
+		"	uint result = swap_words ? word1 : word0;\n"
+		"	uint result_hi = swap_words ? word0 : word1;\n"
+		"	uint available = swap_words ? word3 : word2;\n"
+		"	uint available_hi = swap_words ? word2 : word3;\n"
 		"	uint INIT = uint(0xcccccccc);\n"
 		"	bool ready = sync_mode || available != 0u;\n"
 		"	if (!is_64bit && (result_hi != INIT || available_hi != INIT)) {\n"
@@ -311,6 +320,7 @@ piglit_init(int argc, char **argv)
 	sync_mode_loc = glGetUniformLocation(qbo_prog, "sync_mode");
 	expect_exact_loc = glGetUniformLocation(qbo_prog, "expect_exact");
 	is_64bit_loc = glGetUniformLocation(qbo_prog, "is_64bit");
+	swap_words_loc = glGetUniformLocation(qbo_prog, "swap_words");
 	expected_loc = glGetUniformLocation(qbo_prog, "expected");
 	expected_hi_loc = glGetUniformLocation(qbo_prog, "expected_hi");
 }
