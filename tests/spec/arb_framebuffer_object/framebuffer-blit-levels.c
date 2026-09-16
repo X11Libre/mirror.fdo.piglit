@@ -166,19 +166,16 @@ create_test_data_stencil(GLbyte *data, unsigned level,
  * uploaded to a depth/stencil texture using glTexImage2D().
  */
 static void
-create_test_data_depthstencil(GLbyte *data, unsigned level,
+create_test_data_depthstencil(GLuint *data, unsigned level,
 			      unsigned width, unsigned height)
 {
 	GLbyte *stencil_data = malloc(width * height);
 	unsigned i;
 	create_test_data_stencil(stencil_data, level, width, height);
 
-	for (i = 0; i < width * height; ++i) {
-		data[4 * i] = stencil_data[i];
-		data[4 * i + 1] = 0;
-		data[4 * i + 2] = 0;
-		data[4 * i + 3] = 0;
-	}
+	/* GL_UNSIGNED_INT_24_8 keeps the stencil in the low 8 bits. */
+	for (i = 0; i < width * height; ++i)
+		data[i] = (GLubyte) stencil_data[i];
 
 	free(stencil_data);
 }
@@ -199,7 +196,7 @@ create_test_data(GLfloat *data, GLenum format,
 					 width, height);
 		break;
 	case GL_DEPTH_STENCIL:
-		create_test_data_depthstencil((GLbyte *) data, level,
+		create_test_data_depthstencil((GLuint *) data, level,
 					      width, height);
 		break;
 	default:
