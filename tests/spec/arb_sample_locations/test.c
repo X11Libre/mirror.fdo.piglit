@@ -71,7 +71,7 @@ get_sample_locations(GLubyte *locations, unsigned count,
 
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, fb_textures[cur_fb]);
 	glViewport(0, 0, count, 1);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, piglit_winsys_fbo);
 	glClearColor(0.5, 0.5, 0.5, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(read_program);
