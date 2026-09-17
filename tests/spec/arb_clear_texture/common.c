@@ -121,13 +121,32 @@ clear_whole_texture(GLuint tex, GLenum format, GLenum type, GLsizei texelSize)
 			   clearValue);
 }
 
+/* Compare GL_FLOAT texels or GL_UNSIGNED_INT depth texels, allowing for lost
+ * precision.
+ */
 static bool
-is_value_clear(const GLubyte *texel, GLsizei texelSize, bool is_float)
+texel_values_match(const GLubyte *actual_bytes, const GLubyte *expected_bytes,
+		   GLenum type)
 {
-	if (is_float) {
-		const float expected = ((float *) clearValue)[0];
-		const float actual = ((float *) texel)[0];
-		if (fabs((actual - expected) / expected) > 0.001)
+	if (type == GL_FLOAT) {
+		float actual, expected;
+		memcpy(&actual, actual_bytes, sizeof(actual));
+		memcpy(&expected, expected_bytes, sizeof(expected));
+		return fabs((actual - expected) / expected) <= 0.001;
+	} else {
+		uint32_t actual, expected;
+		assert(type == GL_UNSIGNED_INT);
+		memcpy(&actual, actual_bytes, sizeof(actual));
+		memcpy(&expected, expected_bytes, sizeof(expected));
+		return abs((int)(actual >> 16) - (int)(expected >> 16)) <= 1;
+	}
+}
+
+static bool
+is_value_clear(const GLubyte *texel, GLsizei texelSize, GLenum approx_type)
+{
+	if (approx_type != GL_NONE) {
+		if (!texel_values_match(texel, clearValue, approx_type))
 			return false;
 	} else {
 		for (int i = 0; i < texelSize; i++)
@@ -152,16 +171,13 @@ is_zero_clear(const GLubyte *texel, GLsizei texelSize)
 
 static bool
 is_initial_value(const GLubyte *texel, GLsizei texelSize,
-				GLuint offset, bool is_float)
+				GLuint offset, GLenum approx_type)
 {
-	if (is_float) {
-		const char x = offset & 0xff;
-		const char expected_bytes[4] = {x, x + 1, x + 2, x + 3};
-		const float expected = ((float *) expected_bytes)[0];
+	if (approx_type != GL_NONE) {
+		const GLubyte x = offset & 0xff;
+		const GLubyte expected_bytes[4] = {x, x + 1, x + 2, x + 3};
 
-		float actual = ((float *) texel)[0];
-
-		if (fabs((actual - expected) / expected) > 0.001)
+		if (!texel_values_match(texel, expected_bytes, approx_type))
 			return false;
 	} else {
 		for (int b = 0; b < texelSize; b++) {
@@ -176,7 +192,8 @@ is_initial_value(const GLubyte *texel, GLsizei texelSize,
 static bool
 check_texels_partial_clear(GLenum format, GLenum type, GLsizei texelSize)
 {
-	const bool is_float = (format == GL_DEPTH_COMPONENT) || (type == GL_FLOAT);
+	const GLenum approx_type =
+		(format == GL_DEPTH_COMPONENT || type == GL_FLOAT) ? type : GL_NONE;
 	GLubyte *data, *p;
 	bool success = true;
 	int x, y;
@@ -198,7 +215,7 @@ check_texels_partial_clear(GLenum format, GLenum type, GLsizei texelSize)
 			    x < VALUE_CLEAR_X + VALUE_CLEAR_WIDTH &&
 			    y >= VALUE_CLEAR_Y &&
 			    y < VALUE_CLEAR_Y + VALUE_CLEAR_HEIGHT) {
-				if (!is_value_clear(p, texelSize, is_float))
+				if (!is_value_clear(p, texelSize, approx_type))
 					success = false;
 			} else if (x >= ZERO_CLEAR_X &&
 				   x < ZERO_CLEAR_X + ZERO_CLEAR_WIDTH &&
@@ -207,7 +224,7 @@ check_texels_partial_clear(GLenum format, GLenum type, GLsizei texelSize)
 				if (!is_zero_clear(p, texelSize))
 					success = false;
 			} else {
-				if (!is_initial_value(p, texelSize, p - data, is_float))
+				if (!is_initial_value(p, texelSize, p - data, approx_type))
 					success = false;
 			}
 
@@ -223,7 +240,7 @@ check_texels_partial_clear(GLenum format, GLenum type, GLsizei texelSize)
 static bool
 check_texels_full_clear(GLenum format, GLenum type, GLsizei texelSize)
 {
-	const bool is_depth = format == GL_DEPTH_COMPONENT;
+	const GLenum approx_type = format == GL_DEPTH_COMPONENT ? type : GL_NONE;
 	GLubyte *data, *p;
 	bool success = true;
 
@@ -240,7 +257,7 @@ check_texels_full_clear(GLenum format, GLenum type, GLsizei texelSize)
 
 	for (int y = 0; y < TEX_HEIGHT; y++) {
 		for (int x = 0; x < TEX_WIDTH; x++) {
-			if (!is_value_clear(p, texelSize, is_depth))
+			if (!is_value_clear(p, texelSize, approx_type))
 				success = false;
 
 			p += texelSize;
