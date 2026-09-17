@@ -84,12 +84,17 @@ cpu_gather_query(bool exact, uint32_t expected, uint64_t *cpu_result)
 
 	glBindBuffer(GL_QUERY_BUFFER, 0);
 
-	if (result_type == GL_INT)
-		glGetQueryObjectiv(query, GL_QUERY_RESULT, (GLint*)cpu_result);
-	else if (result_type == GL_UNSIGNED_INT)
-		glGetQueryObjectuiv(query, GL_QUERY_RESULT, (GLuint*)cpu_result);
-	else
+	if (result_type == GL_INT) {
+		GLint value;
+		glGetQueryObjectiv(query, GL_QUERY_RESULT, &value);
+		*cpu_result = (uint32_t)value;
+	} else if (result_type == GL_UNSIGNED_INT) {
+		GLuint value;
+		glGetQueryObjectuiv(query, GL_QUERY_RESULT, &value);
+		*cpu_result = value;
+	} else {
 		glGetQueryObjectui64v(query, GL_QUERY_RESULT, cpu_result);
+	}
 
 	glBindBuffer(GL_QUERY_BUFFER, qbo);
 
