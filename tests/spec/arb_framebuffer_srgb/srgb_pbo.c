@@ -100,8 +100,7 @@ test2dTexelAt(const GLuint tex2D, unsigned int mipLevel, unsigned int x,
 	      unsigned int y, struct BGRA8 expected, unsigned int width,
 	      unsigned int height)
 {
-	struct BGRA8 *texData = (struct BGRA8 *)
-		malloc(width * height *sizeof(struct BGRA8));
+	uint32_t *texData = malloc(width * height * sizeof(uint32_t));
 	enum piglit_result status = PIGLIT_PASS;
 
 	glBindTexture(GL_TEXTURE_2D, tex2D);
@@ -111,8 +110,14 @@ test2dTexelAt(const GLuint tex2D, unsigned int mipLevel, unsigned int x,
 
 	glGetTexImage(GL_TEXTURE_2D, mipLevel, texFormat, texType, texData);
 
-	const unsigned int offset = y * width + x;
-	struct BGRA8 pixel = texData[offset];
+	/* 8_8_8_8_REV: blue in the low byte. */
+	const uint32_t texel = texData[y * width + x];
+	struct BGRA8 pixel = {
+		.blue = texel & 0xff,
+		.green = (texel >> 8) & 0xff,
+		.red = (texel >> 16) & 0xff,
+		.alpha = texel >> 24,
+	};
 
 	if (memcmp(&expected, &pixel, sizeof(struct BGRA8))) {
 		status = PIGLIT_FAIL;
