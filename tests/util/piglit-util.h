@@ -250,6 +250,14 @@ streq(const char *a, const char *b)
 	return strcmp(a, b) == 0;
 }
 
+static inline bool
+piglit_is_big_endian(void)
+{
+	const uint16_t one = 1;
+
+	return *(const uint8_t *)&one == 0;
+}
+
 /**
  * Wrapper for strtod() which also handles +/-inf with MSVC.
  * Note: we only check for "inf" and not "INF".
