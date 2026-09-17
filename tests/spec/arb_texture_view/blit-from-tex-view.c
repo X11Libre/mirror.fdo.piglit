@@ -81,7 +81,7 @@ piglit_init(int argc, char **argv)
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[i]);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, views[i], 0);
 	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, piglit_winsys_fbo);
 
 	/* Clear each layer to a different color. */
 	glClearTexImage(tex, 0, GL_RGBA, GL_UNSIGNED_BYTE, Colors[0]);
