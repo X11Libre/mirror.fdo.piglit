@@ -57,7 +57,20 @@ struct piglit_ktx {
 	 * Array length is piglit_ktx_info::num_images.
 	 */
 	struct piglit_ktx_image *images;
+
+	/** \brief Whether the data's byte order is the opposite of the host's. */
+	bool swap_bytes;
 };
+
+static uint32_t
+piglit_ktx_u32(const struct piglit_ktx *self, uint32_t value)
+{
+	if (!self->swap_bytes)
+		return value;
+
+	return (value >> 24) | ((value >> 8) & 0xff00) |
+	       ((value << 8) & 0xff0000) | (value << 24);
+}
 
 static void
 piglit_ktx_error(const char *format, ...)
@@ -167,31 +180,37 @@ piglit_ktx_parse_header(struct piglit_ktx *self)
 		return false;
 	}
 
+	/* The endianness field is 0x04030201 in the byte order of the data. */
 	switch (u32[3]) {
 	case 0x04030201:
-		/* Little endian is supported. */
+		self->swap_bytes = false;
 		break;
 	case 0x01020304:
-		piglit_ktx_error("%s", "KTX header declares big endian data, "
-				 "but Piglit supports only little endian");
-		return false;
+		self->swap_bytes = true;
+		break;
 	default:
 		piglit_ktx_error("KTX header has bad value (0x%x) for "
 				 "endianness flag", u32[3]);
 		return false;
 	}
 
-	info->gl_type = u32[4];
-	info->gl_type_size = u32[5];
-	info->gl_format = u32[6];
-	info->gl_internal_format = u32[7];
-	info->gl_base_internal_format = u32[8];
-	info->pixel_width = u32[9];
-	info->pixel_height = u32[10];
-	info->pixel_depth = u32[11];
-	info->array_length = u32[12];
-	info->num_faces = u32[13];
-	info->num_miplevels = u32[14];
+	info->gl_type = piglit_ktx_u32(self, u32[4]);
+	info->gl_type_size = piglit_ktx_u32(self, u32[5]);
+	info->gl_format = piglit_ktx_u32(self, u32[6]);
+	info->gl_internal_format = piglit_ktx_u32(self, u32[7]);
+	info->gl_base_internal_format = piglit_ktx_u32(self, u32[8]);
+	info->pixel_width = piglit_ktx_u32(self, u32[9]);
+	info->pixel_height = piglit_ktx_u32(self, u32[10]);
+	info->pixel_depth = piglit_ktx_u32(self, u32[11]);
+	info->array_length = piglit_ktx_u32(self, u32[12]);
+	info->num_faces = piglit_ktx_u32(self, u32[13]);
+	info->num_miplevels = piglit_ktx_u32(self, u32[14]);
+
+	if (self->swap_bytes && info->gl_type_size > 1) {
+		piglit_ktx_error("%s", "byte-swapping multi-byte KTX pixel "
+				 "data is unsupported");
+		return false;
+	}
 
 	if (info->num_miplevels == 0) {
 		piglit_ktx_error("%s", "KTX header requests automatic "
@@ -324,7 +343,7 @@ piglit_ktx_parse_images(struct piglit_ktx *self)
 			return false;
 		}
 
-		image_size = *p.u32;
+		image_size = piglit_ktx_u32(self, *p.u32);
 		++p.u32;
 
 		for (face = 0; face < 6; ++face) {
