@@ -1328,6 +1328,31 @@ static const float green[] = {0.0f, 1.0f, 0.0f, 0.0f};
 static GLuint prog_float, prog_uint, prog_sint;
 static GLuint loc_float, loc_uint, loc_sint;
 
+/* Size in bytes of one stored element of the format. */
+static unsigned
+element_size(const struct format_info *vformat)
+{
+	switch (vformat->type) {
+	case GL_BYTE:
+	case GL_UNSIGNED_BYTE:
+		return 1;
+	case GL_SHORT:
+	case GL_UNSIGNED_SHORT:
+	case GL_HALF_FLOAT:
+		return 2;
+	default:
+		return 4;
+	}
+}
+
+/* The expectations assume little-endian texture memory. */
+static bool
+view_expectations_valid(const struct format_info *base,
+			const struct format_info *vformat)
+{
+	return !piglit_is_big_endian() || element_size(base) == element_size(vformat);
+}
+
 static GLuint
 create_texture(const struct view_class *vclass,
 	       const struct format_info *base_format,
@@ -1336,6 +1361,24 @@ create_texture(const struct view_class *vclass,
 	GLuint tex;
 	char *p, *data;
 	unsigned size, i;
+	unsigned elem = element_size(base_format);
+	uint8_t pixel[16];
+
+	/* Lay out the data words as little-endian bytes, as the expectations
+	 * assume, then swap each element into host order.
+	 */
+	for (i = 0; i < vclass->bpp; i++)
+		pixel[i] = vclass->data[i / 4] >> (8 * (i % 4));
+	if (piglit_is_big_endian()) {
+		for (i = 0; i + elem <= vclass->bpp; i += elem) {
+			unsigned k;
+			for (k = 0; k < elem / 2; k++) {
+				uint8_t tmp = pixel[i + k];
+				pixel[i + k] = pixel[i + elem - 1 - k];
+				pixel[i + elem - 1 - k] = tmp;
+			}
+		}
+	}
 
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
@@ -1353,7 +1396,7 @@ create_texture(const struct view_class *vclass,
 		memset(data, 0, size);
 	else
 		for (i = 0; i < size; i++)
-			*p++ = ((char*)vclass->data)[i % vclass->bpp];
+			*p++ = pixel[i % vclass->bpp];
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, TEX_SIZE, TEX_SIZE,
 			base_format->format, base_format->type, data);
@@ -2081,12 +2124,17 @@ piglit_display(void)
 				if (!format_supported(vformat))
 					continue;
 
-				view = create_view(vformat, tex);
-
 				snprintf(test_name, sizeof(test_name),
 					 "sample %s as %s",
 				         piglit_get_gl_enum_name(base->internalformat),
 				         piglit_get_gl_enum_name(vformat->internalformat));
+
+				if (!view_expectations_valid(base, vformat)) {
+					piglit_report_subtest_result(PIGLIT_SKIP, "%s", test_name);
+					continue;
+				}
+
+				view = create_view(vformat, tex);
 
 				test_by_sampling(test_name, vformat, &result);
 				glDeleteTextures(1, &view);
@@ -2112,20 +2160,28 @@ piglit_display(void)
 
 			for (j = 0; vclass->formats[j].fs; j++) {
 				const struct format_info *vformat = &vclass->formats[j];
+				const char *base_name = piglit_get_gl_enum_name(base->internalformat);
+				const char *view_name = piglit_get_gl_enum_name(vformat->internalformat);
 				char test_name[128];
 				GLuint tex;
 
 				if (!format_supported(vformat))
 					continue;
 
+				if (!view_expectations_valid(base, vformat)) {
+					piglit_report_subtest_result(PIGLIT_SKIP, "render to %s as %s",
+								     base_name, view_name);
+					piglit_report_subtest_result(PIGLIT_SKIP, "clear %s as %s",
+								     base_name, view_name);
+					continue;
+				}
+
 				tex = create_texture(vclass, base, true);
 				glBindTexture(GL_TEXTURE_2D, 0);
 
 				/* Test rendering. */
 				snprintf(test_name, sizeof(test_name),
-					 "render to %s as %s",
-				         piglit_get_gl_enum_name(base->internalformat),
-				         piglit_get_gl_enum_name(vformat->internalformat));
+					 "render to %s as %s", base_name, view_name);
 
 				if (!render_to_view(vformat, tex)) {
 					piglit_report_subtest_result(PIGLIT_SKIP, "%s", test_name);
@@ -2140,9 +2196,7 @@ piglit_display(void)
 
 				/* Test clearing. */
 				snprintf(test_name, sizeof(test_name),
-					 "clear %s as %s",
-				         piglit_get_gl_enum_name(base->internalformat),
-				         piglit_get_gl_enum_name(vformat->internalformat));
+					 "clear %s as %s", base_name, view_name);
 
 				if (!clear_view(vformat, tex)) {
 					piglit_report_subtest_result(PIGLIT_SKIP, "%s", test_name);
