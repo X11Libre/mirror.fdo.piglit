@@ -51,7 +51,7 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 PIGLIT_GL_TEST_CONFIG_END
 
 #define TEX_SIZE 1024
-static int tex_buffer[TEX_SIZE * TEX_SIZE];
+static GLubyte tex_buffer[TEX_SIZE * TEX_SIZE * 4];
 
 enum piglit_result
 piglit_display(void)
@@ -96,7 +96,7 @@ piglit_init(int argc, char **argv)
 	piglit_ortho_projection(piglit_width, piglit_height, GL_FALSE);
 
 	for (i = 0; i < TEX_SIZE * TEX_SIZE; i++)
-		tex_buffer[i] = 0x0000ff00;
+		tex_buffer[i * 4 + 1] = 0xff;
 
 	glEnable(GL_TEXTURE_2D);
 }
