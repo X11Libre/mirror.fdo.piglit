@@ -107,16 +107,16 @@ piglit_display(void)
    static const GLfloat red_float[3] = {1.0f, 0.0f, 0.0f};
    static const GLfloat green_float[3] = {0.0f, 1.0f, 0.0f};
    static const GLfloat blue_float[3] = {0.0f, 0.0f, 1.0f};
-   static const GLuint red = 0xff0000ff;
-   static const GLuint green = 0xff00ff00;
-   static const GLuint blue = 0xffff0000;
+   static const GLubyte red[4] = { 0xff, 0x00, 0x00, 0xff };
+   static const GLubyte green[4] = { 0x00, 0xff, 0x00, 0xff };
+   static const GLubyte blue[4] = { 0x00, 0x00, 0xff, 0xff };
 
    /* Set color to red and then use glPushAttrib to store that on the stack. */
-   glColor4ubv((GLubyte*)&red);
+   glColor4ubv(red);
    glPushAttrib(GL_CURRENT_BIT);
 
    /* Change the color to green and draw a green triangle */
-   glColor4ubv((GLubyte*)&green);
+   glColor4ubv(green);
    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, g_indices1);
 
    /* Pop green off the attrib stack (back to red) */
@@ -125,7 +125,7 @@ piglit_display(void)
    glPushAttrib(GL_CURRENT_BIT);
 
    /* Change the color to blue and draw two blue triangles */
-   glColor4ubv((GLubyte*)&blue);
+   glColor4ubv(blue);
    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, g_indices3);
 
    /* Pop blue off the attrib stack (back to red) */
