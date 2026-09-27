@@ -89,9 +89,9 @@ piglit_init(int argc, char **argv)
 
 	if (argc > 2) {
 		base_layer = atoi(argv[2]);
-		if (base_layer < 0) {
-			printf("base (%u) must be >= 0\n",
-			       base_layer);
+		if ((int)base_layer < 0) {
+			printf("base (%d) must be >= 0\n",
+			       (int)base_layer);
 			usage(argv[0], PIGLIT_FAIL);
 		}
 		if (base_layer > max_views - 2) {
