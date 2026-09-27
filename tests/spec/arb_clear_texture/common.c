@@ -132,7 +132,8 @@ texel_values_match(const GLubyte *actual_bytes, const GLubyte *expected_bytes,
 		float actual, expected;
 		memcpy(&actual, actual_bytes, sizeof(actual));
 		memcpy(&expected, expected_bytes, sizeof(expected));
-		return fabs((actual - expected) / expected) <= 0.001;
+		/* Negated so that NaN, which the initial data contains, passes. */
+		return !(fabs((actual - expected) / expected) > 0.001);
 	} else {
 		uint32_t actual, expected;
 		assert(type == GL_UNSIGNED_INT);
