@@ -186,7 +186,7 @@ piglit_cl_test(const int argc,
 	cl_ulong alloc_size = BUFFER_SIZE;
 	unsigned char host_buffer_init[BUFFER_SIZE];
 	unsigned char host_buffer_read[BUFFER_SIZE];
-	unsigned char host_buffer_write[BUFFER_SIZE];
+	unsigned char host_buffer_write[BUFFER_SIZE] = {0};
 	cl_mem mem;
 	cl_mem_flags mixed_mem_flags;
 
