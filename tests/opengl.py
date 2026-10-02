@@ -3157,6 +3157,16 @@ with profile.test_list.group_manager(
 
 with profile.test_list.group_manager(
         PiglitGLTest,
+        grouptools.join('spec', 'ext_mesh_shader')) as g:
+    g(['ext_mesh_shader-ubo-rebind-between-draws'],
+      'ubo-rebind-between-draws')
+    g(['ext_mesh_shader-ssbo-rebind-between-draws'],
+      'ssbo-rebind-between-draws')
+    g(['ext_mesh_shader-ubo-invalidate-between-draws'],
+      'ubo-invalidate-between-draws')
+
+with profile.test_list.group_manager(
+        PiglitGLTest,
         grouptools.join('spec', 'ext_gpu_shader4')) as g:
     g(['gl-3.1-mixed-int-float-fbo', 'ext_gpu_shader4'], 'bindfragdatalocation mixed-int-float-fbo')
     g(['gl-3.1-mixed-int-float-fbo', 'ext_gpu_shader4', 'int_second'], 'bindfragdatalocation mixed-int-float-fbo int_second')

@@ -1,0 +1,19 @@
+include_directories(
+	${GLEXT_INCLUDE_DIR}
+	${OPENGL_INCLUDE_PATH}
+	${piglit_SOURCE_DIR}/tests/util
+)
+
+link_libraries (
+	piglitutil_${piglit_target_api}
+	${OPENGL_gl_LIBRARY}
+)
+
+
+set(depends common.c)
+
+piglit_add_executable (ext_mesh_shader-ubo-rebind-between-draws ubo-rebind-between-draws.c ${depends})
+piglit_add_executable (ext_mesh_shader-ssbo-rebind-between-draws ssbo-rebind-between-draws.c ${depends})
+piglit_add_executable (ext_mesh_shader-ubo-invalidate-between-draws ubo-invalidate-between-draws.c ${depends})
+
+# vim: ft=cmake:
