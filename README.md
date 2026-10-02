@@ -424,7 +424,7 @@ python framework:
 
 ## 5.1 Contributing
 
-  See the [HACKING](HACKING) file.
+  See the [CONTRIBUTING](CONTRIBUTING.md) file.
 
 ## 6. Integration
 
