@@ -347,7 +347,8 @@ run_tests(struct state *state)
 		}
 	}
 end:
-	bind_window(state, NULL);
+	if (bind_window(state, NULL) != PIGLIT_PASS)
+		result = PIGLIT_FAIL;
 
 	free(shallow);
 	free(deep);
