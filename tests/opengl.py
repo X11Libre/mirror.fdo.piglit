@@ -2102,6 +2102,7 @@ with profile.test_list.group_manager(
     g(['arb_gpu_shader_fp64-double-gettransformfeedbackvarying'])
     g(['arb_gpu_shader_fp64-tf-interleaved'])
     g(['arb_gpu_shader_fp64-tf-interleaved-aligned'])
+    g(['arb_gpu_shader_fp64-tf-fs-varyings'])
     g(['arb_gpu_shader_fp64-vs-getuniformdv'])
     g(['arb_gpu_shader_fp64-fs-getuniformdv'])
     g(['arb_gpu_shader_fp64-gs-getuniformdv'])
