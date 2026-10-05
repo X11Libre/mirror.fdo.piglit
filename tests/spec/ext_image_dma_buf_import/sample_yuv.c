@@ -74,7 +74,7 @@ format_has_alpha(int fourcc)
 #endif
 
 #define PACK_Y410(a, y, cr, cb)				\
-	htole64(((uint32_t)(a  & 0x003) << 30) |	\
+	htole32(((uint32_t)(a  & 0x003) << 30) |	\
 		((uint32_t)(cr & 0x3ff) << 20) |	\
 		((uint32_t)(y  & 0x3ff) << 10) |	\
 		((uint32_t)(cb & 0x3ff) <<  0))
