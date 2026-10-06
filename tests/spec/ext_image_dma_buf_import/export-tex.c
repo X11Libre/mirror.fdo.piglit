@@ -64,12 +64,12 @@ tex_clear(GLuint tex, uint32_t w, uint32_t h)
 }
 
 static EGLImageKHR
-create_cleared_eglImage(EGLDisplay egl_dpy, int w, int h)
+create_cleared_eglImage(EGLDisplay egl_dpy, GLenum format, int w, int h)
 {
 	GLuint tex;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
+	glTexStorage2D(GL_TEXTURE_2D, 1, format, w, h);
 
 	EGLImageKHR img =
 		eglCreateImageKHR(egl_dpy, eglGetCurrentContext(),
@@ -165,12 +165,12 @@ dma_buf_to_eglImage(EGLDisplay egl_dpy, EGLImageKHR *out_img, int w, int h,
 }
 
 bool
-test(EGLDisplay egl_dpy, bool glfinish_after_dmabuf_export)
+test(EGLDisplay egl_dpy, GLenum format, bool glfinish_after_dmabuf_export)
 {
 	/* Create EGLImage */
 	const int w = 128;
 	const int h = 32;
-	EGLImageKHR img = create_cleared_eglImage(egl_dpy, w, h);
+	EGLImageKHR img = create_cleared_eglImage(egl_dpy, format, w, h);
 
 	/* Conditionally finish the clear */
 	if (!glfinish_after_dmabuf_export)
@@ -226,13 +226,33 @@ piglit_init(int argc, char **argv)
 	piglit_require_extension("GL_OES_EGL_image_external");
 	piglit_require_extension("GL_EXT_EGL_image_storage");
 
-	printf("Testing glFinish before dmabuf export\n");
-	if (!test(egl_dpy, false))
-		piglit_report_result(PIGLIT_FAIL);
+	/* The bits set the probe tolerance, so no more than the window has. */
+	static const struct {
+		GLenum format;
+		int bits[4];
+	} formats[] = {
+		{ GL_RGBA8,    { 8, 8, 8, 8 } },
+		{ GL_RGB565,   { 5, 6, 5, 0 } },
+		{ GL_RGB5_A1,  { 5, 5, 5, 1 } },
+		{ GL_RGBA4,    { 4, 4, 4, 4 } },
+		{ GL_RGB10_A2, { 8, 8, 8, 2 } },
+	};
 
-	printf("Testing glFinish after dmabuf export\n");
-	if (!test(egl_dpy, true))
-		piglit_report_result(PIGLIT_FAIL);
+	for (unsigned i = 0; i < ARRAY_SIZE(formats); i++) {
+		const GLenum format = formats[i].format;
+		const int *bits = formats[i].bits;
+		const char *name = piglit_get_gl_enum_name(format);
+
+		piglit_set_tolerance_for_bits(bits[0], bits[1], bits[2], bits[3]);
+
+		printf("Testing %s, glFinish before dmabuf export\n", name);
+		if (!test(egl_dpy, format, false))
+			piglit_report_result(PIGLIT_FAIL);
+
+		printf("Testing %s, glFinish after dmabuf export\n", name);
+		if (!test(egl_dpy, format, true))
+			piglit_report_result(PIGLIT_FAIL);
+	}
 
 	piglit_report_result(PIGLIT_PASS);
 }
