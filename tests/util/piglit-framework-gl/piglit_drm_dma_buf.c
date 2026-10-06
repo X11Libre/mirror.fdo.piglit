@@ -146,6 +146,12 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		break;
 	case DRM_FORMAT_GR88:
 	case DRM_FORMAT_RG88:
+	case DRM_FORMAT_R16:
+	case DRM_FORMAT_RGB565:
+	case DRM_FORMAT_ARGB1555:
+	case DRM_FORMAT_ABGR1555:
+	case DRM_FORMAT_ARGB4444:
+	case DRM_FORMAT_ABGR4444:
 	case DRM_FORMAT_YUYV:
 	case DRM_FORMAT_YVYU:
 	case DRM_FORMAT_UYVY:
@@ -170,6 +176,11 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 	case DRM_FORMAT_ABGR8888:
 	case DRM_FORMAT_RGBA8888:
 	case DRM_FORMAT_BGRA8888:
+	case DRM_FORMAT_GR1616:
+	case DRM_FORMAT_XRGB2101010:
+	case DRM_FORMAT_ARGB2101010:
+	case DRM_FORMAT_XBGR2101010:
+	case DRM_FORMAT_ABGR2101010:
 	case DRM_FORMAT_AYUV:
 	case DRM_FORMAT_XYUV8888:
 		format = GBM_BO_FORMAT_ARGB8888;
@@ -183,6 +194,10 @@ piglit_gbm_buf_create(unsigned w, unsigned h, unsigned fourcc,
 		src_stride = cpp * w;
 		n_planes = 1;
 		break;
+	case DRM_FORMAT_XBGR16161616:
+	case DRM_FORMAT_ABGR16161616:
+	case DRM_FORMAT_XBGR16161616F:
+	case DRM_FORMAT_ABGR16161616F:
 	case DRM_FORMAT_Y412:
 	case DRM_FORMAT_Y416:
 		format = GBM_BO_FORMAT_ARGB8888;

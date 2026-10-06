@@ -3235,6 +3235,44 @@ with profile.test_list.group_manager(
       'ext_image_dma_buf_import-sample_argb8888')
     g(['ext_image_dma_buf_import-sample_rgb', '-fmt=XR24', '-alpha-one'],
       'ext_image_dma_buf_import-sample_xrgb8888')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=XB24'],
+      'ext_image_dma_buf_import-sample_xbgr8888')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AB24'],
+      'ext_image_dma_buf_import-sample_abgr8888')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=R8  '],
+      'ext_image_dma_buf_import-sample_r8')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=GR88'],
+      'ext_image_dma_buf_import-sample_gr88')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=R16 '],
+      'ext_image_dma_buf_import-sample_r16')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=GR32'],
+      'ext_image_dma_buf_import-sample_gr1616')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=RG16'],
+      'ext_image_dma_buf_import-sample_rgb565')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AR15'],
+      'ext_image_dma_buf_import-sample_argb1555')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AB15'],
+      'ext_image_dma_buf_import-sample_abgr1555')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AR12'],
+      'ext_image_dma_buf_import-sample_argb4444')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AB12'],
+      'ext_image_dma_buf_import-sample_abgr4444')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=XR30'],
+      'ext_image_dma_buf_import-sample_xrgb2101010')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AR30'],
+      'ext_image_dma_buf_import-sample_argb2101010')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=XB30'],
+      'ext_image_dma_buf_import-sample_xbgr2101010')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AB30'],
+      'ext_image_dma_buf_import-sample_abgr2101010')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=XB48'],
+      'ext_image_dma_buf_import-sample_xbgr16161616')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AB48'],
+      'ext_image_dma_buf_import-sample_abgr16161616')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=XB4H'],
+      'ext_image_dma_buf_import-sample_xbgr16161616f')
+    g(['ext_image_dma_buf_import-sample_rgb', '-fmt=AB4H'],
+      'ext_image_dma_buf_import-sample_abgr16161616f')
     g(['ext_image_dma_buf_import-sample_yuv', '-fmt=NV12'],
       'ext_image_dma_buf_import-sample_nv12')
     g(['ext_image_dma_buf_import-sample_yuv', '-fmt=NV21'],
