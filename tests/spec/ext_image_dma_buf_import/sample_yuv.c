@@ -303,6 +303,11 @@ piglit_display(void)
 		t = (unsigned char *) p0xx;
 		break;
 	case DRM_FORMAT_P016:
+		/* Make the two bytes of each sample differ, to catch
+		 * samples read in the wrong byte order.
+		 */
+		for (uint32_t i = 0; i < ARRAY_SIZE(p0xx); i++)
+			p0xx[i] ^= htole16(0x0080);
 		t = (unsigned char *) p0xx;
 		break;
 	case DRM_FORMAT_Y210:
@@ -318,6 +323,8 @@ piglit_display(void)
 		t = (unsigned char *) y216;
 		break;
 	case DRM_FORMAT_Y216:
+		for (unsigned i = 0; i < ARRAY_SIZE(y216); i++)
+			y216[i] ^= htole16(0x0080);
 		t = (unsigned char *) y216;
 		break;
 #endif
@@ -334,6 +341,9 @@ piglit_display(void)
 		t = (unsigned char *) y41x;
 		break;
 	case DRM_FORMAT_Y416:
+		for (unsigned i = 0; i < ARRAY_SIZE(y41x); i++)
+			y41x[i] ^= htole64(0x0080008000800080llu);
+
 		t = (unsigned char *) y41x;
 		break;
 #endif
