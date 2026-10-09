@@ -98,6 +98,13 @@ windows:
   needs: [windows]
   image: $WINDOWS_IMAGE
 
+.use-macos-aarch64:
+  extends:
+    - .ci-run-policy
+  tags:
+    - gst-mac-arm
+  image: "registry.freedesktop.org/gstreamer/gstreamer/macos-arm64/26-tahoe:2025-09-30.0"
+
 # CHECK
 linting:
   stage: check
@@ -172,6 +179,23 @@ build-windows:
       -D PIGLIT_BUILD_WGL_TESTS=on
       -GNinja &&
       ninja -j4"
+
+build-macos:
+  stage: build
+  extends:
+    - .use-macos-aarch64
+  needs: []
+  rules:
+    - if: $GITLAB_USER_LOGIN != "marge-bot"
+      when: manual  # nonmanual jobs are not allowed on this runner
+      allow_failure: true
+  script:
+    - pip3 install --user uv
+    - export PATH="$(python3 -m site --user-base)/bin:$PATH"
+    - uv venv --managed-python ~/venv
+    - uv pip install --python ~/venv cmake mako ninja numpy
+    - ~/venv/bin/cmake -GNinja -DPIGLIT_BUILD_CL_TESTS=1 -DPYTHON_EXECUTABLE=$HOME/venv/bin/python .
+    - ninja
 
 tox:
   image: python:${PY_MAJVER}.${PY_MINVER}
