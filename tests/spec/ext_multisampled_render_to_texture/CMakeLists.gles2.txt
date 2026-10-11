@@ -9,5 +9,6 @@ link_libraries (
 )
 
 piglit_add_executable (ext_multisampled_render_to_texture-clear_color_and_depth clear_color_and_depth.c)
+piglit_add_executable (ext_multisampled_render_to_texture-draw-after-other-framebuffer draw-after-other-framebuffer.c)
 
 # vim: ft=cmake:

@@ -3186,6 +3186,12 @@ with profile.test_list.group_manager(
 
 with profile.test_list.group_manager(
         PiglitGLTest,
+        grouptools.join('spec', 'ext_multisampled_render_to_texture')) as g:
+    g(['ext_multisampled_render_to_texture-draw-after-other-framebuffer'],
+      'draw-after-other-framebuffer')
+
+with profile.test_list.group_manager(
+        PiglitGLTest,
         grouptools.join('spec', 'ext_gpu_shader4')) as g:
     g(['gl-3.1-mixed-int-float-fbo', 'ext_gpu_shader4'], 'bindfragdatalocation mixed-int-float-fbo')
     g(['gl-3.1-mixed-int-float-fbo', 'ext_gpu_shader4', 'int_second'], 'bindfragdatalocation mixed-int-float-fbo int_second')
