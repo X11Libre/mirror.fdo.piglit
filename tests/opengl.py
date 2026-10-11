@@ -4172,6 +4172,7 @@ with profile.test_list.group_manager(
         grouptools.join('spec', 'arb_copy_image')) as g:
     g(['arb_copy_image-levels-copy'])
     g(['arb_copy_image-levels-copy', 'add-illegal-levels'])
+    g(['arb_copy_image-rp-sync'])
     g(['arb_copy_image-simple', '--tex-to-tex'])
     g(['arb_copy_image-simple', '--rb-to-tex'])
     g(['arb_copy_image-simple', '--rb-to-rb'])
