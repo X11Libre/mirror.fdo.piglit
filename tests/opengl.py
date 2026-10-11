@@ -1729,6 +1729,8 @@ with profile.test_list.group_manager(
     g(['arb_sync-wait-completes', 'no-work'], 'wait-completes no-work')
     g(['arb_sync-wait-completes', 'mixed'], 'wait-completes mixed')
     g(['arb_sync-old-sync'], 'old-sync')
+    g(['arb_sync-old-sync', 'pending-sync'], 'old-sync pending-sync')
+    g(['arb_sync-sync-churn'], 'sync-churn')
     g(['sync_api'])
 
 # Group APPLE_sync

@@ -12,6 +12,9 @@
  * with glGetSynciv, a zero-timeout glClientWaitSync, or a 1 ms
  * glClientWaitSync with the flush bit, all of which must report the sync
  * as signaled.
+ *
+ * With the pending-sync argument, a new sync is created and left unflushed
+ * while the old ones are checked.
  */
 
 #include "wait-common.h"
@@ -69,7 +72,14 @@ void
 piglit_init(int argc, char **argv)
 {
 	GLsync syncs[SYNCS];
+	GLsync pending = NULL;
+	bool pending_sync = false;
 	unsigned failures = 0;
+
+	for (int i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "pending-sync"))
+			pending_sync = true;
+	}
 
 	wait_workload_init();
 	wait_workload_calibrate(4.0);
@@ -86,12 +96,18 @@ piglit_init(int argc, char **argv)
 		wait_workload_draw(BUSY_BATCHES + round % 5, true);
 		if (round & 2)
 			wait_workload_draw(1, false);
+		if (pending_sync) {
+			wait_workload_draw(1, false);
+			pending = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		}
 
 		for (unsigned i = 0; i < SYNCS; i++) {
 			if (!check_old_sync(syncs[i], round, i))
 				failures++;
 			glDeleteSync(syncs[i]);
 		}
+		if (pending_sync)
+			glDeleteSync(pending);
 		if (round % 4 == 3)
 			glFinish();
 	}
