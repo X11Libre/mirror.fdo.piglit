@@ -1731,6 +1731,7 @@ with profile.test_list.group_manager(
     g(['arb_sync-old-sync'], 'old-sync')
     g(['arb_sync-old-sync', 'pending-sync'], 'old-sync pending-sync')
     g(['arb_sync-sync-churn'], 'sync-churn')
+    g(['arb_sync-flush-readback'], 'flush-readback', run_concurrent=False)
     g(['sync_api'])
 
 # Group APPLE_sync
