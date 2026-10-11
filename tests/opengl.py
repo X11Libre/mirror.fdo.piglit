@@ -4860,6 +4860,8 @@ with profile.test_list.group_manager(
       'egl-arb-sync-shared-context churn-many', run_concurrent=False)
     g(['egl-arb-sync-shared-context', 'contend'],
       'egl-arb-sync-shared-context contend', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'write-unflushed'],
+      'egl-arb-sync-shared-context write-unflushed', run_concurrent=False)
     g(['egl-blob-cache'])
     g(['egl-copy-buffers'])
     g(['egl-gl_oes_egl_image'])

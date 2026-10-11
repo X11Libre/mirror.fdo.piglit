@@ -38,6 +38,10 @@
  *   point where a third thread flushes or destroys the creator
  * - contend: 8 contexts draw and wait with glFinish or glClientWaitSync at
  *   the same time
+ * - write-unflushed: a second context maps a shared buffer for writing
+ *   while the main context holds unflushed usage of it from glReadPixels;
+ *   the map must return within 10 seconds, and the write must be visible
+ *   afterwards
  */
 
 #include "piglit-util-egl.h"
@@ -800,6 +804,98 @@ test_contend(void)
 	return failures;
 }
 
+#define WRITE_ITERATIONS 200
+
+struct write_data {
+	GLuint buffer;
+	sem_t start;
+	sem_t done;
+	bool stop;
+	double map_ms;
+	bool mapped;
+};
+
+static void *
+write_thread(void *arg)
+{
+	struct write_data *d = arg;
+	EGLContext ctx = create_context(main_ctx);
+
+	make_current(ctx);
+	glBindBuffer(GL_ARRAY_BUFFER, d->buffer);
+	sem_post(&d->done);
+	for (unsigned i = 0;; i++) {
+		double start;
+		GLubyte *map;
+
+		sem_wait(&d->start);
+		if (d->stop)
+			break;
+		start = wait_cpu_time_ms();
+		map = glMapBufferRange(GL_ARRAY_BUFFER, 64, 4, GL_MAP_WRITE_BIT);
+		d->mapped = map != NULL;
+		if (map) {
+			memset(map, i & 255, 4);
+			glUnmapBuffer(GL_ARRAY_BUFFER);
+		}
+		glFinish();
+		d->map_ms = wait_cpu_time_ms() - start;
+		sem_post(&d->done);
+	}
+	make_current(EGL_NO_CONTEXT);
+	eglDestroyContext(dpy, ctx);
+	return NULL;
+}
+
+static unsigned
+test_write_unflushed(void)
+{
+	struct write_data d = {0};
+	pthread_t thread;
+	unsigned failures = 0;
+
+	glGenBuffers(1, &d.buffer);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, d.buffer);
+	glBufferData(GL_PIXEL_PACK_BUFFER, 16 * 16 * 4, NULL, GL_DYNAMIC_DRAW);
+	sem_init(&d.start, 0, 0);
+	sem_init(&d.done, 0, 0);
+	pthread_create(&thread, NULL, write_thread, &d);
+	sem_wait(&d.done);
+
+	for (unsigned it = 0; it < WRITE_ITERATIONS; it++) {
+		struct timespec deadline;
+		GLubyte pixel[4];
+
+		wait_workload_draw(1, false);
+		glReadPixels(0, 0, 4, 4, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		sem_post(&d.start);
+		clock_gettime(CLOCK_REALTIME, &deadline);
+		deadline.tv_sec += 10;
+		if (sem_timedwait(&d.done, &deadline)) {
+			printf("iteration %u: a write map in another context did not "
+			       "return while this context held unflushed usage\n", it);
+			piglit_report_result(PIGLIT_FAIL);
+		}
+		if (!d.mapped) {
+			printf("iteration %u: glMapBufferRange failed\n", it);
+			failures++;
+		}
+		glFinish();
+		glGetBufferSubData(GL_PIXEL_PACK_BUFFER, 64, 4, pixel);
+		if (pixel[0] != (it & 255) || pixel[3] != (it & 255)) {
+			printf("iteration %u: the other context's write is missing "
+			       "(%u %u %u %u)\n", it, pixel[0], pixel[1], pixel[2],
+			       pixel[3]);
+			failures++;
+		}
+	}
+	d.stop = true;
+	sem_post(&d.start);
+	pthread_join(thread, NULL);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	return failures;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -807,7 +903,7 @@ main(int argc, char **argv)
 	static const char *modes[] = {
 		"deferred", "deferred-blocked", "threaded", "released",
 		"destroyed", "churn", "egl-fence", "content", "unflushed",
-		"churn-many", "contend",
+		"churn-many", "contend", "write-unflushed",
 	};
 	int mode = -1;
 	unsigned failures;
@@ -882,8 +978,11 @@ main(int argc, char **argv)
 	case 9:
 		failures = test_churn(CHURN_MAX_THREADS, 5 * CHURN_ROUNDS, 0);
 		break;
-	default:
+	case 10:
 		failures = test_contend();
+		break;
+	default:
+		failures = test_write_unflushed();
 		break;
 	}
 
