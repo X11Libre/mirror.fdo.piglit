@@ -2866,6 +2866,8 @@ with profile.test_list.group_manager(
       'vbo-subdata-many drawelements')
     g(['arb_vertex_buffer_object-vbo-subdata-many', 'drawrangeelements'],
       'vbo-subdata-many drawrangeelements')
+    g(['arb_vertex_buffer_object-subdata-after-format-change'],
+      'subdata-after-format-change')
     g(['vbo-subdata-sync'])
     g(['vbo-subdata-zero'])
 
