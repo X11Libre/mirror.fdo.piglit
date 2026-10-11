@@ -1960,6 +1960,10 @@ with profile.test_list.group_manager(
     g(['arb_framebuffer_object-mixed-buffer-sizes'], 'mixed-buffer-sizes')
     g(['arb_framebuffer_object-negative-readpixels-no-rb'],
       'negative-readpixels-no-rb')
+    g(['arb_framebuffer_object-read-after-sampled-redraw', 'blit'],
+      'read-after-sampled-redraw blit')
+    g(['arb_framebuffer_object-read-after-sampled-redraw', 'readpixels'],
+      'read-after-sampled-redraw readpixels')
     g(['arb_framebuffer_object-depth-stencil-blit', 'depth', 'GL_DEPTH_COMPONENT16'])
     g(['arb_framebuffer_object-depth-stencil-blit', 'depth', 'GL_DEPTH_COMPONENT24'])
     g(['arb_framebuffer_object-depth-stencil-blit', 'depth', 'GL_DEPTH_COMPONENT32'])
