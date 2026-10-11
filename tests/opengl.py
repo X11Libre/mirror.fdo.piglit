@@ -1718,6 +1718,17 @@ with profile.test_list.group_manager(
     g(['arb_sync-timeout-zero'], 'timeout-zero')
     g(['arb_sync-WaitSync-errors'], 'WaitSync-errors')
     g(['arb_sync-ClientWaitSync-timeout'], 'ClientWaitSync-timeout')
+    g(['arb_sync-wait-completes', 'finish'], 'wait-completes finish')
+    g(['arb_sync-wait-completes', 'finish-flushed'], 'wait-completes finish-flushed')
+    g(['arb_sync-wait-completes', 'client-wait'], 'wait-completes client-wait')
+    g(['arb_sync-wait-completes', 'client-wait-flushed'], 'wait-completes client-wait-flushed')
+    g(['arb_sync-wait-completes', 'client-wait-short'], 'wait-completes client-wait-short')
+    g(['arb_sync-wait-completes', 'client-wait-zero'], 'wait-completes client-wait-zero')
+    g(['arb_sync-wait-completes', 'client-wait-zero-flush-bit'], 'wait-completes client-wait-zero-flush-bit')
+    g(['arb_sync-wait-completes', 'get-status'], 'wait-completes get-status')
+    g(['arb_sync-wait-completes', 'no-work'], 'wait-completes no-work')
+    g(['arb_sync-wait-completes', 'mixed'], 'wait-completes mixed')
+    g(['arb_sync-old-sync'], 'old-sync')
     g(['sync_api'])
 
 # Group APPLE_sync
@@ -4824,6 +4835,28 @@ with profile.test_list.group_manager(
       run_concurrent=False)
     g(['egl-invalid-attr'])
     g(['egl-context-priority'])
+    g(['egl-arb-sync-shared-context', 'deferred'],
+      'egl-arb-sync-shared-context deferred', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'deferred-blocked'],
+      'egl-arb-sync-shared-context deferred-blocked', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'threaded'],
+      'egl-arb-sync-shared-context threaded', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'released'],
+      'egl-arb-sync-shared-context released', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'destroyed'],
+      'egl-arb-sync-shared-context destroyed', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'churn'],
+      'egl-arb-sync-shared-context churn', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'egl-fence'],
+      'egl-arb-sync-shared-context egl-fence', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'content'],
+      'egl-arb-sync-shared-context content', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'unflushed'],
+      'egl-arb-sync-shared-context unflushed', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'churn-many'],
+      'egl-arb-sync-shared-context churn-many', run_concurrent=False)
+    g(['egl-arb-sync-shared-context', 'contend'],
+      'egl-arb-sync-shared-context contend', run_concurrent=False)
     g(['egl-blob-cache'])
     g(['egl-copy-buffers'])
     g(['egl-gl_oes_egl_image'])
