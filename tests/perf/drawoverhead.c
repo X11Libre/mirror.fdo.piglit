@@ -99,6 +99,8 @@ static unsigned num_tbos;
 static unsigned num_images;
 static unsigned num_imgbos;
 static unsigned num_vbos;
+static unsigned vbo_offset;
+static unsigned vbo_stride = 3 * sizeof(float);
 
 /* Small vertex coordinate to generate as small a triangle as possible
  * for the lowest GPU overhead.
@@ -356,16 +358,18 @@ setup_shaders_and_resources(unsigned prog_index)
 		/* Vertex positions are all zeroed - we want all primitives
 		 * to be culled.
 		 */
-		static const float vertices[4][3];
+		static const float vertices[4][5];
 		GLuint vbo;
+
+		assert(vbo_offset + 4 * vbo_stride <= sizeof(vertices));
 
 		glGenBuffers(1, &vbo);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
 			     GL_STATIC_DRAW);
 
-		glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE,
-				      3 * sizeof(float), NULL);
+		glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, vbo_stride,
+				      (void *)(uintptr_t)vbo_offset);
 		glEnableVertexAttribArray(i);
 	}
 	for (i = 0; i < MAX2(num_textures, num_images); i++) {
@@ -843,6 +847,9 @@ perf_run(const char *call, unsigned prog_index, const char *change,
 	double rate = perf_measure_cpu_rate(f, duration);
 	double ratio = base_rate ? rate / base_rate : 1;
 
+	bool no_change = is_dlist || vbo_offset ||
+			 vbo_stride != 3 * sizeof(float);
+
 	const char *ratio_color = base_rate == 0 ? COLOR_RESET :
 		ratio > 0.7 ? COLOR_GREEN :
 		ratio > 0.4 ? COLOR_YELLOW : COLOR_RED;
@@ -858,8 +865,8 @@ perf_run(const char *call, unsigned prog_index, const char *change,
 	         num_images ? "Img" :
 	         num_imgbos ? "ImB" : "   ",
 	       change,
-	       is_dlist ? "," : " change,",
-	       MAX2(26 - (int)strlen(change), 0) + (is_dlist ? 7 : 0), "",
+	       no_change ? "," : " change,",
+	       MAX2(26 - (int)strlen(change), 0) + (no_change ? 7 : 0), "",
 	       color ? COLOR_CYAN : "",
 	       (unsigned)(rate / 1000),
 	       color ? COLOR_RESET : "",
@@ -1001,6 +1008,16 @@ piglit_display(void)
 		perf_run(call, 0, enable_states[state].name,
 			 draw_state_change, base_rate);
 	}
+
+	num_textures = 0;
+	num_ubos = 0;
+	num_vbos = 1;
+	vbo_offset = 1;
+	perf_run(call, 0, "VBO offset 1", draw, base_rate);
+	vbo_offset = 0;
+	vbo_stride = 13;
+	perf_run(call, 0, "VBO stride 13", draw, base_rate);
+	vbo_stride = 3 * sizeof(float);
 
 	exit(0);
 	return PIGLIT_SKIP;
