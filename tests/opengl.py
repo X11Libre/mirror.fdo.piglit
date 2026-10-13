@@ -708,6 +708,7 @@ with profile.test_list.group_manager(
     g(['texredefine'])
     g(['texsubimage'])
     g(['texsubimage-unpack'])
+    g(['texsubimage-row-length-bounds'])
     g(['texsubimage-depth-formats'])
     g(['texture-al'])
     g(['triangle-guardband-viewport'])
