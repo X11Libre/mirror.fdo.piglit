@@ -29,6 +29,7 @@ with profile.test_list.group_manager(PiglitCLTest, 'custom') as g:
     g(['cl-custom-r600-create-release-buffer-bug'],
       'r600 create release buffer bug')
     g(['cl-custom-buffer-flags'], 'Buffer flags')
+    g(['cl-custom-map-write-kernel-map-read'], 'Map write, kernel, map read')
 
 with profile.test_list.group_manager(PiglitCLTest, 'api') as g:
     # Platform

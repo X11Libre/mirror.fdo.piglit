@@ -3,3 +3,4 @@ piglit_cl_add_custom_test (flush-after-enqueue-kernel flush-after-enqueue-kernel
 piglit_cl_add_custom_test (r600-create-release-buffer-bug r600-create-release-buffer-bug.c)
 piglit_cl_add_custom_test (buffer-flags buffer-flags.c)
 piglit_cl_add_custom_test (use-sub-buffer-in-kernel use-sub-buffer-in-kernel.c)
+piglit_cl_add_custom_test (map-write-kernel-map-read map-write-kernel-map-read.c)
