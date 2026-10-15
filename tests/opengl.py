@@ -588,6 +588,7 @@ with profile.test_list.group_manager(
     g(['gl-1.0-long-line-loop'])
     g(['gl-1.0-readpixels-oob'])
     g(['gl-1.0-rendermode-feedback'])
+    g(['gl-1.0-front-back-interleave'], run_concurrent=False)
     g(['gl-1.0-front-invalidate-back'], run_concurrent=False)
     g(['gl-1.0-swapbuffers-behavior'], run_concurrent=False)
     g(['gl-1.0-polygon-line-aa'])
