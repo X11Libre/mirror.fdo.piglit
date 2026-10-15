@@ -365,6 +365,7 @@ with profile.test_list.group_manager(
     g(['glx-close-display'], run_concurrent=False)
     g(['glx-fbconfig-sanity'], run_concurrent=False)
     g(['glx-fbconfig-compliance'], run_concurrent=False)
+    g(['glx-fbconfig-main-types'], run_concurrent=False)
     g(['glx-fbconfig-bad'], run_concurrent=False)
     g(['glx-fbo-binding'], run_concurrent=False)
     g(['glx-front-flush-after-swap'], run_concurrent=False)
