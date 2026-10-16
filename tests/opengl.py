@@ -3209,6 +3209,15 @@ with profile.test_list.group_manager(
 
 with profile.test_list.group_manager(
         PiglitGLTest,
+        grouptools.join('spec', 'ext_multisampled_render_to_texture2')) as g:
+    g(['ext_multisampled_render_to_texture2-api'], 'api')
+    g(['ext_multisampled_render_to_texture2-depth-renderbuffer-preserved'], 'depth-renderbuffer-preserved')
+    g(['ext_multisampled_render_to_texture2-depth-stencil-texture'], 'depth-stencil-texture')
+    g(['ext_multisampled_render_to_texture2-mrt'], 'mrt')
+    g(['ext_multisampled_render_to_texture2-valid-usage'], 'valid-usage')
+
+with profile.test_list.group_manager(
+        PiglitGLTest,
         grouptools.join('spec', 'ext_gpu_shader4')) as g:
     g(['gl-3.1-mixed-int-float-fbo', 'ext_gpu_shader4'], 'bindfragdatalocation mixed-int-float-fbo')
     g(['gl-3.1-mixed-int-float-fbo', 'ext_gpu_shader4', 'int_second'], 'bindfragdatalocation mixed-int-float-fbo int_second')
