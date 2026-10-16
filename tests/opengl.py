@@ -3195,6 +3195,7 @@ with profile.test_list.group_manager(
 with profile.test_list.group_manager(
         PiglitGLTest,
         grouptools.join('spec', 'ext_multisampled_render_to_texture')) as g:
+    g(['ext_multisampled_render_to_texture-clear_color_and_depth'], 'clear_color_and_depth')
     g(['ext_multisampled_render_to_texture-draw-after-other-framebuffer'],
       'draw-after-other-framebuffer')
 
