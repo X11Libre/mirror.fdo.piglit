@@ -11,7 +11,7 @@
  * VUID-VkRenderingInfo-multisampledRenderToSingleSampled-06857
  */
 
-#include "piglit-util-gl.h"
+#include "common.h"
 
 PIGLIT_GL_TEST_CONFIG_BEGIN
 
@@ -61,7 +61,7 @@ piglit_init(int argc, char **argv)
 	GLuint depthRenderbuffer;
 	glGenRenderbuffers(1, &depthRenderbuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
-	glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, SAMPLES,
+	msrtt_renderbuffer_storage(GL_RENDERBUFFER, SAMPLES,
 					    GL_DEPTH_COMPONENT32F,
 					    WIDTH, HEIGHT);
 
