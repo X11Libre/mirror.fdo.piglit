@@ -5605,6 +5605,12 @@ with profile.test_list.group_manager(
     g(['ovr_multiview-triangle_compare', 'frag_index_uniform', 'none', 'max'], 'triangle_compare_frag_index_uniform')
     g(['ovr_multiview-triangle_compare', 'frag_index_uniform', 'none', 'max', '2'], 'triangle_compare_frag_index_uniform_base2')
 
+with profile.test_list.group_manager(
+        PiglitGLTest,
+        grouptools.join('spec', 'OVR_multiview_multisampled_render_to_texture')) as g:
+    g(['ovr_multiview_multisampled_render_to_texture-api'], 'api')
+    g(['ovr_multiview_multisampled_render_to_texture-render'], 'render')
+
 # Group ARB_gl_spirv
 with profile.test_list.group_manager(
     PiglitGLTest,
