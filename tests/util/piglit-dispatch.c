@@ -219,6 +219,19 @@ static int compare_function_names(const void *x, const void *y)
  *   the unsupported_proc that was passed to piglit_dispatch_init() is
  *   called.
  */
+/**
+ * Resolve an extension function by its own name, even where
+ * piglit_dispatch_resolve_function() would pick a core function or another
+ * extension's function that it aliases.  This is for extensions whose
+ * function behaves differently from the one it aliases in the registry.
+ */
+piglit_dispatch_function_ptr
+piglit_dispatch_resolve_extension_function(const char *name)
+{
+	check_initialized();
+	return get_ext_proc(name);
+}
+
 piglit_dispatch_function_ptr
 piglit_dispatch_resolve_function(const char *name)
 {
