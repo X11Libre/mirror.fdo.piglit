@@ -114,11 +114,13 @@ if(PIGLIT_USE_WAFFLE)
 	list(APPEND UTIL_GL_LIBS
 		${Waffle_LDFLAGS}
 	)
-	IF(PIGLIT_BUILD_GLX_TESTS)
+	# GLX and, on Windows, wglGetProcAddress and the GL 1.1 functions of
+	# OpenGL ES come from libGL and opengl32
+	IF(PIGLIT_BUILD_GLX_TESTS OR WIN32)
 		list(APPEND UTIL_GL_LIBS
 			${OPENGL_gl_LIBRARY}
 		)
-	ENDIF(PIGLIT_BUILD_GLX_TESTS)
+	ENDIF(PIGLIT_BUILD_GLX_TESTS OR WIN32)
 else()
 	list(APPEND UTIL_GL_SOURCES
 		piglit-framework-gl/piglit_glut_framework.c
