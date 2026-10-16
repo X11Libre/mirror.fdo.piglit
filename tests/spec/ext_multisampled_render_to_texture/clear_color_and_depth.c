@@ -9,6 +9,9 @@
  *
  * On buggy versions of zink, this triggers a vulkan validation error for
  * VUID-VkRenderingInfo-multisampledRenderToSingleSampled-06857
+ *
+ * The cleared depth is checked by depth testing against it, since reading
+ * depth back needs more than OpenGL ES offers.
  */
 
 #include "common.h"
@@ -25,20 +28,33 @@ PIGLIT_GL_TEST_CONFIG_END
 #define HEIGHT 100
 #define SAMPLES 4
 
+static struct msrtt_program prog;
+
 enum piglit_result
 piglit_display(void)
 {
 	const float color[] = {0.0, 1.0, 0.0, 0.5};
+	const float blue[] = {0.0, 0.0, 1.0, 1.0};
 	const float depth = 0.42;
 	glClearColor(0.0, 1.0, 0.0, 0.5);
 	glClearDepthf(depth);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	/* behind the cleared depth on the left, in front of it on the right */
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	msrtt_use(&prog, blue, (depth + 0.02) * 2 - 1);
+	piglit_draw_rect(-1, -1, 1, 2);
+	msrtt_use(&prog, blue, (depth - 0.02) * 2 - 1);
+	piglit_draw_rect(0, -1, 1, 2);
+	glDisable(GL_DEPTH_TEST);
 	glFlush();
 
 	bool pass = true;
-	pass &= piglit_probe_rect_rgba(0, 0, WIDTH, HEIGHT, color);
-	pass &= piglit_probe_rect_depth(0, 0, WIDTH, HEIGHT, depth);
+	pass &= piglit_probe_rect_rgba(0, 0, WIDTH / 2, HEIGHT, color);
+	pass &= piglit_probe_rect_rgba(WIDTH / 2, 0, WIDTH / 2, HEIGHT, blue);
 
 	piglit_present_results();
 
@@ -49,6 +65,9 @@ void
 piglit_init(int argc, char **argv)
 {
 	piglit_require_extension("GL_EXT_multisampled_render_to_texture");
+	prog = msrtt_color_program();
+
+	GLint samples = MIN2(SAMPLES, msrtt_samples());
 
 	GLuint colorTexture;
 	glGenTextures(1, &colorTexture);
@@ -61,9 +80,11 @@ piglit_init(int argc, char **argv)
 	GLuint depthRenderbuffer;
 	glGenRenderbuffers(1, &depthRenderbuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
-	msrtt_renderbuffer_storage(GL_RENDERBUFFER, SAMPLES,
-					    GL_DEPTH_COMPONENT32F,
-					    WIDTH, HEIGHT);
+	/* DEPTH_COMPONENT32F needs OpenGL ES 3.0 */
+	msrtt_renderbuffer_storage(GL_RENDERBUFFER, samples,
+				   piglit_get_gl_version() >= 30 ?
+				   GL_DEPTH_COMPONENT32F : GL_DEPTH_COMPONENT16,
+				   WIDTH, HEIGHT);
 
 	GLuint framebuffer;
 	glGenFramebuffers(1, &framebuffer);
@@ -72,7 +93,7 @@ piglit_init(int argc, char **argv)
 	glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER,
 					     GL_COLOR_ATTACHMENT0,
 		                             GL_TEXTURE_2D, colorTexture,
-					     0, SAMPLES);
+					     0, samples);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 				  GL_RENDERBUFFER, depthRenderbuffer);
 }
