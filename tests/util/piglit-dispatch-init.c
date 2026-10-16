@@ -122,20 +122,26 @@ get_ext_proc_address(const char *function_name)
 static piglit_dispatch_function_ptr
 get_core_proc_address(const char *function_name, int gl_10x_version)
 {
-	if (gl_10x_version > 11) {
-		return get_ext_proc_address(function_name);
-	} else {
-		piglit_dispatch_function_ptr p;
-		/* Try GetProcAddress() first.
-		 * If that fails, try wglGetProcAddress().
-		 */
-		p = (piglit_dispatch_function_ptr)
-			GetProcAddress(LoadLibraryA("OPENGL32"), function_name);
-		if (!p)
-			p = get_ext_proc_address(function_name);
-		return p;
+	piglit_dispatch_function_ptr p;
 
+	/* OpenGL ES functions have ES version numbers, but the ones that are
+	 * also in GL 1.1 are only exported by opengl32, and wglGetProcAddress
+	 * may return small bogus values for them
+	 */
+	if (gl_10x_version > 11) {
+		p = get_ext_proc_address(function_name);
+		if ((uintptr_t)p > 3 && (intptr_t)p != -1)
+			return p;
 	}
+
+	/* Try GetProcAddress() first.
+	 * If that fails, try wglGetProcAddress().
+	 */
+	p = (piglit_dispatch_function_ptr)
+		GetProcAddress(LoadLibraryA("OPENGL32"), function_name);
+	if (!p)
+		p = get_ext_proc_address(function_name);
+	return p;
 }
 
 #elif defined(__APPLE__)
