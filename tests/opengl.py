@@ -5594,6 +5594,8 @@ with profile.test_list.group_manager(
 with profile.test_list.group_manager(
         PiglitGLTest,
         grouptools.join('spec', 'OVR_multiview2')) as g:
+    g(['ovr_multiview2-render'], 'render')
+    g(['ovr_multiview2-render-gles'], 'render-gles')
     g(['ovr_multiview-triangle_compare', 'vert_color', 'none', 'max'], 'triangle_compare_vert_vary_color')
     g(['ovr_multiview-triangle_compare', 'vert_color', 'none', 'max', '2'], 'triangle_compare_vert_vary_color_base2')
     g(['ovr_multiview-triangle_compare', 'frag_color', 'none', 'max'], 'triangle_compare_frag_vary_color')
