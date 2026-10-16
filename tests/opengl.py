@@ -787,6 +787,7 @@ with profile.test_list.group_manager(
     g(['tex-skipped-unit'])
     g(['tex3d'])
     g(['tex3d-maxsize'], run_concurrent=False)
+    g(['tex3d-over-1gb'], run_concurrent=False)
     g(['teximage-errors'])
     g(['texture-packed-formats'])
     g(['getteximage-targets', '3D'])
