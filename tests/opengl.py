@@ -5550,6 +5550,12 @@ with profile.test_list.group_manager(
 with profile.test_list.group_manager(
         PiglitGLTest,
         grouptools.join('spec', 'OVR_multiview')) as g:
+    g(['ovr_multiview-api'], 'api')
+    g(['ovr_multiview-api-gles'], 'api-gles')
+    g(['ovr_multiview-draw-errors'], 'draw-errors')
+    g(['ovr_multiview-draw-errors-gles'], 'draw-errors-gles')
+    g(['ovr_multiview-render'], 'render')
+    g(['ovr_multiview-render-gles'], 'render-gles')
     g(['ovr_multiview-fb_attachment_params'], 'fb_attachment_params')
     g(['ovr_multiview-fb_blit_first_view', 'full', '0'], 'fb_blit_first_view_full')
     g(['ovr_multiview-fb_blit_first_view', 'full', '1'], 'fb_blit_first_view_full_base1')
