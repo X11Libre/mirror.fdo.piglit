@@ -565,6 +565,7 @@ with profile.test_list.group_manager(
 with profile.test_list.group_manager(
         PiglitGLTest, 'wgl',
         require_platforms=['wgl']) as g:
+    g(['wgl-choose-pixel-format'])
     g(['wgl-sanity'])
     g(['wgl-multi-context-single-window'])
     g(['wgl-multi-window-single-context'])
