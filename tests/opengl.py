@@ -3195,9 +3195,17 @@ with profile.test_list.group_manager(
 with profile.test_list.group_manager(
         PiglitGLTest,
         grouptools.join('spec', 'ext_multisampled_render_to_texture')) as g:
+    g(['ext_multisampled_render_to_texture-api-errors'], 'api-errors')
     g(['ext_multisampled_render_to_texture-clear_color_and_depth'], 'clear_color_and_depth')
+    g(['ext_multisampled_render_to_texture-completeness'], 'completeness')
+    g(['ext_multisampled_render_to_texture-depth-stencil'], 'depth-stencil')
     g(['ext_multisampled_render_to_texture-draw-after-other-framebuffer'],
       'draw-after-other-framebuffer')
+    g(['ext_multisampled_render_to_texture-framebuffer-targets'], 'framebuffer-targets')
+    g(['ext_multisampled_render_to_texture-implicit-resolve'], 'implicit-resolve')
+    g(['ext_multisampled_render_to_texture-queries'], 'queries')
+    g(['ext_multisampled_render_to_texture-render'], 'render')
+    g(['ext_multisampled_render_to_texture-valid-usage'], 'valid-usage')
 
 with profile.test_list.group_manager(
         PiglitGLTest,
