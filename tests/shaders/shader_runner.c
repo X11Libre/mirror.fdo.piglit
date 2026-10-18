@@ -6799,9 +6799,20 @@ piglit_init(int argc, char **argv)
 	if (piglit_get_gl_version() >= 20 ||
 	    piglit_is_extension_supported("GL_ARB_vertex_shader") ||
 	    piglit_is_extension_supported("GL_ARB_geometry_shader4") ||
-	    piglit_is_extension_supported("GL_EXT_geometry_shader4"))
-		glGetIntegerv(GL_MAX_VARYING_COMPONENTS,
-			      &gl_max_varying_components);
+	    piglit_is_extension_supported("GL_EXT_geometry_shader4")) {
+		GLint context_flags = 0;
+
+		if (piglit_get_gl_version() >= 30)
+			glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
+
+		if (piglit_get_gl_version() >= 32 &&
+		    (context_flags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT))
+			glGetIntegerv(GL_MAX_FRAGMENT_INPUT_COMPONENTS,
+				      &gl_max_varying_components);
+		else
+			glGetIntegerv(GL_MAX_VARYING_COMPONENTS,
+				      &gl_max_varying_components);
+	}
 #else
 	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS,
 		      &gl_max_fragment_uniform_components);
