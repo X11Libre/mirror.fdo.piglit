@@ -292,7 +292,8 @@ do_requires(void)
         }
 
 	/* if we are trying to swizzle, check that we can! */
-	if (swizzle != -1)
+	if (swizzle != -1 && piglit_get_gl_version() < 33 &&
+	    !piglit_is_extension_supported("GL_ARB_texture_swizzle"))
 		piglit_require_extension("GL_EXT_texture_swizzle");
 
 	/* check the sampler type we want actually exists */
