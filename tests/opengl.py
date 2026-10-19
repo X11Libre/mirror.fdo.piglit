@@ -930,6 +930,8 @@ with profile.test_list.group_manager(
     g(['bindfragdata-nonexistent-variable'])
     g(['gl-3.0-bound-resource-limits'],
       'bound-resource-limits')
+    g(['gl-3.0-builtin-uniform-updates'],
+      'builtin-uniform-updates')
     g(['clearbuffer-depth'])
     g(['clearbuffer-depth-cs-probe'])
     g(['clearbuffer-depth-stencil'])
