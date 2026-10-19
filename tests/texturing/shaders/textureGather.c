@@ -453,6 +453,8 @@ do_shader_setup(void)
 	};
 	char *comp_expr[] = {"", ", 0", ", 1", ", 2", ", 3"};
 	bool need_shader5 = (comp_select != -1) || use_offsets || use_nonconst || (comptype == SHADOW_T) || sampler == SAMPLER_2DRECT;
+	const char *version = need_shader5 ? "150" :
+			      piglit_is_core_profile ? "140" : "130";
 
 	if (use_offsets)
 		(void)!asprintf(&offset_coords, "const ivec2 osets[4] = ivec2[4](ivec2(%d, %d), ivec2(%d, %d), ivec2(3, 3), ivec2(-3, -3));\n",
@@ -476,7 +478,7 @@ do_shader_setup(void)
 				"	gl_Position = pos;\n"
 				"	c = %s * textureGather%s(s, %s %s %s %s);\n"
 				"}\n",
-				need_shader5 ? "150" : "130",
+				version,
 				sampler == SAMPLER_CUBEARRAY ? "#extension GL_ARB_texture_cube_map_array: require\n" : "",
 				need_shader5 ? "#extension GL_ARB_gpu_shader5: require\n" : "",
 				prefix[comptype],
@@ -498,7 +500,7 @@ do_shader_setup(void)
 				"void main() {\n"
 				"	fragColor = c;\n"
 				"}\n",
-				need_shader5 ? "150" : "130");
+				version);
 	}
 	else {
 		(void)!asprintf(&vs_code,
@@ -509,7 +511,7 @@ do_shader_setup(void)
 				"void main() {\n"
 				"	gl_Position = pos;\n"
 				"}\n",
-				need_shader5 ? "150" : "130");
+				version);
 		(void)!asprintf(&fs_code,
 				"#version %s\n"
 				"#extension GL_ARB_texture_gather: require\n"
@@ -523,7 +525,7 @@ do_shader_setup(void)
 				"void main() {\n"
 				"	fragColor = %s * textureGather%s(s, %s %s %s %s);\n"
 				"}\n",
-				need_shader5 ? "150" : "130",
+				version,
 				sampler == SAMPLER_CUBEARRAY ? "#extension GL_ARB_texture_cube_map_array: require\n" : "",
 				need_shader5 ? "#extension GL_ARB_gpu_shader5: require\n" : "",
 				prefix[comptype],
