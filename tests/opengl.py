@@ -591,6 +591,7 @@ with profile.test_list.group_manager(
     g(['gl-1.0-fog-linear-floor'])
     g(['gl-1.0-long-dlist'])
     g(['gl-1.0-long-line-loop'])
+    g(['gl-1.0-begin-end-line-loop'])
     g(['gl-1.0-readpixels-oob'])
     g(['gl-1.0-rendermode-feedback'])
     g(['gl-1.0-front-back-interleave'], run_concurrent=False)
