@@ -346,13 +346,15 @@ require_GL_features(enum shader_target test_stage)
 	if (gpu_shader4)
 		piglit_require_extension("GL_EXT_gpu_shader4");
 
-	if (swizzling)
+	if (swizzling && piglit_get_gl_version() < 33 &&
+	    !piglit_is_extension_supported("GL_ARB_texture_swizzle"))
 		piglit_require_extension("GL_EXT_texture_swizzle");
 
 	switch (sampler.internal_format) {
 	case GL_RGBA32I:
 	case GL_RGBA16I:
-		piglit_require_extension("GL_EXT_texture_integer");
+		if (piglit_get_gl_version() < 30)
+			piglit_require_extension("GL_EXT_texture_integer");
 		break;
 	case GL_RGBA32UI:
 	case GL_RGBA16UI:
@@ -363,7 +365,8 @@ require_GL_features(enum shader_target test_stage)
 		break;
 	case GL_RGBA32F:
 	case GL_RGBA16F:
-		piglit_require_extension("GL_ARB_texture_float");
+		if (piglit_get_gl_version() < 30)
+			piglit_require_extension("GL_ARB_texture_float");
 		break;
 	}
 
@@ -373,7 +376,8 @@ require_GL_features(enum shader_target test_stage)
 		break;
 	case GL_TEXTURE_1D_ARRAY:
 	case GL_TEXTURE_2D_ARRAY:
-		piglit_require_extension("GL_EXT_texture_array");
+		if (piglit_get_gl_version() < 30)
+			piglit_require_extension("GL_EXT_texture_array");
 		break;
 	case GL_TEXTURE_CUBE_MAP:
 		if (is_shadow_sampler()) {
@@ -384,14 +388,17 @@ require_GL_features(enum shader_target test_stage)
 		}
 		break;
 	case GL_TEXTURE_RECTANGLE:
-		piglit_require_extension("GL_ARB_texture_rectangle");
+		if (piglit_get_gl_version() < 31)
+			piglit_require_extension("GL_ARB_texture_rectangle");
 		break;
 	case GL_TEXTURE_BUFFER:
-		piglit_require_extension("GL_ARB_texture_buffer_object");
+		if (piglit_get_gl_version() < 31)
+			piglit_require_extension("GL_ARB_texture_buffer_object");
 		break;
 	case GL_TEXTURE_2D_MULTISAMPLE:
 	case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-		piglit_require_extension("GL_ARB_texture_multisample");
+		if (piglit_get_gl_version() < 32)
+			piglit_require_extension("GL_ARB_texture_multisample");
 	}
 
 	/* If testing in the VS, check for VS texture units */
