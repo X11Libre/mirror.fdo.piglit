@@ -39,7 +39,7 @@ PIGLIT_GL_TEST_CONFIG_BEGIN
 PIGLIT_GL_TEST_CONFIG_END
 
 static const char vs_pass_thru_text[] =
-	"#version 130\n"
+	"#version 140\n"
 	"\n"
 	"in vec4 piglit_vertex;\n"
 	"void main() {\n"

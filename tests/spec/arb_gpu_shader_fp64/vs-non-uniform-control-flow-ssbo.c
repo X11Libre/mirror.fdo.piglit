@@ -66,7 +66,7 @@ static const char vs_source[] =
 	"}\n";
 
 static const char fs_source[] =
-	"#version 130\n"
+	"#version 140\n"
 	"\n"
 	"in vec4 color;\n"
 	"out vec4 frag_color;\n"
