@@ -11,6 +11,7 @@ link_libraries (
 piglit_add_executable (ext_multisampled_render_to_texture2-api api.c)
 piglit_add_executable (ext_multisampled_render_to_texture2-depth-renderbuffer-preserved depth-renderbuffer-preserved.c)
 piglit_add_executable (ext_multisampled_render_to_texture2-depth-stencil-texture depth-stencil-texture.c)
+piglit_add_executable (ext_multisampled_render_to_texture2-depth-texture-partial-clear depth-texture-partial-clear.c)
 piglit_add_executable (ext_multisampled_render_to_texture2-valid-usage valid-usage.c)
 
 # vim: ft=cmake:
