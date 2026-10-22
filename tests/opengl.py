@@ -3857,6 +3857,11 @@ with profile.test_list.group_manager(
     g(['ext_transform_feedback-negative-prims'], 'negative-prims')
     g(['ext_transform_feedback-primgen'],
       'primgen-query transform-feedback-disabled')
+    for mode in ['clear', 'conditional-clear', 'draw', 'conditional-draw',
+                 'depth-stencil-clear', 'clear-buffer-color',
+                 'clear-buffer-depth-stencil', 'scissor-clear']:
+        g(['ext_transform_feedback-primgen-clear', '-subtest', mode],
+          'primgen-clear {0}'.format(mode))
     g(['ext_transform_feedback-pipeline-basic-primgen'],
       'pipeline-basic-primgen')
     g(['ext_transform_feedback-position', 'render'],
