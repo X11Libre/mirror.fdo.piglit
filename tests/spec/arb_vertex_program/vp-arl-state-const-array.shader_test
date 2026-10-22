@@ -1,0 +1,34 @@
+# Tests that a literal inside an ARL-indexed PARAM array, declared between
+# two state bindings, survives the state being refetched.
+[require]
+GL >= 1.3
+ARB_vertex_program
+
+[vertex program]
+!!ARBvp1.0
+OPTION ARB_position_invariant;
+PARAM arr[3] = { state.light[0].diffuse, {0.25, 0.5, 0.75, 1.0}, state.light[0].ambient };
+ADDRESS a;
+ARL a.x, program.local[0].x;
+MOV result.color, arr[a.x];
+END
+
+[test]
+ortho -1 1 -1 1
+parameter local_vp 0 (1.0, 0.0, 0.0, 0.0)
+draw rect -1 -1 2 2
+probe all rgba 0.25 0.5 0.75 1.0
+parameter local_vp 0 (0.0, 0.0, 0.0, 0.0)
+draw rect -1 -1 2 2
+probe all rgba 1.0 1.0 1.0 1.0
+ortho -2 2 -2 2
+parameter local_vp 0 (1.0, 0.0, 0.0, 0.0)
+draw rect -2 -2 4 4
+probe all rgba 0.25 0.5 0.75 1.0
+parameter local_vp 0 (2.0, 0.0, 0.0, 0.0)
+draw rect -2 -2 4 4
+probe all rgba 0.0 0.0 0.0 1.0
+ortho -1 1 -1 1
+parameter local_vp 0 (1.0, 0.0, 0.0, 0.0)
+draw rect -1 -1 2 2
+probe all rgba 0.25 0.5 0.75 1.0
