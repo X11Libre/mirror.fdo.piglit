@@ -4885,6 +4885,7 @@ with profile.test_list.group_manager(
       run_concurrent=False)
     g(['egl-invalid-attr'])
     g(['egl-context-priority'])
+    g(['egl-shared-genbuffers-churn'], run_concurrent=False)
     g(['egl-arb-sync-shared-context', 'deferred'],
       'egl-arb-sync-shared-context deferred', run_concurrent=False)
     g(['egl-arb-sync-shared-context', 'deferred-blocked'],
