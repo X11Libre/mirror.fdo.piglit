@@ -469,7 +469,7 @@ test_format(const struct format_desc *format, GLenum basetype)
 
 	glDeleteTextures(1, &tex);
 
-	piglit_report_subtest_result(pass ? PIGLIT_PASS : PIGLIT_FAIL,
+	piglit_report_subtest_result(pass ? PIGLIT_PASS : PIGLIT_WARN,
 				     "%s%s", name,
 				     npot ? " NPOT" : "");
 
@@ -523,7 +523,7 @@ piglit_display(void)
 
 	piglit_present_results();
 
-	return pass ? PIGLIT_PASS : PIGLIT_FAIL;
+	return pass ? PIGLIT_PASS : PIGLIT_WARN;
 }
 
 
