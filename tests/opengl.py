@@ -569,6 +569,7 @@ with profile.test_list.group_manager(
     g(['wgl-sanity'])
     g(['wgl-multi-context-single-window'])
     g(['wgl-multi-window-single-context'])
+    g(['wgl-shared-context-switch'])
 
 with profile.test_list.group_manager(
         PiglitGLTest,
