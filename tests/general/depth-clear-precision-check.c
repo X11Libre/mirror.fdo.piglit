@@ -211,7 +211,7 @@ test(void *data)
 	glDepthFunc(GL_EQUAL);
 
 	uint32_t numOfBits = depth_num_of_bits(depth_format);
-	uint32_t maxStoreableValue = (1l << numOfBits) - 1;
+	uint32_t maxStoreableValue = (1ull << numOfBits) - 1;
 	uint32_t step = 1 << (numOfBits - iteration_pow);
 
 	for (uint64_t depth = 0; depth < maxStoreableValue; depth += step) {
