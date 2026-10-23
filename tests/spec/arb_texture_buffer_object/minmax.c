@@ -48,7 +48,8 @@ piglit_display(void)
 void
 piglit_init(int argc, char **argv)
 {
-	piglit_require_extension("GL_ARB_texture_buffer_object");
+	if (piglit_get_gl_version() < 31)
+		piglit_require_extension("GL_ARB_texture_buffer_object");
 
 	piglit_print_minmax_header();
 	piglit_test_min_int(GL_MAX_TEXTURE_BUFFER_SIZE, 65536);

@@ -52,7 +52,8 @@ piglit_init(int argc, char **argv)
 {
 	GLuint tex;
 
-	piglit_require_extension("GL_ARB_texture_buffer_object");
+	if (piglit_get_gl_version() < 31)
+		piglit_require_extension("GL_ARB_texture_buffer_object");
 
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_BUFFER, tex);
