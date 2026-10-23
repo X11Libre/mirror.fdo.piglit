@@ -57,7 +57,8 @@ piglit_init(int argc, char *argv[])
 	memset(dummy_data_1, 0xaa, size);
 	memset(dummy_data_2, 0xbb, size);
 
-	piglit_require_extension("GL_ARB_copy_buffer");
+	if (piglit_get_gl_version() < 31)
+		piglit_require_extension("GL_ARB_copy_buffer");
 
 	glGenBuffers(2, buffer_handles);
 	glBindBuffer(GL_COPY_READ_BUFFER, buffer_handles[0]);

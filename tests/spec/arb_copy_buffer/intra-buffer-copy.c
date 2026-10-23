@@ -46,7 +46,8 @@ piglit_init(int argc, char *argv[])
 	GLubyte data[250], *map;
 	int i;
 
-	piglit_require_extension("GL_ARB_copy_buffer");
+	if (piglit_get_gl_version() < 31)
+		piglit_require_extension("GL_ARB_copy_buffer");
 
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_COPY_READ_BUFFER, buffer);
