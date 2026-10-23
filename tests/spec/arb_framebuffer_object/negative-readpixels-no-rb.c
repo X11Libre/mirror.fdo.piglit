@@ -60,7 +60,8 @@ void piglit_init(int argc, char **argv)
 	GLuint fb, rb;
 	bool pass = true;
 
-	piglit_require_extension("GL_ARB_framebuffer_object");
+	if (piglit_get_gl_version() < 30)
+		piglit_require_extension("GL_ARB_framebuffer_object");
 
 	glGenFramebuffers(1, &fb);
 	glBindFramebuffer(GL_FRAMEBUFFER, fb);
