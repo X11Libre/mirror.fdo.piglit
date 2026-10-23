@@ -96,7 +96,7 @@ compile_shader(void)
 		"}\n";
 
 	static const char *frag =
-		"#version 130\n"
+		"#version 140\n"
 		"\n"
 		"in vec4 color;\n"
 		"out vec4 out_color;\n"
