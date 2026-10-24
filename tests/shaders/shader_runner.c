@@ -1662,7 +1662,7 @@ leave_state(enum states state, const char *line, const char *script_name)
 
 		cursor = shader_string;
 		for (unsigned i = 0; i < num_shader_include_paths; i++) {
-			char *line_end = strchr(cursor, '\n');
+			const char *line_end = strchr(cursor, '\n');
 			unsigned path_len = line_end - cursor - 1;
 			char *path = malloc(path_len + 1);
 			path[path_len] = '\0';
