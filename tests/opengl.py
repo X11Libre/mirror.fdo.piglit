@@ -587,6 +587,7 @@ with profile.test_list.group_manager(
     g(['gl-1.0-drawbuffer-modes'], run_concurrent=False)
     g(['gl-1.0-edgeflag'])
     g(['gl-1.0-edgeflag-const'])
+    g(['gl-1.0-edgeflag-feedback'])
     g(['gl-1.0-edgeflag-quads'])
     g(['gl-1.0-empty-begin-end-clause'])
     g(['gl-1.0-fog-linear-floor'])
