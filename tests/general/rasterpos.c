@@ -217,7 +217,8 @@ set_raster_pos_arb_vp(const struct raster_pos *r)
 }
 
 static void
-set_raster_pos_glsl(const struct raster_pos *r, GLenum next_shader, bool sso)
+set_raster_pos_glsl(const struct raster_pos *r, GLenum next_shader,
+		    const char *fs_source, bool sso)
 {
 	char vs_source[2048];
 	unsigned glsl_version = next_shader == GL_TESS_EVALUATION_SHADER ? 400 :
@@ -267,7 +268,8 @@ set_raster_pos_glsl(const struct raster_pos *r, GLenum next_shader, bool sso)
 		"void main() {}\n";
 
 	const char *next_source = next_shader == GL_TESS_EVALUATION_SHADER ? tes_source :
-				  next_shader == GL_GEOMETRY_SHADER ? gs_source : NULL;
+				  next_shader == GL_GEOMETRY_SHADER ? gs_source :
+				  next_shader == GL_FRAGMENT_SHADER ? fs_source : NULL;
 
 	GLuint prog = 0, prog2 = 0, pipeline = 0;
 	if (sso) {
@@ -315,31 +317,61 @@ set_raster_pos_glsl(const struct raster_pos *r, GLenum next_shader, bool sso)
 static void
 set_raster_pos_glsl_vs(const struct raster_pos *r)
 {
-	set_raster_pos_glsl(r, 0, false);
+	set_raster_pos_glsl(r, 0, NULL, false);
+}
+
+/* The fragment shader isn't run on the raster position either, so linking
+ * with one must not change the vertex shader outputs that set it.
+ */
+static void
+set_raster_pos_glsl_vs_fs_linked(const struct raster_pos *r)
+{
+	/* Read none of the vertex shader outputs. */
+	set_raster_pos_glsl(r, GL_FRAGMENT_SHADER,
+			    "#version 110\n"
+			    "void main() { gl_FragColor = vec4(1.0); }\n",
+			    false);
+}
+
+static void
+set_raster_pos_glsl_vs_fs_inputs_linked(const struct raster_pos *r)
+{
+	/* Read all of the vertex shader outputs, which are constants. */
+	set_raster_pos_glsl(r, GL_FRAGMENT_SHADER,
+			    "#version 110\n"
+			    "void main() {\n"
+			    "  gl_FragColor = gl_Color + gl_SecondaryColor +\n"
+			    "                 vec4(gl_FogFragCoord) +\n"
+			    "                 gl_TexCoord[0] + gl_TexCoord[1] +\n"
+			    "                 gl_TexCoord[2] + gl_TexCoord[3] +\n"
+			    "                 gl_TexCoord[4] + gl_TexCoord[5] +\n"
+			    "                 gl_TexCoord[6] + gl_TexCoord[7];\n"
+			    "}\n",
+			    false);
 }
 
 static void
 set_raster_pos_glsl_vs_tes_linked(const struct raster_pos *r)
 {
-	set_raster_pos_glsl(r, GL_TESS_EVALUATION_SHADER, false);
+	set_raster_pos_glsl(r, GL_TESS_EVALUATION_SHADER, NULL, false);
 }
 
 static void
 set_raster_pos_glsl_vs_gs_linked(const struct raster_pos *r)
 {
-	set_raster_pos_glsl(r, GL_GEOMETRY_SHADER, false);
+	set_raster_pos_glsl(r, GL_GEOMETRY_SHADER, NULL, false);
 }
 
 static void
 set_raster_pos_glsl_vs_tes_sso(const struct raster_pos *r)
 {
-	set_raster_pos_glsl(r, GL_TESS_EVALUATION_SHADER, true);
+	set_raster_pos_glsl(r, GL_TESS_EVALUATION_SHADER, NULL, true);
 }
 
 static void
 set_raster_pos_glsl_vs_gs_sso(const struct raster_pos *r)
 {
-	set_raster_pos_glsl(r, GL_GEOMETRY_SHADER, true);
+	set_raster_pos_glsl(r, GL_GEOMETRY_SHADER, NULL, true);
 }
 
 static void
@@ -633,6 +665,8 @@ struct {
 	{T(glsl_vs_image1D), 42},
 	{T(glsl_vs_ssbo), 43},
 
+	{T(glsl_vs_fs_linked), 20},
+	{T(glsl_vs_fs_inputs_linked), 20},
 	{T(glsl_vs_gs_linked), 32},
 	{T(glsl_vs_tes_linked), 40},
 	{T(glsl_vs_gs_sso), 41},
