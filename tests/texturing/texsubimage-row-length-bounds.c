@@ -31,6 +31,7 @@ PIGLIT_GL_TEST_CONFIG_END
 #define SIZE 32
 #define ROW_LENGTH 1024
 
+#ifdef HAVE_MPROTECT
 static const char *vs_source =
 	"#version 130\n"
 	"in vec4 piglit_vertex;\n"
@@ -46,6 +47,7 @@ static const char *fs_source =
 	"{\n"
 	"	gl_FragColor = texture(tex, gl_FragCoord.xy / 32.0);\n"
 	"}\n";
+#endif
 
 static GLuint fbo, tex, prog;
 static GLubyte *data;
