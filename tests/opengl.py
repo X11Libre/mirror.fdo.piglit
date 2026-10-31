@@ -3206,6 +3206,8 @@ with profile.test_list.group_manager(
       'ssbo-rebind-between-draws')
     g(['ext_mesh_shader-ubo-invalidate-between-draws'],
       'ubo-invalidate-between-draws')
+    g(['ext_mesh_shader-continue-after-resolve'],
+      'continue-after-resolve')
 
 with profile.test_list.group_manager(
         PiglitGLTest,

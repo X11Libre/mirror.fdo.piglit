@@ -15,5 +15,6 @@ set(depends common.c)
 piglit_add_executable (ext_mesh_shader-ubo-rebind-between-draws ubo-rebind-between-draws.c ${depends})
 piglit_add_executable (ext_mesh_shader-ssbo-rebind-between-draws ssbo-rebind-between-draws.c ${depends})
 piglit_add_executable (ext_mesh_shader-ubo-invalidate-between-draws ubo-invalidate-between-draws.c ${depends})
+piglit_add_executable (ext_mesh_shader-continue-after-resolve continue-after-resolve.c ${depends})
 
 # vim: ft=cmake:
