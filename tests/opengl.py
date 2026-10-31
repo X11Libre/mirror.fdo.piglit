@@ -628,6 +628,11 @@ with profile.test_list.group_manager(
     g(['rasterpos'])
     g(['depth-clear-precision-check'])
     g(['depth-clear-with-copy'])
+    for _name in ('continue-draw', 'continue-draw-indirect',
+                  'continue-draw-list', 'continue-draw-query',
+                  'continue-draw-multi', 'continue-clear',
+                  'continue-depth-resolve', 'resolve-twice'):
+        g(['tc-renderpass-info', _name], 'tc-renderpass-info-' + _name)
 
 with profile.test_list.group_manager(
         PiglitGLTest,
