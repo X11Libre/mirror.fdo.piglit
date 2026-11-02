@@ -196,6 +196,21 @@ piglit_init(int argc, char **argv)
 	test_pattern->compile();
 
 	compile_shader();
+
+	/* The reference image is filtered manually in this test's fragment
+	 * shader, computing the bilinear weights with fract()/mix() in
+	 * float precision, while hardware samplers used by glBlitFramebuffer
+	 * may use fixed-point sub-texel weights (e.g. 8 bits on V3D). And GL
+	 * spec doesn't seem to require a minimum sub-texel precision. So at
+	 * the end combining the errors could make the test fail for some
+	 * hardware, like V3D.
+	 *
+	 * Slightly increasing the tolerance from 3.0/256 to 3.5/256 fixes it
+	 * for V3D.
+	 */
+	for (int i = 0; i < 4; i++)
+		piglit_tolerance[i] = 3.5 / 255.0;
+
 	if (!piglit_check_gl_error(GL_NO_ERROR)) {
 		piglit_report_result(PIGLIT_FAIL);
 	}
