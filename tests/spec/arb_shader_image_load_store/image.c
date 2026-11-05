@@ -376,16 +376,28 @@ image_targets(void)
         static struct image_target_info supported[ARRAY_SIZE(known)];
 
         if (!supported[0].name) {
+                const bool has_ms = piglit_get_gl_version() >= 32 ||
+                        piglit_is_extension_supported("GL_ARB_texture_multisample");
+                const bool has_cube_array = piglit_get_gl_version() >= 40 ||
+                        piglit_is_extension_supported("GL_ARB_texture_cube_map_array");
                 int max_samples = 0, i, n = 0;
 
                 glGetIntegerv(GL_MAX_IMAGE_SAMPLES, &max_samples);
 
                 for (i = 0; i < ARRAY_SIZE(known); ++i) {
-                        if ((known[i].target != GL_TEXTURE_2D_MULTISAMPLE &&
-                             known[i].target != GL_TEXTURE_2D_MULTISAMPLE_ARRAY) ||
-                            max_samples > 1) {
-                                supported[n++] = known[i];
+                        switch (known[i].target) {
+                        case GL_TEXTURE_2D_MULTISAMPLE:
+                        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+                                if (!has_ms || max_samples <= 1)
+                                        continue;
+                                break;
+                        case GL_TEXTURE_CUBE_MAP_ARRAY:
+                                if (!has_cube_array)
+                                        continue;
+                                break;
                         }
+
+                        supported[n++] = known[i];
                 }
         }
 

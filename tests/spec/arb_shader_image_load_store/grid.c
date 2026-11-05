@@ -90,16 +90,23 @@ image_hunk(const struct image_info img, const char *prefix)
 static char *
 header_hunk(const struct grid_info grid)
 {
+        /* Geometry and tessellation shaders need GLSL 1.50, but
+         * otherwise stick to 1.40 so that GL 3.1 contexts work.
+         */
+        const int glsl_version =
+                grid.stages & (GL_GEOMETRY_SHADER_BIT |
+                               GL_TESS_CONTROL_SHADER_BIT |
+                               GL_TESS_EVALUATION_SHADER_BIT) ? 150 : 140;
         char *s = NULL;
 
-        (void)!asprintf(&s, "#version 150\n"
+        (void)!asprintf(&s, "#version %d\n"
                  "#extension GL_ARB_shader_image_load_store : enable\n"
                  "#define W %d\n"
                  "#define H %d\n"
                  "#define N %d\n"
                  "#define GRID_T %s\n"
                  "#define RET_IMAGE_UNIFORM_T layout(%s) uniform %s2D\n",
-                 grid.size.x, grid.size.y, product(grid.size),
+                 glsl_version, grid.size.x, grid.size.y, product(grid.size),
                  image_vector_type_name(grid.format),
                  grid.format->name, image_type_name(grid.format));
         return s;
