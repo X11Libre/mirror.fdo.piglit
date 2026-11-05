@@ -55,7 +55,7 @@
 
 PIGLIT_GL_TEST_CONFIG_BEGIN
 
-config.supports_gl_core_version = 32;
+config.supports_gl_core_version = 31;
 
 config.window_width = L;
 config.window_height = L;
@@ -746,8 +746,8 @@ run_test_fb_raw(const struct image_barrier_info *bar, unsigned l)
 
         /* Bind the image as color attachment of the read framebuffer
          * simultaneously. */
-        glFramebufferTexture(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                             get_texture(1), 0);
+        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D, get_texture(1), 0);
 
         /* First pass: render green to the image. */
         draw_grid(grid, prog);
@@ -794,8 +794,8 @@ run_test_fb_waw(const struct image_barrier_info *bar, unsigned l)
 
         /* Bind the image as color attachment of the framebuffer
          * simultaneously. */
-        glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                             get_texture(1), 0);
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D, get_texture(1), 0);
 
         /* First pass: render red to the image. */
         ret &= draw_grid(grid, prog) &&
