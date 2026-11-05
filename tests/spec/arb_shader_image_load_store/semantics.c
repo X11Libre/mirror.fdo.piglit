@@ -360,7 +360,6 @@ piglit_init(int argc, char **argv)
         unsigned m = 0;
 
         piglit_require_extension("GL_ARB_shader_image_load_store");
-        piglit_require_extension("GL_ARB_texture_cube_map_array");
 
         for (op = image_ops; op->name; ++op) {
                 for (stage = image_stages(); stage->name; ++stage) {
