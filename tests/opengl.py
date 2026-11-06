@@ -3021,6 +3021,11 @@ with profile.test_list.group_manager(
     g(['ext_framebuffer_multisample-fast-clear'], 'fast-clear')
 
     for sample_count in MSAA_SAMPLE_COUNTS:
+        g(['ext_framebuffer_multisample-depth-blit-after-fast-clear',
+           sample_count],
+          'depth-blit-after-fast-clear {}'.format(sample_count))
+
+    for sample_count in MSAA_SAMPLE_COUNTS:
         g(['ext_framebuffer_multisample-alpha-blending-after-rendering',
            sample_count],
           'alpha-blending-after-rendering {}'.format(sample_count))
