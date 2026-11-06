@@ -3881,6 +3881,8 @@ with profile.test_list.group_manager(
           'primgen-clear {0}'.format(mode))
     g(['ext_transform_feedback-pipeline-basic-primgen'],
       'pipeline-basic-primgen')
+    g(['ext_transform_feedback-render-to-texture-with-xfb-varyings'],
+      'render-to-texture-with-xfb-varyings')
     g(['ext_transform_feedback-position', 'render'],
       'position-render-bufferbase')
     g(['ext_transform_feedback-position', 'render', 'discard'],
