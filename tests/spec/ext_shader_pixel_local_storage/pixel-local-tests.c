@@ -615,8 +615,21 @@ _run_blend_dither_test(bool blend, bool dither)
 		"{\n"
 		"	outp.pls_color = uColor;\n"
 		"}\n";
+	char fsfinal[] =
+		"#version 300 es\n"
+		"#extension GL_EXT_shader_pixel_local_storage : require\n"
+		"precision mediump float;\n"
+		"__pixel_localEXT mydata {\n"
+		"	layout(rgba8) vec4 pls_color;\n"
+		"} outp;\n"
+		"out vec4 final_output;\n"
+		"void main()\n"
+		"{\n"
+		"	final_output = outp.pls_color;\n"
+		"}\n";
 
 	GLint prog = build_program_with_basic_vs(fs);
+	GLint progfinal = build_program_with_basic_vs(fsfinal);
 	glUseProgram(prog);
 
 	enum piglit_result res = PIGLIT_PASS;
@@ -661,15 +674,25 @@ _run_blend_dither_test(bool blend, bool dither)
 		glClearColor(0.0, 0.0, 0.0, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		glUseProgram(prog);
 		GLuint uColor1 = glGetUniformLocation(prog, "uColor");
 		glUniform4f(uColor1, 0.3, 0.3, 0.3, 1.0);
 		piglit_draw_rect(-1.0, -1.0, 0.33, 2.0);
+		piglit_draw_rect(pos[0], pos[1], pos[2], pos[3]);
 
 		if (blend)
 			do_blend(pos, src, dst, con, GL_CONSTANT_COLOR,
 				 GL_ONE_MINUS_CONSTANT_COLOR, uColor1, enabled);
 		if (dither)
 			do_dither(pos, src, dst, uColor1, enabled);
+
+		if (blend || dither || enabled) {
+			glUseProgram(progfinal);
+			piglit_draw_rect(pos[0], pos[1], pos[2], pos[3]);
+		} else {
+			glClearColor(0.3, 0.3, 0.3, 1.0);
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
 
 		if (enabled)
 			piglit_read_pixels_float(piglit_width * 3 / 12, 0,
@@ -698,6 +721,15 @@ run_blend_dither_test(void *_data)
 	piglit_merge_result(&res, _run_blend_dither_test(false, true));
 	piglit_merge_result(&res, _run_blend_dither_test(true, true));
 	return res;
+}
+
+/*
+ * sanity check is just the dither test without either dither or blend
+ */
+static enum piglit_result
+run_sanity_test(void *_data)
+{
+	return _run_blend_dither_test(false, false);
 }
 
 /* Use the given format data to create a string that assigns a value to a
@@ -1692,6 +1724,12 @@ static const struct piglit_subtest subtests[] = {
 		"enable pixel_local_storage when SAMPLE_BUFFERS == 1",
 		"sample_bufs_one",
 		run_multisample_test,
+		&((struct test_data){NULL,}),
+	},
+	{
+		"sanity check output values",
+		"sanity",
+		run_sanity_test,
 		&((struct test_data){NULL,}),
 	},
 	{
