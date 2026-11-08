@@ -692,12 +692,11 @@ end:
 static enum piglit_result
 run_blend_dither_test(void *_data)
 {
-	enum piglit_result res = PIGLIT_PASS;
+	enum piglit_result res = PIGLIT_SKIP; /* default for merge_result */
 
-	res &= _run_blend_dither_test(true, false);
-	res &= _run_blend_dither_test(false, true);
-	res &= _run_blend_dither_test(true, true);
-
+	piglit_merge_result(&res, _run_blend_dither_test(true, false));
+	piglit_merge_result(&res, _run_blend_dither_test(false, true));
+	piglit_merge_result(&res, _run_blend_dither_test(true, true));
 	return res;
 }
 
