@@ -4244,6 +4244,7 @@ with profile.test_list.group_manager(
         PiglitGLTest,
         grouptools.join('spec', 'arb_clear_texture')) as g:
     g(['arb_clear_texture-clear-max-level'])
+    g(['arb_clear_texture-compute-image-store'])
     g(['arb_clear_texture-simple'])
     g(['arb_clear_texture-error'])
     g(['arb_clear_texture-3d'])
