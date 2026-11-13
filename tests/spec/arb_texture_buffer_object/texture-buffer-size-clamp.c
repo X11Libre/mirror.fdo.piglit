@@ -37,6 +37,8 @@ static struct piglit_gl_test_config *piglit_config = NULL;
 
 static enum piglit_result test_buffer(void *param);
 
+static bool image_test_supported = false;
+
 struct test_parameter
 {
 	int32_t texel_byte_size;
@@ -148,7 +150,7 @@ static enum piglit_result
 test_image_buffer_internal(struct test_parameter *parameters,
 			   GLsizeiptr texel_count)
 {
-	if (!piglit_is_extension_supported("GL_ARB_compute_shader")) {
+	if (!image_test_supported) {
 		return PIGLIT_SKIP;
 	}
 
@@ -282,7 +284,11 @@ piglit_init(int argc, char **argv)
 	bool es;
 	int major, minor;
 	piglit_get_glsl_version(&es, &major, &minor);
-	if (piglit_is_extension_supported("GL_ARB_compute_shader") && major * 100 + minor >= 420) {
+	image_test_supported =
+		piglit_is_extension_supported("GL_ARB_compute_shader") &&
+		!es && major * 100 + minor >= 420;
+
+	if (image_test_supported) {
 		GLuint shader =
 			piglit_compile_shader_text(GL_COMPUTE_SHADER, comp);
 
