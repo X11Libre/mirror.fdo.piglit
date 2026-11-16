@@ -137,6 +137,9 @@ select_physical_device(VkInstance inst)
 	     vkEnumeratePhysicalDevices(inst, &dev_count, 0)) != VK_SUCCESS)
 		return VK_NULL_HANDLE;
 
+	if (dev_count == 0)
+		return VK_NULL_HANDLE;
+
 	pdevices = malloc(dev_count * sizeof(VkPhysicalDevice));
 	if (vkEnumeratePhysicalDevices(inst, &dev_count, pdevices) !=
 	    VK_SUCCESS)
