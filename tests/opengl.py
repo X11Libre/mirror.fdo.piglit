@@ -649,6 +649,7 @@ with profile.test_list.group_manager(
     g(['gl-1.1-draw-arrays-start'])
     g(['gl-1.1-read-pixels-after-display-list'])
     g(['gl-1.1-set-vertex-color-after-draw'])
+    g(['array-element-after-draw'])
     g(['array-stride'])
     g(['clear-accum'], run_concurrent=False)
     g(['clipflat'])
