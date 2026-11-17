@@ -1,0 +1,68 @@
+# Copyright © 2026 Raspberry Pi Ltd
+# SPDX-License-Identifier: MIT
+#
+# Select between two texture results with a non-uniform condition, and
+# keep one of the phi sources live after the merge, so the copy into the
+# phi register can't be coalesced with that source.  If the backend
+# doesn't scalarize the phi (by default nir_lower_phis_to_scalar keeps a
+# phi whose sources are all texture results as a vector), out-of-SSA
+# copies it with a vector move.
+#
+# The vc4 backend used to copy only the first channel of such a move, so
+# .yzw came out wrong.
+#
+# The left half shows t1 and the right half t0.
+
+[require]
+GL ES >= 2.0
+GLSL ES >= 1.00
+SIZE 160 160
+
+[vertex shader]
+attribute vec4 piglit_vertex;
+
+void main()
+{
+	gl_Position = piglit_vertex;
+}
+
+[fragment shader]
+precision mediump float;
+
+uniform sampler2D t0;
+uniform sampler2D t1;
+uniform float split;
+
+void main()
+{
+	vec4 a = texture2D(t0, vec2(0.25, 0.25));
+	vec4 c;
+
+	/* Texture sampling in non-uniform control flow below is fine:
+	 * the texture has a single LOD.
+	 */
+	if (gl_FragCoord.x < split)
+		c = texture2D(t1, vec2(0.25, 0.25));
+	else
+		c = a;
+
+	/* Never true, but keeps a live after the if. */
+	c = gl_FragCoord.y < 0.0 ? a : c;
+
+	gl_FragColor = c;
+}
+
+[test]
+# The bottom-left square of each texture holds the first color.
+texture checkerboard 0 0 (2, 2) (0.2, 0.4, 0.6, 0.8) (1.0, 1.0, 1.0, 1.0)
+texture checkerboard 1 0 (2, 2) (0.8, 0.6, 0.4, 0.2) (1.0, 1.0, 1.0, 1.0)
+uniform int t0 0
+uniform int t1 1
+# Half of the window width.
+uniform float split 80.0
+
+clear color 0.0 0.0 0.0 0.0
+clear
+draw rect -1 -1 2 2
+relative probe rect rgba (0.0, 0.0, 0.5, 1.0) (0.8, 0.6, 0.4, 0.2)
+relative probe rect rgba (0.5, 0.0, 0.5, 1.0) (0.2, 0.4, 0.6, 0.8)
