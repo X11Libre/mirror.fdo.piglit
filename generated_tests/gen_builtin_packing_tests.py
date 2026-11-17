@@ -574,7 +574,7 @@ full_input_table["packUnorm2x16"] = tuple(float32(x) for x in (
     -0.0,  # infintesimally below the inner clamp boundary
     +0.0,  # the inner clamp boundary
     +0.1,  # slightly above the inner clamp boundary
-    +0.9,  # slightly below the outer clamp boundary
+    +0.900001, # slightly below the outer clamp boundary
     +1.0,  # the outer clamp boundary
     +1.1,  # slightly above the outer clamp boundary
     "+inf"
