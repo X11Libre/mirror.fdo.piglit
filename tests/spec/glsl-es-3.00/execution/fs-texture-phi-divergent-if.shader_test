@@ -1,0 +1,70 @@
+# Copyright © 2026 Raspberry Pi Ltd
+# SPDX-License-Identifier: MIT
+#
+# Select between two texture results with a non-uniform condition.  The
+# texture coordinates are constant, so both texture results are uniform
+# while the phi that merges them is not.  If the backend doesn't
+# scalarize the phi (by default nir_lower_phis_to_scalar keeps a phi
+# whose sources are all texture results as a vector), out-of-SSA copies
+# it with a vector move into the divergent phi register.
+#
+# The v3d backend used to copy only the first channel of such a move, so
+# .yzw came out wrong.  The textures are RGBA32I so that the texture
+# results are 32-bit; with 16-bit results v3d doesn't emit the move.
+#
+# The left half shows texel (1, 2) of t0 and the right half texel (5, 6)
+# of t1, each channel divided by 64.
+
+[require]
+GL ES >= 3.0
+GLSL ES >= 3.00
+SIZE 160 160
+
+[vertex shader]
+#version 300 es
+
+in vec4 piglit_vertex;
+
+void main()
+{
+	gl_Position = piglit_vertex;
+}
+
+[fragment shader]
+#version 300 es
+precision highp float;
+precision highp int;
+precision highp isampler2D;
+
+uniform isampler2D t0;
+uniform isampler2D t1;
+uniform float split;
+
+out vec4 color;
+
+void main()
+{
+	ivec4 c;
+
+	if (gl_FragCoord.x < split)
+		c = texelFetch(t0, ivec2(1, 2), 0);
+	else
+		c = texelFetch(t1, ivec2(5, 6), 0);
+
+	color = vec4(c) / 64.0;
+}
+
+[test]
+# Texel (x, y) holds (x, y, b, a).
+texture integer 0 (8, 8) (10, 20) GL_RGBA32I
+texture integer 1 (8, 8) (30, 40) GL_RGBA32I
+uniform int t0 0
+uniform int t1 1
+# Half of the window width.
+uniform float split 80.0
+
+clear color 0.0 0.0 0.0 0.0
+clear
+draw rect -1 -1 2 2
+relative probe rect rgba (0.0, 0.0, 0.5, 1.0) (0.015625, 0.03125, 0.15625, 0.3125)
+relative probe rect rgba (0.5, 0.0, 0.5, 1.0) (0.078125, 0.09375, 0.46875, 0.625)
