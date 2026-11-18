@@ -186,4 +186,52 @@ piglit_init(int argc, char **argv)
 		usage(argv[0], "RGB");
 		piglit_report_result(PIGLIT_SKIP);
 	}
+
+	/* Without the modifiers extension we can't query the format list.
+	 * The import spec requires EGL_BAD_MATCH for an unsupported fourcc,
+	 * and sample_common.c already skips on that.
+	 */
+	if (!piglit_is_egl_extension_supported(egl_dpy,
+			"EGL_EXT_image_dma_buf_import_modifiers"))
+		return;
+
+	/* Check if format is supported by the driver. */
+	PFNEGLQUERYDMABUFFORMATSEXTPROC query_formats =
+		(PFNEGLQUERYDMABUFFORMATSEXTPROC)
+		eglGetProcAddress("eglQueryDmaBufFormatsEXT");
+
+	if (!query_formats) {
+		fprintf(stderr, "could not find eglQueryDmaBufFormatsEXT\n");
+		piglit_report_result(PIGLIT_FAIL);
+	}
+
+	EGLint num_formats = 0;
+	if (!query_formats(egl_dpy, 0, NULL, &num_formats)) {
+		fprintf(stderr, "eglQueryDmaBufFormatsEXT failed\n");
+		piglit_report_result(PIGLIT_FAIL);
+	}
+
+	EGLint *supported_formats = calloc(num_formats, sizeof(EGLint));
+	if (!query_formats(egl_dpy, num_formats, supported_formats,
+			   &num_formats)) {
+		free(supported_formats);
+		fprintf(stderr, "eglQueryDmaBufFormatsEXT failed\n");
+		piglit_report_result(PIGLIT_FAIL);
+	}
+
+	bool supported = false;
+	for (i = 0; i < num_formats; i++) {
+		if (supported_formats[i] == format->fourcc) {
+			supported = true;
+			break;
+		}
+	}
+	free(supported_formats);
+
+	if (!supported) {
+		fprintf(stderr, "format %.4s not supported by "
+			"eglQueryDmaBufFormatsEXT\n",
+			(const char *)&format->fourcc);
+		piglit_report_result(PIGLIT_SKIP);
+	}
 }
