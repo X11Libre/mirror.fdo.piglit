@@ -15,6 +15,7 @@ if(PIGLIT_BUILD_DMA_BUF_TESTS)
 	)
 
 	piglit_add_executable(ext_image_dma_buf_import-nv12-single-fd nv12-single-fd.c)
+	piglit_add_executable(ext_image_dma_buf_import-sample_p010-csc sample_p010_csc.c p01x_csc_common.c sample_common.c image_common.c)
 endif()
 
 # vim: ft=cmake:
